@@ -44,7 +44,7 @@ def dashboard():
     """User dashboard with document statistics"""
     try:
         recent_documents = Document.query.filter_by(user_id=fake_user.id)\
-            .order_by(Document.uploaded_at.desc())\
+            .order_by(Document.created_at.desc())\
             .limit(5).all()
         
         # Calculate statistics
