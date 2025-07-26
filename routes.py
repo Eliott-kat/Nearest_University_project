@@ -20,6 +20,7 @@ class FakeUser:
         self.last_name = "User"
         self.role = UserRole.STUDENT
         self.is_authenticated = True
+        self.profile_image_url = None
 
 fake_user = FakeUser()
 
@@ -30,8 +31,8 @@ def make_session_permanent():
 
 @app.context_processor
 def inject_user():
-    """Inject current_user into all templates"""
-    return dict(current_user=fake_user)
+    """Inject current_user and user into all templates"""
+    return dict(current_user=fake_user, user=fake_user)
 
 @app.route('/')
 def index():
@@ -261,3 +262,13 @@ def internal_error(error):
 def request_entity_too_large(error):
     flash('File too large. Maximum file size is 16MB.', 'danger')
     return redirect(url_for('upload_document'))
+
+@app.route('/logout')
+def logout():
+    """Route de déconnexion simplifiée pour installation locale"""
+    return redirect(url_for('index'))
+
+@app.route('/login')  
+def login():
+    """Route de connexion simplifiée pour installation locale"""
+    return redirect(url_for('index'))

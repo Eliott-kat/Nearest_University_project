@@ -1,0 +1,56 @@
+werkzeug.routing.exceptions.BuildError
+werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'replit_auth.logout'. Did you mean 'upload_document' instead?
+
+Traceback (most recent call last)
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 1498, in __call__
+return self.wsgi_app(environ, start_response)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\werkzeug\middleware\proxy_fix.py", line 183, in __call__
+return self.app(environ, start_response)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 1476, in wsgi_app
+response = self.handle_exception(e)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 1473, in wsgi_app
+response = self.full_dispatch_request()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 882, in full_dispatch_request
+rv = self.handle_user_exception(e)
+     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 880, in full_dispatch_request
+rv = self.dispatch_request()
+     ^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 865, in dispatch_request
+return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\USER\AcademCheck\routes.py", line 39, in index
+return dashboard()
+       ^^^^^^^^^^^
+File "C:\Users\USER\AcademCheck\routes.py", line 96, in dashboard
+return render_template('dashboard.html',
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\templating.py", line 150, in render_template
+return _render(app, template, context)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\templating.py", line 131, in _render
+rv = template.render(context)
+     ^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\jinja2\environment.py", line 1304, in render
+self.environment.handle_exception()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\jinja2\environment.py", line 939, in handle_exception
+raise rewrite_traceback_stack(source=source)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Users\USER\AcademCheck\templates\dashboard.html", line 1, in top-level template code
+{% extends "base.html" %}
+File "C:\Users\USER\AcademCheck\templates\base.html", line 72, in top-level template code
+<li><a class="dropdown-item" href="{{ url_for('replit_auth.logout') }}">
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 1084, in url_for
+return self.handle_url_build_error(error, endpoint, values)
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+File "C:\Python\Python313\Lib\site-packages\flask\app.py", line 1073, in url_for
+rv = url_adapter.build(  # type: ignore[union-attr]
+     
+File "C:\Python\Python313\Lib\site-packages\werkzeug\routing\map.py", line 924, in build
+raise BuildError(endpoint, values, method, self)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
