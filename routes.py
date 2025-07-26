@@ -169,7 +169,7 @@ def document_history():
     
     try:
         documents = Document.query.filter_by(user_id=fake_user.id)\
-            .order_by(Document.uploaded_at.desc())\
+            .order_by(Document.created_at.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
             
         return render_template('history.html', 
