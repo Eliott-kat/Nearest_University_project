@@ -248,38 +248,63 @@ class CopyleaksService:
     def _create_demo_analysis(self, document: Document):
         """Create demo analysis results for testing when API is not available"""
         try:
+            # Check if analysis already exists for this document
+            existing_analysis = AnalysisResult.query.filter_by(document_id=document.id).first()
+            if existing_analysis:
+                logging.info(f"Demo analysis already exists for document {document.id}")
+                return
+            
             # Update document status
             document.status = DocumentStatus.PROCESSING
             db.session.commit()
             
-            # Create mock analysis result with realistic scores
-            import random
+            # Create deterministic scores based on document content
+            import hashlib
+            text_hash = hashlib.md5((document.extracted_text or "").encode()).hexdigest()
+            
+            # Use hash to generate consistent scores for same document
+            hash_int = int(text_hash[:8], 16)  # First 8 chars as hex to int
+            
             analysis_result = AnalysisResult()
             analysis_result.document_id = document.id
-            analysis_result.plagiarism_score = random.uniform(5.0, 25.0)  # Demo plagiarism score
+            
+            # Generate consistent plagiarism score (5-25% range)
+            analysis_result.plagiarism_score = 5.0 + (hash_int % 2000) / 100.0  # 5-25%
             analysis_result.total_words = len((document.extracted_text or "").split())
             analysis_result.identical_words = int(analysis_result.total_words * (analysis_result.plagiarism_score / 100))
-            analysis_result.minor_changes_words = random.randint(0, 10)
-            analysis_result.related_meaning_words = random.randint(0, 5)
-            analysis_result.ai_score = random.uniform(10.0, 40.0)  # Demo AI score
+            analysis_result.minor_changes_words = (hash_int % 8) + 2  # 2-9 consistent
+            analysis_result.related_meaning_words = (hash_int % 4) + 1  # 1-4 consistent
+            
+            # Generate consistent AI score (10-40% range)
+            analysis_result.ai_score = 10.0 + ((hash_int >> 8) % 3000) / 100.0  # 10-40%
             analysis_result.ai_words = int(analysis_result.total_words * (analysis_result.ai_score / 100))
             analysis_result.raw_results = {"demo": True, "message": "Demo analysis - configure Copyleaks API for real analysis"}
             
             db.session.add(analysis_result)
             
-            # Create some demo highlighted sentences
+            # Create some demo highlighted sentences (deterministic based on content)
             text = document.extracted_text or ""
             sentences = text.split('.')  # Split by sentences instead of words
             
+            # Clear existing highlighted sentences for this document
+            HighlightedSentence.query.filter_by(document_id=document.id).delete()
+            
             if len(sentences) > 2:
-                # Add a few plagiarism sentences
-                for i in range(min(2, len(sentences) // 2)):
-                    if i < len(sentences) - 1:
-                        sentence_text = sentences[i].strip() + '.'
-                        if len(sentence_text) > 10:  # Only add meaningful sentences
+                # Use hash to determine which sentences to highlight consistently
+                hash_bytes = bytes.fromhex(text_hash[:16])  # First 16 chars of hash
+                 
+                # Add plagiarism sentences (deterministic selection)
+                plag_count = min(2, len(sentences) // 2)
+                for i in range(plag_count):
+                    # Use hash to select sentence index consistently
+                    sentence_idx = hash_bytes[i % len(hash_bytes)] % (len(sentences) - 1)
+                    
+                    if sentence_idx < len(sentences) - 1:
+                        sentence_text = sentences[sentence_idx].strip() + '.'
+                        if len(sentence_text) > 10:  # Only meaningful sentences
                             
                             # Calculate positions based on full text
-                            text_before = '. '.join(sentences[:i])
+                            text_before = '. '.join(sentences[:sentence_idx])
                             if text_before:
                                 start_pos = len(text_before) + 2  # +2 for '. '
                             else:
@@ -292,17 +317,21 @@ class CopyleaksService:
                             sentence.start_position = start_pos
                             sentence.end_position = end_pos
                             sentence.is_plagiarism = True
-                            sentence.plagiarism_confidence = random.uniform(60.0, 95.0)
+                            # Consistent confidence based on hash
+                            sentence.plagiarism_confidence = 60.0 + ((hash_bytes[i] % 35))  # 60-95%
                             sentence.source_url = "https://example.com/demo-source"
                             sentence.source_title = "Demo Source Document"
                             db.session.add(sentence)
                 
-                # Add a few AI-generated sentences  
-                for i in range(min(1, len(sentences) // 3)):
-                    ai_idx = random.randint(0, len(sentences) - 2)
+                # Add AI sentences (deterministic selection)
+                ai_count = min(1, len(sentences) // 3)
+                for i in range(ai_count):
+                    # Use different part of hash for AI selection
+                    ai_idx = hash_bytes[(i + 4) % len(hash_bytes)] % (len(sentences) - 1)
+                    
                     if ai_idx < len(sentences) - 1:
                         sentence_text = sentences[ai_idx].strip() + '.'
-                        if len(sentence_text) > 10:  # Only add meaningful sentences
+                        if len(sentence_text) > 10:  # Only meaningful sentences
                             
                             # Calculate positions based on full text
                             text_before = '. '.join(sentences[:ai_idx])
@@ -318,7 +347,8 @@ class CopyleaksService:
                             sentence.start_position = start_pos
                             sentence.end_position = end_pos
                             sentence.is_ai_generated = True
-                            sentence.ai_confidence = random.uniform(70.0, 90.0)
+                            # Consistent confidence based on hash
+                            sentence.ai_confidence = 70.0 + ((hash_bytes[(i + 4)] % 20))  # 70-90%
                             db.session.add(sentence)
             
             # Mark as completed
