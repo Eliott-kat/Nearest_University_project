@@ -13,7 +13,8 @@ else:
     print("! Fichier .env non trouvé, utilisation des valeurs par défaut")
 
 # Configuration par défaut pour installation locale
-os.environ.setdefault('DATABASE_URL', 'sqlite:///acadcheck.db')
+# Forcer SQLite pour éviter les problèmes de connexion PostgreSQL
+os.environ['DATABASE_URL'] = 'sqlite:///acadcheck.db'
 os.environ.setdefault('SESSION_SECRET', 'ma-cle-secrete-super-longue-pour-acadcheck-2025')
 
 # Vérifier si les clés Copyleaks sont configurées
