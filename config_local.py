@@ -1,17 +1,30 @@
-"""
-Configuration locale pour AcadCheck
-Copiez ce fichier et renommez-le en config.py pour votre installation locale
-"""
 import os
+from dotenv import load_dotenv
 
-# Variables d'environnement pour installation locale
-def setup_local_environment():
-    """Configure les variables d'environnement pour l'installation locale"""
-    os.environ.setdefault('DATABASE_URL', 'sqlite:///acadcheck.db')
-    os.environ.setdefault('SESSION_SECRET', 'ma-cle-secrete-super-longue-pour-acadcheck-2025')
-    os.environ.setdefault('COPYLEAKS_EMAIL', 'votre-email@copyleaks.com')
-    os.environ.setdefault('COPYLEAKS_API_KEY', 'votre-cle-api-copyleaks')
-    os.environ.setdefault('REPL_ID', 'acadcheck-local')
+# Charger le fichier .env
+load_dotenv()
 
-# Appeler automatiquement au import
-setup_local_environment()
+class Config:
+    """Configuration locale pour AcadCheck"""
+    
+    # Base de données SQLite locale (plus simple)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL', 'sqlite:///acadcheck.db')
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        'pool_pre_ping': True,
+        'pool_recycle': 300,
+    }
+    
+    # Sécurité
+    SECRET_KEY = os.environ.get('SESSION_SECRET', 'dev-secret-key-change-in-production')
+    
+    # Configuration Copyleaks
+    COPYLEAKS_EMAIL = os.environ.get('COPYLEAKS_EMAIL')
+    COPYLEAKS_API_KEY = os.environ.get('COPYLEAKS_API_KEY')
+    
+    # URL de base pour les webhooks
+    BASE_URL = os.environ.get('NGROK_URL', 'http://localhost:5000')
+    
+    # Configuration de upload
+    UPLOAD_FOLDER = 'uploads'
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max file size
