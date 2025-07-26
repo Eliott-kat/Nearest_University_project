@@ -202,14 +202,30 @@ def view_report(document_id):
             return redirect(url_for('document_history'))
         
         # Get highlighted sentences
-        highlighted_sentences = HighlightedSentence.query.filter_by(
-            document_id=document.id
+        plagiarism_sentences = HighlightedSentence.query.filter_by(
+            document_id=document.id,
+            is_plagiarism=True
         ).order_by(HighlightedSentence.start_position).all()
+        
+        ai_sentences = HighlightedSentence.query.filter_by(
+            document_id=document.id,
+            is_ai_generated=True
+        ).order_by(HighlightedSentence.start_position).all()
+        
+        # Generate highlighted text using report generator
+        from report_generator import report_generator
+        highlighted_text = report_generator._generate_highlighted_text(
+            document.extracted_text or "",
+            plagiarism_sentences,
+            ai_sentences
+        )
         
         return render_template('report.html',
                              document=document,
                              analysis_result=analysis_result,
-                             highlighted_sentences=highlighted_sentences,
+                             highlighted_text=highlighted_text,
+                             plagiarism_sentences=plagiarism_sentences,
+                             ai_sentences=ai_sentences,
                              user=fake_user)
                              
     except Exception as e:
