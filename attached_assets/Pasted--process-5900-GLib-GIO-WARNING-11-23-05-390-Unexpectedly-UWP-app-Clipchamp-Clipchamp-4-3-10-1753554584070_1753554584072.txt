@@ -1,0 +1,24 @@
+(process:5900): GLib-GIO-WARNING **: 11:23:05.390: Unexpectedly, UWP app `Clipchamp.Clipchamp_4.3.10120.0_x64__yxz26nhyzhsrt' (AUMId `Clipchamp.Clipchamp_yxz26nhyzhsrt!App') supports 41 extensions but has no verbs
+INFO:root:Database tables created
+🚀 Lancement d'AcadCheck...
+📍 Application disponible sur: http://localhost:5000
+🌐 URL publique (ngrok): https://696599f7db53.ngrok-free.app
+Routes disponibles: 9 routes
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 481-531-131
+
+(process:7896): GLib-GIO-WARNING **: 11:23:07.429: Unexpectedly, UWP app `Microsoft.OutlookForWindows_1.2025.117.600_x64__8wekyb3d8bbwe' (AUMId `Microsoft.OutlookForWindows_8wekyb3d8bbwe!Microsoft.OutlookforWindows') supports 4 extensions but has no verbs
+
+(process:7896): GLib-GIO-WARNING **: 11:23:07.792: Unexpectedly, UWP app `Microsoft.ScreenSketch_11.2505.21.0_x64__8wekyb3d8bbwe' (AUMId `Microsoft.ScreenSketch_8wekyb3d8bbwe!App') supports 29 extensions but has no verbs
+
+(process:7896): GLib-GIO-WARNING **: 11:23:07.807: Unexpectedly, UWP app `Clipchamp.Clipchamp_4.3.10120.0_x64__yxz26nhyzhsrt' (AUMId `Clipchamp.Clipchamp_yxz26nhyzhsrt!App') supports 41 extensions but has no verbs
+INFO:werkzeug:127.0.0.1 - - [26/Jul/2025 11:23:37] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [26/Jul/2025 11:23:37] "GET /static/js/main.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [26/Jul/2025 11:23:37] "GET /static/css/style.css HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [26/Jul/2025 11:23:42] "GET /upload HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [26/Jul/2025 11:23:42] "GET /static/css/style.css HTTP/1.1" 304 -
+INFO:werkzeug:127.0.0.1 - - [26/Jul/2025 11:23:42] "GET /static/js/main.js HTTP/1.1" 304 -
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): id.copyleaks.com:443
+DEBUG:urllib3.connectionpool:https://id.copyleaks.com:443 "POST /v3/account/login HTTP/1.1" 500 0
+ERROR:root:Failed to authenticate with Copyleaks API: 500 Server Error: Internal Server Error for url: https://id.copyleaks.com/v3/account/login
+WARNING:root:Could not authenticate with Copyleaks, creating demo analysis

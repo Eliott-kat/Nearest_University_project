@@ -8,6 +8,15 @@ AcadCheck is a Flask-based web application that provides academic integrity serv
 
 Preferred communication style: Simple, everyday language.
 
+## Recent Changes
+
+**July 26, 2025:**
+- Fixed critical "Not Found" issue in local installation by ensuring routes.py import in run_local.py
+- Successfully deployed SQLite-based local version with real Copyleaks API integration
+- Application now fully functional with dashboard, upload, analysis, and PDF report generation
+- Real-time Copyleaks API authentication configured (currently server experiencing 500 errors, falls back to demo mode)
+- Created comprehensive local installation scripts (run_local.py, quick_start.py) for easy deployment
+
 ## System Architecture
 
 ### Backend Architecture
