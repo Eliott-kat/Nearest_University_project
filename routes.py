@@ -23,10 +23,15 @@ class FakeUser:
 
 fake_user = FakeUser()
 
-# Make session permanent
+# Make session permanent and inject current_user for templates
 @app.before_request
 def make_session_permanent():
     session.permanent = True
+
+@app.context_processor
+def inject_user():
+    """Inject current_user into all templates"""
+    return dict(current_user=fake_user)
 
 @app.route('/')
 def index():
