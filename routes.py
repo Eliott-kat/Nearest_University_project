@@ -143,9 +143,13 @@ def upload_document():
             db.session.add(document)
             db.session.commit()
             
-            # Submit to Copyleaks for analysis (will use demo mode)
+            # Submit to Copyleaks for analysis (will use demo mode if API unavailable)
             if copyleaks_service.submit_document(document):
-                flash('Document uploaded successfully and submitted for analysis!', 'success')
+                # Check if we're using demo mode due to API issues
+                if not copyleaks_service.email or not copyleaks_service.api_key or not copyleaks_service.token:
+                    flash('Document uploaded! L\'API Copyleaks est temporairement indisponible - analyse en mode démonstration.', 'info')
+                else:
+                    flash('Document uploaded successfully and submitted for analysis!', 'success')
                 return redirect(url_for('document_history'))
             else:
                 flash('Document uploaded but failed to submit for analysis. Please try again.', 'warning')

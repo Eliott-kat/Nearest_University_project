@@ -52,7 +52,13 @@ class CopyleaksService:
                 return False
                 
         except requests.RequestException as e:
-            logging.error(f"Failed to authenticate with Copyleaks API: {e}")
+            if hasattr(e, 'response') and e.response is not None:
+                if e.response.status_code == 500:
+                    logging.warning(f"Copyleaks server error (500) - service temporairement indisponible. Utilisation du mode démonstration.")
+                else:
+                    logging.error(f"Erreur API Copyleaks: {e.response.status_code} - {e}")
+            else:
+                logging.error(f"Erreur de connexion Copyleaks: {e}")
             return False
     
     def submit_document(self, document: Document) -> bool:
