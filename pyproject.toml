@@ -20,4 +20,5 @@ dependencies = [
     "docx>=0.2.4",
     "sqlalchemy>=2.0.41",
     "pypdf2>=3.0.1",
+    "python-dotenv>=1.1.1",
 ]

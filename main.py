@@ -1,8 +1,13 @@
-# Import configuration for local development
+# Load environment variables from .env file for local development
 try:
-    import config_local  # Setup environment variables for local installation
+    from dotenv import load_dotenv
+    load_dotenv()  # Load .env file if it exists
 except ImportError:
-    pass  # config_local.py not found, continue with environment variables
+    # python-dotenv not installed, try config_local fallback
+    try:
+        import config_local
+    except ImportError:
+        pass  # No configuration file found, use environment variables
 
 from app import app
 import routes  # noqa: F401
