@@ -34,11 +34,15 @@ print("✓ Dossiers créés")
 # Lancer l'application
 if __name__ == "__main__":
     from app import app
+    import routes  # IMPORTANT: Import routes to register them
     
     print("🚀 Lancement d'AcadCheck...")
     print("📍 Application disponible sur: http://localhost:5000")
     
     if os.environ.get('NGROK_URL'):
         print(f"🌐 URL publique (ngrok): {os.environ.get('NGROK_URL')}")
+    
+    # Vérifier que les routes sont bien enregistrées
+    print(f"Routes disponibles: {len(list(app.url_map.iter_rules()))} routes")
     
     app.run(host="0.0.0.0", port=5000, debug=True)
