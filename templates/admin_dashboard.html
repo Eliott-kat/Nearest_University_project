@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - AcadCheck{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 fw-bold">Admin Dashboard</h1>
+                    <p class="text-muted">System overview and management</p>
+                </div>
+                <div>
+                    <span class="badge bg-danger fs-6">
+                        <i class="fas fa-shield-alt me-2"></i>Administrator
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-primary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-users fa-lg"></i>
+                    </div>
+                    <h3 class="h4 fw-bold text-primary">{{ stats.total_users }}</h3>
+                    <p class="text-muted mb-0">Active Users</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-info text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-file-alt fa-lg"></i>
+                    </div>
+                    <h3 class="h4 fw-bold text-info">{{ stats.total_documents }}</h3>
+                    <p class="text-muted mb-0">Total Documents</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-check-circle fa-lg"></i>
+                    </div>
+                    <h3 class="h4 fw-bold text-success">{{ stats.completed_analyses }}</h3>
+                    <p class="text-muted mb-0">Analyses Completed</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3 col-md-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <div class="feature-icon bg-warning text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                        <i class="fas fa-percentage fa-lg"></i>
+                    </div>
+                    <h3 class="h4 fw-bold text-warning">
+                        {% if stats.total_documents > 0 %}
+                            {{ "%.1f"|format((stats.completed_analyses / stats.total_documents) * 100) }}%
+                        {% else %}
+                            0%
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Completion Rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Documents -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-folder me-2 text-primary"></i>Recent Documents
+                    </h5>
+                </div>
+                
+                <div class="card-body p-0">
+                    {% if documents %}
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="border-0 py-3">Document</th>
+                                        <th class="border-0 py-3">User</th>
+                                        <th class="border-0 py-3">Status</th>
+                                        <th class="border-0 py-3">Plagiarism</th>
+                                        <th class="border-0 py-3">AI Detection</th>
+                                        <th class="border-0 py-3">Uploaded</th>
+                                        <th class="border-0 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for doc in documents %}
+                                    <tr>
+                                        <td class="py-3">
+                                            <div class="d-flex align-items-center">
+                                                <div class="file-icon me-3">
+                                                    {% if doc.content_type == 'application/pdf' %}
+                                                        <i class="fas fa-file-pdf text-danger fa-lg"></i>
+                                                    {% elif 'word' in doc.content_type or doc.original_filename.endswith('.docx') %}
+                                                        <i class="fas fa-file-word text-primary fa-lg"></i>
+                                                    {% else %}
+                                                        <i class="fas fa-file-alt text-secondary fa-lg"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-medium">{{ doc.original_filename }}</div>
+                                                    <small class="text-muted">{{ "%.1f"|format(doc.file_size / 1024) }} KB</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            <div>
+                                                <div class="fw-medium">{{ doc.user.first_name or 'Unknown' }} {{ doc.user.last_name or '' }}</div>
+                                                <small class="text-muted">{{ doc.user.email or 'No email' }}</small>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            {% if doc.status.value == 'completed' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check me-1"></i>Completed
+                                                </span>
+                                            {% elif doc.status.value == 'processing' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Processing
+                                                </span>
+                                            {% elif doc.status.value == 'failed' %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times me-1"></i>Failed
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">
+                                                    <i class="fas fa-upload me-1"></i>Uploaded
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3">
+                                            {% if doc.analysis_result and doc.analysis_result.plagiarism_score is not none %}
+                                                {% set score = doc.analysis_result.plagiarism_score %}
+                                                <span class="fw-bold {% if score >= 30 %}text-danger{% elif score >= 15 %}text-warning{% else %}text-success{% endif %}">
+                                                    {{ "%.1f"|format(score) }}%
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3">
+                                            {% if doc.analysis_result and doc.analysis_result.ai_score is not none %}
+                                                {% set ai_score = doc.analysis_result.ai_score %}
+                                                <span class="fw-bold {% if ai_score >= 30 %}text-danger{% elif ai_score >= 15 %}text-warning{% else %}text-success{% endif %}">
+                                                    {{ "%.1f"|format(ai_score) }}%
+                                                </span>
+                                            {% else %}
+                                                <span class="text-muted">-</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="py-3">
+                                            <div>
+                                                <div class="small">{{ doc.created_at.strftime('%b %d, %Y') }}</div>
+                                                <small class="text-muted">{{ doc.created_at.strftime('%I:%M %p') }}</small>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            {% if doc.status.value == 'completed' %}
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <a href="{{ url_for('view_report', document_id=doc.id) }}" 
+                                                       class="btn btn-outline-primary" 
+                                                       title="View Report">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <a href="{{ url_for('download_report', document_id=doc.id) }}" 
+                                                       class="btn btn-outline-success" 
+                                                       title="Download PDF">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                </div>
+                                            {% elif doc.status.value == 'processing' %}
+                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                                                    <span class="visually-hidden">Processing...</span>
+                                                </div>
+                                            {% else %}
+                                                <span class="text-muted small">No actions</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No documents found</h5>
+                            <p class="text-muted">No documents have been uploaded to the system yet.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Information -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 bg-light">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3">
+                        <i class="fas fa-info-circle me-2"></i>System Information
+                    </h6>
+                    
+                    <div class="row g-4 text-center">
+                        <div class="col-md-3">
+                            <div class="fw-bold text-primary">AcadCheck v1.0</div>
+                            <div class="text-muted small">Platform Version</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold text-success">Copyleaks API</div>
+                            <div class="text-muted small">Detection Engine</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold text-info">99%+ Accuracy</div>
+                            <div class="text-muted small">AI Detection</div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="fw-bold text-warning">Multi-Language</div>
+                            <div class="text-muted small">Support</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

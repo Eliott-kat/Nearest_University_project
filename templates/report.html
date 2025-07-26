@@ -1,0 +1,355 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Report - {{ document.original_filename }} - AcadCheck{% endblock %}
+
+{% block head %}
+<style>
+    .highlight-plagiarism {
+        background-color: #ffebee;
+        border-left: 4px solid #f44336;
+        padding: 2px 4px;
+        margin: 1px 0;
+        border-radius: 2px;
+    }
+    
+    .highlight-ai {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 2px 4px;
+        margin: 1px 0;
+        border-radius: 2px;
+    }
+    
+    .highlight-both {
+        background-color: #fff3e0;
+        border-left: 4px solid #ff9800;
+        padding: 2px 4px;
+        margin: 1px 0;
+        border-radius: 2px;
+    }
+    
+    .score-high { color: #d32f2f; }
+    .score-medium { color: #f57c00; }
+    .score-low { color: #388e3c; }
+    
+    .document-text {
+        line-height: 1.8;
+        font-size: 1.1rem;
+        background-color: #fafafa;
+        border-radius: 0.5rem;
+        padding: 2rem;
+        border: 1px solid #e0e0e0;
+    }
+    
+    .issue-card {
+        border-left: 4px solid;
+        margin-bottom: 1rem;
+    }
+    
+    .issue-card.plagiarism {
+        border-left-color: #f44336;
+    }
+    
+    .issue-card.ai-generated {
+        border-left-color: #2196f3;
+    }
+    
+    .score-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .score-circle.high {
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        border: 3px solid #f44336;
+    }
+    
+    .score-circle.medium {
+        background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+        border: 3px solid #ff9800;
+    }
+    
+    .score-circle.low {
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+        border: 3px solid #4caf50;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h1 class="h2 fw-bold mb-2">
+                        <i class="fas fa-file-alt me-2 text-primary"></i>Analysis Report
+                    </h1>
+                    <h2 class="h4 text-muted mb-1">{{ document.original_filename }}</h2>
+                    <p class="text-muted mb-0">
+                        <i class="fas fa-clock me-1"></i>Analyzed on {{ analysis_result.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                    </p>
+                </div>
+                <div class="text-end">
+                    <a href="{{ url_for('download_report', document_id=document.id) }}" class="btn btn-success me-2">
+                        <i class="fas fa-download me-2"></i>Download PDF
+                    </a>
+                    <a href="{{ url_for('document_history') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Score Summary -->
+    <div class="row g-4 mb-5">
+        <!-- Plagiarism Score -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="fas fa-search-plus me-2 text-danger"></i>Plagiarism Detection
+                    </h5>
+                    
+                    {% set plag_score = analysis_result.plagiarism_score or 0 %}
+                    <div class="score-circle {% if plag_score >= 30 %}high{% elif plag_score >= 15 %}medium{% else %}low{% endif %} mb-4">
+                        <div class="text-center">
+                            <div class="h2 fw-bold mb-0 {% if plag_score >= 30 %}text-danger{% elif plag_score >= 15 %}text-warning{% else %}text-success{% endif %}">
+                                {{ "%.1f"|format(plag_score) }}%
+                            </div>
+                            <small class="text-muted">Similarity</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="border rounded-3 p-2">
+                                <div class="fw-bold text-primary">{{ analysis_result.total_words or 0 }}</div>
+                                <small class="text-muted">Total Words</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded-3 p-2">
+                                <div class="fw-bold text-danger">{{ analysis_result.identical_words or 0 }}</div>
+                                <small class="text-muted">Matched Words</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Detection Score -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center p-4">
+                    <h5 class="fw-bold mb-4">
+                        <i class="fas fa-robot me-2 text-info"></i>AI Content Detection
+                    </h5>
+                    
+                    {% set ai_score = analysis_result.ai_score or 0 %}
+                    <div class="score-circle {% if ai_score >= 30 %}high{% elif ai_score >= 15 %}medium{% else %}low{% endif %} mb-4">
+                        <div class="text-center">
+                            <div class="h2 fw-bold mb-0 {% if ai_score >= 30 %}text-danger{% elif ai_score >= 15 %}text-warning{% else %}text-success{% endif %}">
+                                {{ "%.1f"|format(ai_score) }}%
+                            </div>
+                            <small class="text-muted">AI Generated</small>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 text-center">
+                        <div class="col-6">
+                            <div class="border rounded-3 p-2">
+                                <div class="fw-bold text-primary">{{ analysis_result.total_words or 0 }}</div>
+                                <small class="text-muted">Total Words</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="border rounded-3 p-2">
+                                <div class="fw-bold text-info">{{ analysis_result.ai_words or 0 }}</div>
+                                <small class="text-muted">AI Words</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Analysis -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-highlighter me-2 text-primary"></i>Document Analysis
+                        </h5>
+                        <div class="d-flex gap-3">
+                            <div class="d-flex align-items-center">
+                                <div class="highlight-plagiarism d-inline-block me-2" style="width: 20px; height: 15px;"></div>
+                                <small class="text-muted">Plagiarism ({{ plagiarism_sentences|length }})</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="highlight-ai d-inline-block me-2" style="width: 20px; height: 15px;"></div>
+                                <small class="text-muted">AI Generated ({{ ai_sentences|length }})</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    {% if highlighted_text %}
+                        <div class="document-text">
+                            {{ highlighted_text|safe }}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No highlighted content available</h5>
+                            <p class="text-muted">The document text could not be processed for highlighting.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Issues -->
+    {% if plagiarism_sentences or ai_sentences %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-exclamation-triangle me-2 text-warning"></i>Detailed Issues
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    {% for sentence in plagiarism_sentences %}
+                    <div class="issue-card plagiarism card border-0 bg-light">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold text-danger mb-0">
+                                    <i class="fas fa-copy me-2"></i>Plagiarism Detected
+                                </h6>
+                                <span class="badge bg-danger">{{ "%.1f"|format(sentence.plagiarism_confidence or 0) }}% Match</span>
+                            </div>
+                            
+                            <blockquote class="blockquote mb-3">
+                                <p class="mb-0">"{{ sentence.sentence_text }}"</p>
+                            </blockquote>
+                            
+                            {% if sentence.source_url %}
+                            <div class="source-info">
+                                <small class="text-muted">
+                                    <strong>Source:</strong> 
+                                    {% if sentence.source_title %}
+                                        {{ sentence.source_title }} - 
+                                    {% endif %}
+                                    <a href="{{ sentence.source_url }}" target="_blank" class="text-decoration-none">
+                                        {{ sentence.source_url }}
+                                        <i class="fas fa-external-link-alt ms-1"></i>
+                                    </a>
+                                </small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    {% for sentence in ai_sentences %}
+                    <div class="issue-card ai-generated card border-0 bg-light">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="fw-bold text-info mb-0">
+                                    <i class="fas fa-robot me-2"></i>AI-Generated Content
+                                </h6>
+                                <span class="badge bg-info">{{ "%.1f"|format(sentence.ai_confidence or 0) }}% Confidence</span>
+                            </div>
+                            
+                            <blockquote class="blockquote mb-0">
+                                <p class="mb-0">"{{ sentence.sentence_text }}"</p>
+                            </blockquote>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Document Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-info-circle me-2 text-secondary"></i>Document Information
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="feature-icon bg-secondary text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    {% if document.content_type == 'application/pdf' %}
+                                        <i class="fas fa-file-pdf"></i>
+                                    {% elif 'word' in document.content_type %}
+                                        <i class="fas fa-file-word"></i>
+                                    {% else %}
+                                        <i class="fas fa-file-alt"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="fw-bold">{{ document.original_filename }}</div>
+                                <small class="text-muted">{{ "%.1f"|format(document.file_size / 1024) }} KB</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="feature-icon bg-primary text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div class="fw-bold">Uploaded</div>
+                                <small class="text-muted">{{ document.created_at.strftime('%b %d, %Y') }}</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="fw-bold">Status</div>
+                                <small class="text-success">Analysis Complete</small>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <div class="feature-icon bg-info text-white rounded-circle mx-auto mb-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="fw-bold">Submitted by</div>
+                                <small class="text-muted">{{ user.first_name or 'User' }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

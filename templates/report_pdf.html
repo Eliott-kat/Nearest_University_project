@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AcadCheck Analysis Report - {{ document.original_filename }}</title>
+    <style>
+        @page {
+            margin: 2cm;
+            @top-center {
+                content: "AcadCheck - Academic Integrity Report";
+                font-size: 12pt;
+                font-weight: bold;
+                color: #1e3a8a;
+            }
+            @bottom-center {
+                content: "Page " counter(page) " of " counter(pages);
+                font-size: 10pt;
+                color: #64748b;
+            }
+        }
+        
+        body {
+            font-family: 'Georgia', 'Times New Roman', serif;
+            line-height: 1.6;
+            color: #333;
+            font-size: 12pt;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #1e3a8a;
+        }
+        
+        .header h1 {
+            color: #1e3a8a;
+            font-size: 24pt;
+            margin-bottom: 0.5rem;
+            font-weight: bold;
+        }
+        
+        .header .subtitle {
+            color: #64748b;
+            font-size: 14pt;
+            margin-bottom: 1rem;
+        }
+        
+        .document-info {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            border-left: 4px solid #1e3a8a;
+        }
+        
+        .document-info h2 {
+            color: #1e3a8a;
+            font-size: 16pt;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .info-item {
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #64748b;
+        }
+        
+        .scores-section {
+            margin-bottom: 2rem;
+        }
+        
+        .scores-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .score-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        
+        .score-card.plagiarism {
+            border-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        .score-card.ai {
+            border-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        
+        .score-card h3 {
+            margin-bottom: 1rem;
+            font-size: 14pt;
+        }
+        
+        .score-card .score {
+            font-size: 36pt;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            line-height: 1;
+        }
+        
+        .score-card .score.high {
+            color: #dc2626;
+        }
+        
+        .score-card .score.medium {
+            color: #d97706;
+        }
+        
+        .score-card .score.low {
+            color: #059669;
+        }
+        
+        .score-card .score-label {
+            font-size: 12pt;
+            color: #64748b;
+            margin-bottom: 1rem;
+        }
+        
+        .score-details {
+            font-size: 10pt;
+            color: #64748b;
+        }
+        
+        .summary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        
+        .summary-table th,
+        .summary-table td {
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .summary-table th {
+            background-color: #f9fafb;
+            font-weight: bold;
+            color: #1e3a8a;
+        }
+        
+        .document-analysis {
+            margin-bottom: 2rem;
+        }
+        
+        .document-analysis h2 {
+            color: #1e3a8a;
+            font-size: 18pt;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .legend {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 1rem;
+            font-size: 10pt;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 15px;
+            border-radius: 3px;
+        }
+        
+        .legend-color.plagiarism {
+            background-color: #fecaca;
+            border: 2px solid #dc2626;
+        }
+        
+        .legend-color.ai {
+            background-color: #dbeafe;
+            border: 2px solid #2563eb;
+        }
+        
+        .highlight-plagiarism {
+            background-color: #fecaca;
+            border-left: 4px solid #dc2626;
+            padding: 2px 4px;
+            margin: 1px 0;
+            border-radius: 2px;
+        }
+        
+        .highlight-ai {
+            background-color: #dbeafe;
+            border-left: 4px solid #2563eb;
+            padding: 2px 4px;
+            margin: 1px 0;
+            border-radius: 2px;
+        }
+        
+        .highlight-both {
+            background-color: #fed7aa;
+            border-left: 4px solid #d97706;
+            padding: 2px 4px;
+            margin: 1px 0;
+            border-radius: 2px;
+        }
+        
+        .document-text {
+            line-height: 1.8;
+            font-size: 11pt;
+            background-color: #fafafa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            border: 1px solid #e5e7eb;
+            page-break-inside: avoid;
+        }
+        
+        .issues-section {
+            margin-top: 2rem;
+        }
+        
+        .issues-section h2 {
+            color: #1e3a8a;
+            font-size: 16pt;
+            margin-bottom: 1rem;
+            font-weight: bold;
+        }
+        
+        .issue-item {
+            border-left: 4px solid;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background-color: #f9fafb;
+            border-radius: 0 8px 8px 0;
+            page-break-inside: avoid;
+        }
+        
+        .issue-item.plagiarism {
+            border-left-color: #dc2626;
+            background-color: #fef2f2;
+        }
+        
+        .issue-item.ai {
+            border-left-color: #2563eb;
+            background-color: #eff6ff;
+        }
+        
+        .issue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .issue-type {
+            font-weight: bold;
+            font-size: 12pt;
+        }
+        
+        .issue-type.plagiarism {
+            color: #dc2626;
+        }
+        
+        .issue-type.ai {
+            color: #2563eb;
+        }
+        
+        .confidence-badge {
+            background-color: #374151;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10pt;
+            font-weight: bold;
+        }
+        
+        .issue-text {
+            font-style: italic;
+            color: #374151;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .source-info {
+            font-size: 10pt;
+            color: #64748b;
+        }
+        
+        .source-info a {
+            color: #2563eb;
+            text-decoration: none;
+        }
+        
+        .footer-info {
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #e5e7eb;
+            font-size: 10pt;
+            color: #64748b;
+            text-align: center;
+        }
+        
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>Academic Integrity Report</h1>
+        <div class="subtitle">Comprehensive Plagiarism and AI Content Analysis</div>
+        <div class="subtitle">Generated on {{ generated_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+    </div>
+
+    <!-- Document Information -->
+    <div class="document-info">
+        <h2>Document Information</h2>
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">File Name:</span> {{ document.original_filename }}
+            </div>
+            <div class="info-item">
+                <span class="info-label">File Size:</span> {{ "%.1f"|format(document.file_size / 1024) }} KB
+            </div>
+            <div class="info-item">
+                <span class="info-label">Upload Date:</span> {{ document.created_at.strftime('%B %d, %Y') }}
+            </div>
+            <div class="info-item">
+                <span class="info-label">Analysis Date:</span> {{ analysis_result.created_at.strftime('%B %d, %Y') }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Analysis Scores -->
+    <div class="scores-section">
+        <h2>Analysis Results</h2>
+        <div class="scores-grid">
+            <!-- Plagiarism Score -->
+            <div class="score-card plagiarism">
+                <h3>Plagiarism Detection</h3>
+                {% set plag_score = analysis_result.plagiarism_score or 0 %}
+                <div class="score {% if plag_score >= 30 %}high{% elif plag_score >= 15 %}medium{% else %}low{% endif %}">
+                    {{ "%.1f"|format(plag_score) }}%
+                </div>
+                <div class="score-label">Similarity Found</div>
+                <div class="score-details">
+                    Total Words: {{ analysis_result.total_words or 0 }}<br>
+                    Matched Words: {{ analysis_result.identical_words or 0 }}
+                </div>
+            </div>
+
+            <!-- AI Detection Score -->
+            <div class="score-card ai">
+                <h3>AI Content Detection</h3>
+                {% set ai_score = analysis_result.ai_score or 0 %}
+                <div class="score {% if ai_score >= 30 %}high{% elif ai_score >= 15 %}medium{% else %}low{% endif %}">
+                    {{ "%.1f"|format(ai_score) }}%
+                </div>
+                <div class="score-label">AI Generated</div>
+                <div class="score-details">
+                    Total Words: {{ analysis_result.total_words or 0 }}<br>
+                    AI Words: {{ analysis_result.ai_words or 0 }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Table -->
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>Analysis Type</th>
+                    <th>Score</th>
+                    <th>Issues Found</th>
+                    <th>Risk Level</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Plagiarism Detection</td>
+                    <td>{{ "%.1f"|format(plag_score) }}%</td>
+                    <td>{{ plagiarism_sentences|length }} instances</td>
+                    <td>
+                        {% if plag_score >= 30 %}
+                            <span style="color: #dc2626; font-weight: bold;">High Risk</span>
+                        {% elif plag_score >= 15 %}
+                            <span style="color: #d97706; font-weight: bold;">Medium Risk</span>
+                        {% else %}
+                            <span style="color: #059669; font-weight: bold;">Low Risk</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>AI Content Detection</td>
+                    <td>{{ "%.1f"|format(ai_score) }}%</td>
+                    <td>{{ ai_sentences|length }} instances</td>
+                    <td>
+                        {% if ai_score >= 30 %}
+                            <span style="color: #dc2626; font-weight: bold;">High Risk</span>
+                        {% elif ai_score >= 15 %}
+                            <span style="color: #d97706; font-weight: bold;">Medium Risk</span>
+                        {% else %}
+                            <span style="color: #059669; font-weight: bold;">Low Risk</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Document Analysis -->
+    {% if highlighted_text %}
+    <div class="page-break"></div>
+    <div class="document-analysis">
+        <h2>Document Analysis with Highlighted Issues</h2>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color plagiarism"></div>
+                <span>Plagiarism Detected ({{ plagiarism_sentences|length }})</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color ai"></div>
+                <span>AI Generated Content ({{ ai_sentences|length }})</span>
+            </div>
+        </div>
+        
+        <div class="document-text">
+            {{ highlighted_text|safe }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Detailed Issues -->
+    {% if plagiarism_sentences or ai_sentences %}
+    <div class="page-break"></div>
+    <div class="issues-section">
+        <h2>Detailed Issue Analysis</h2>
+        
+        {% for sentence in plagiarism_sentences %}
+        <div class="issue-item plagiarism">
+            <div class="issue-header">
+                <div class="issue-type plagiarism">Plagiarism Detected</div>
+                <div class="confidence-badge">{{ "%.1f"|format(sentence.plagiarism_confidence or 0) }}% Match</div>
+            </div>
+            <div class="issue-text">
+                "{{ sentence.sentence_text }}"
+            </div>
+            {% if sentence.source_url %}
+            <div class="source-info">
+                <strong>Source:</strong> 
+                {% if sentence.source_title %}{{ sentence.source_title }} - {% endif %}
+                <a href="{{ sentence.source_url }}">{{ sentence.source_url }}</a>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% for sentence in ai_sentences %}
+        <div class="issue-item ai">
+            <div class="issue-header">
+                <div class="issue-type ai">AI-Generated Content</div>
+                <div class="confidence-badge">{{ "%.1f"|format(sentence.ai_confidence or 0) }}% Confidence</div>
+            </div>
+            <div class="issue-text">
+                "{{ sentence.sentence_text }}"
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="footer-info">
+        <p><strong>AcadCheck Academic Integrity Platform</strong></p>
+        <p>This report was generated using advanced AI-powered plagiarism and content detection technology.</p>
+        <p>For questions about this analysis, please contact your academic institution.</p>
+    </div>
+</body>
+</html>
