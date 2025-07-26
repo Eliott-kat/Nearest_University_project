@@ -269,38 +269,57 @@ class CopyleaksService:
             
             # Create some demo highlighted sentences
             text = document.extracted_text or ""
-            words = text.split()
+            sentences = text.split('.')  # Split by sentences instead of words
             
-            if len(words) > 10:
+            if len(sentences) > 2:
                 # Add a few plagiarism sentences
-                for i in range(min(2, len(words) // 20)):
-                    start_word = random.randint(0, len(words) - 5)
-                    end_word = min(start_word + random.randint(3, 8), len(words))
-                    
-                    sentence = HighlightedSentence()
-                    sentence.document_id = document.id
-                    sentence.sentence_text = " ".join(words[start_word:end_word])
-                    sentence.start_position = len(" ".join(words[:start_word]))
-                    sentence.end_position = len(" ".join(words[:end_word]))
-                    sentence.is_plagiarism = True
-                    sentence.plagiarism_confidence = random.uniform(60.0, 95.0)
-                    sentence.source_url = "https://example.com/demo-source"
-                    sentence.source_title = "Demo Source Document"
-                    db.session.add(sentence)
+                for i in range(min(2, len(sentences) // 2)):
+                    if i < len(sentences) - 1:
+                        sentence_text = sentences[i].strip() + '.'
+                        if len(sentence_text) > 10:  # Only add meaningful sentences
+                            
+                            # Calculate positions based on full text
+                            text_before = '. '.join(sentences[:i])
+                            if text_before:
+                                start_pos = len(text_before) + 2  # +2 for '. '
+                            else:
+                                start_pos = 0
+                            end_pos = start_pos + len(sentence_text)
+                            
+                            sentence = HighlightedSentence()
+                            sentence.document_id = document.id
+                            sentence.sentence_text = sentence_text
+                            sentence.start_position = start_pos
+                            sentence.end_position = end_pos
+                            sentence.is_plagiarism = True
+                            sentence.plagiarism_confidence = random.uniform(60.0, 95.0)
+                            sentence.source_url = "https://example.com/demo-source"
+                            sentence.source_title = "Demo Source Document"
+                            db.session.add(sentence)
                 
-                # Add a few AI-generated sentences
-                for i in range(min(1, len(words) // 30)):
-                    start_word = random.randint(0, len(words) - 5)
-                    end_word = min(start_word + random.randint(4, 10), len(words))
-                    
-                    sentence = HighlightedSentence()
-                    sentence.document_id = document.id
-                    sentence.sentence_text = " ".join(words[start_word:end_word])
-                    sentence.start_position = len(" ".join(words[:start_word]))
-                    sentence.end_position = len(" ".join(words[:end_word]))
-                    sentence.is_ai_generated = True
-                    sentence.ai_confidence = random.uniform(70.0, 90.0)
-                    db.session.add(sentence)
+                # Add a few AI-generated sentences  
+                for i in range(min(1, len(sentences) // 3)):
+                    ai_idx = random.randint(0, len(sentences) - 2)
+                    if ai_idx < len(sentences) - 1:
+                        sentence_text = sentences[ai_idx].strip() + '.'
+                        if len(sentence_text) > 10:  # Only add meaningful sentences
+                            
+                            # Calculate positions based on full text
+                            text_before = '. '.join(sentences[:ai_idx])
+                            if text_before:
+                                start_pos = len(text_before) + 2  # +2 for '. '
+                            else:
+                                start_pos = 0
+                            end_pos = start_pos + len(sentence_text)
+                            
+                            sentence = HighlightedSentence()
+                            sentence.document_id = document.id
+                            sentence.sentence_text = sentence_text
+                            sentence.start_position = start_pos
+                            sentence.end_position = end_pos
+                            sentence.is_ai_generated = True
+                            sentence.ai_confidence = random.uniform(70.0, 90.0)
+                            db.session.add(sentence)
             
             # Mark as completed
             document.status = DocumentStatus.COMPLETED
