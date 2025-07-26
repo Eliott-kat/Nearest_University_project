@@ -15,9 +15,9 @@ from report_generator import report_generator
 class FakeUser:
     def __init__(self):
         self.id = "local-user"
-        self.email = "demo@acadcheck.local"
-        self.first_name = "Demo"
-        self.last_name = "User"
+        self.email = "user@acadcheck.local"
+        self.first_name = "Student"
+        self.last_name = ""
         self.role = UserRole.STUDENT
         self.is_authenticated = True
         self.profile_image_url = None
