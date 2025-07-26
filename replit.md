@@ -16,6 +16,9 @@ Preferred communication style: Simple, everyday language.
 - Application now fully functional with dashboard, upload, analysis, and PDF report generation
 - Real-time Copyleaks API authentication configured (currently server experiencing 500 errors, falls back to demo mode)
 - Created comprehensive local installation scripts (run_local.py, quick_start.py) for easy deployment
+- **NEW: Multi-API Support** - Added infrastructure to switch between Copyleaks and PlagiarismCheck APIs
+- Created migration scripts and documentation for easy API switching
+- Enhanced .env configuration with PLAGIARISM_API_PROVIDER option
 
 ## System Architecture
 

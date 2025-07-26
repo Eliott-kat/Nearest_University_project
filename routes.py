@@ -8,7 +8,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
-from copyleaks_service import copyleaks_service
+import simple_api_switch
 from report_generator import report_generator
 
 # Create a fake user for local development
@@ -143,11 +143,13 @@ def upload_document():
             db.session.add(document)
             db.session.commit()
             
-            # Submit to Copyleaks for analysis (will use demo mode if API unavailable)
-            if copyleaks_service.submit_document(document):
-                # Check if we're using demo mode due to API issues
-                if not copyleaks_service.email or not copyleaks_service.api_key or not copyleaks_service.token:
-                    flash('Document uploaded! L\'API Copyleaks est temporairement indisponible - analyse en mode démonstration.', 'info')
+            # Submit to active API service for analysis (will use demo mode if API unavailable)
+            active_service = simple_api_switch.get_active_service()
+            if active_service.submit_document(document):
+                # Check API status and provider
+                provider_status = simple_api_switch.get_provider_status()
+                if not active_service.token:
+                    flash(f'Document uploaded! L\'API {provider_status["current_provider"]} est temporairement indisponible - analyse en mode démonstration.', 'info')
                 else:
                     flash('Document uploaded successfully and submitted for analysis!', 'success')
                 return redirect(url_for('document_history'))
