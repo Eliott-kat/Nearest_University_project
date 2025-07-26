@@ -1,17 +1,27 @@
+"""
+Simplified routes for local installation without authentication
+"""
 import os
 import logging
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
-from flask_login import current_user
 from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
-from replit_auth import require_login, make_replit_blueprint
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
 from copyleaks_service import copyleaks_service
 from report_generator import report_generator
 
-# Register authentication blueprint
-app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+# Create a fake user for local development
+class FakeUser:
+    def __init__(self):
+        self.id = "local-user"
+        self.email = "demo@acadcheck.local"
+        self.first_name = "Demo"
+        self.last_name = "User"
+        self.role = UserRole.STUDENT
+        self.is_authenticated = True
+
+fake_user = FakeUser()
 
 # Make session permanent
 @app.before_request
@@ -20,46 +30,55 @@ def make_session_permanent():
 
 @app.route('/')
 def index():
-    """Landing page or dashboard based on authentication status"""
-    if current_user.is_authenticated:
-        return redirect(url_for('dashboard'))
-    return render_template('landing.html')
+    """Main landing page - shows dashboard directly for local version"""
+    return dashboard()
 
 @app.route('/dashboard')
-@require_login
 def dashboard():
-    """User dashboard showing recent documents and statistics"""
-    # Get user's recent documents
-    recent_documents = Document.query.filter_by(user_id=current_user.id)\
-                                   .order_by(Document.created_at.desc())\
-                                   .limit(5)\
-                                   .all()
-    
-    # Calculate statistics
-    total_documents = Document.query.filter_by(user_id=current_user.id).count()
-    completed_analyses = Document.query.filter_by(user_id=current_user.id, status=DocumentStatus.COMPLETED).count()
-    processing_documents = Document.query.filter_by(user_id=current_user.id, status=DocumentStatus.PROCESSING).count()
-    
-    # Calculate average scores for completed analyses
-    avg_plagiarism_score = 0
-    avg_ai_score = 0
-    
-    completed_docs = Document.query.filter_by(user_id=current_user.id, status=DocumentStatus.COMPLETED).all()
-    if completed_docs:
-        plagiarism_scores = []
-        ai_scores = []
+    """User dashboard with document statistics"""
+    try:
+        recent_documents = Document.query.filter_by(user_id=fake_user.id)\
+            .order_by(Document.uploaded_at.desc())\
+            .limit(5).all()
         
-        for doc in completed_docs:
-            if doc.analysis_result:
-                if doc.analysis_result.plagiarism_score is not None:
-                    plagiarism_scores.append(doc.analysis_result.plagiarism_score)
-                if doc.analysis_result.ai_score is not None:
-                    ai_scores.append(doc.analysis_result.ai_score)
+        # Calculate statistics
+        total_documents = Document.query.filter_by(user_id=fake_user.id).count()
+        completed_analyses = Document.query.filter_by(
+            user_id=fake_user.id, 
+            status=DocumentStatus.COMPLETED
+        ).count()
+        processing_documents = Document.query.filter_by(
+            user_id=fake_user.id,
+            status=DocumentStatus.PROCESSING
+        ).count()
         
-        if plagiarism_scores:
-            avg_plagiarism_score = sum(plagiarism_scores) / len(plagiarism_scores)
-        if ai_scores:
-            avg_ai_score = sum(ai_scores) / len(ai_scores)
+        # Calculate average scores
+        completed_docs = Document.query.filter_by(
+            user_id=fake_user.id,
+            status=DocumentStatus.COMPLETED
+        ).all()
+        
+        if completed_docs:
+            avg_plagiarism_score = sum(
+                doc.analysis_result.plagiarism_score for doc in completed_docs 
+                if doc.analysis_result
+            ) / len([doc for doc in completed_docs if doc.analysis_result])
+            avg_ai_score = sum(
+                doc.analysis_result.ai_score for doc in completed_docs 
+                if doc.analysis_result
+            ) / len([doc for doc in completed_docs if doc.analysis_result])
+        else:
+            avg_plagiarism_score = 0
+            avg_ai_score = 0
+    
+    except Exception as e:
+        logging.error(f"Error loading dashboard: {e}")
+        recent_documents = []
+        avg_plagiarism_score = 0
+        avg_ai_score = 0
+        total_documents = 0
+        completed_analyses = 0
+        processing_documents = 0
     
     stats = {
         'total_documents': total_documents,
@@ -72,10 +91,9 @@ def dashboard():
     return render_template('dashboard.html', 
                          recent_documents=recent_documents, 
                          stats=stats,
-                         user=current_user)
+                         user=fake_user)
 
 @app.route('/upload', methods=['GET', 'POST'])
-@require_login
 def upload_document():
     """Upload and submit document for analysis"""
     if request.method == 'POST':
@@ -113,13 +131,13 @@ def upload_document():
             document.file_size = get_file_size(file_path)
             document.content_type = content_type
             document.extracted_text = extracted_text
-            document.user_id = current_user.id
+            document.user_id = fake_user.id
             document.status = DocumentStatus.UPLOADED
             
             db.session.add(document)
             db.session.commit()
             
-            # Submit to Copyleaks for analysis
+            # Submit to Copyleaks for analysis (will use demo mode)
             if copyleaks_service.submit_document(document):
                 flash('Document uploaded successfully and submitted for analysis!', 'success')
                 return redirect(url_for('document_history'))
@@ -135,141 +153,96 @@ def upload_document():
             flash('An error occurred while uploading the document.', 'danger')
             return redirect(request.url)
     
-    return render_template('upload.html', user=current_user)
+    return render_template('upload.html', user=fake_user)
 
 @app.route('/history')
-@require_login
 def document_history():
     """View document submission history"""
     page = request.args.get('page', 1, type=int)
-    per_page = 10
+    per_page = 10  # Number of documents per page
     
-    # Query user's documents with pagination
-    documents = Document.query.filter_by(user_id=current_user.id)\
-                             .order_by(Document.created_at.desc())\
-                             .paginate(page=page, per_page=per_page, error_out=False)
-    
-    return render_template('history.html', 
-                         documents=documents,
-                         user=current_user)
+    try:
+        documents = Document.query.filter_by(user_id=fake_user.id)\
+            .order_by(Document.uploaded_at.desc())\
+            .paginate(page=page, per_page=per_page, error_out=False)
+            
+        return render_template('history.html', 
+                             documents=documents,
+                             user=fake_user)
+    except Exception as e:
+        logging.error(f"Error loading document history: {e}")
+        flash('Error loading document history.', 'danger')
+        return render_template('history.html', 
+                             documents=None,
+                             user=fake_user)
 
 @app.route('/report/<int:document_id>')
-@require_login
 def view_report(document_id):
     """View detailed analysis report"""
-    document = Document.query.get_or_404(document_id)
-    
-    # Check if user owns the document or is admin/professor
-    if document.user_id != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.PROFESSOR]:
-        abort(403)
-    
-    if document.status != DocumentStatus.COMPLETED:
-        flash('Analysis is not yet complete for this document.', 'info')
+    try:
+        document = Document.query.filter_by(
+            id=document_id, 
+            user_id=fake_user.id
+        ).first_or_404()
+        
+        if document.status != DocumentStatus.COMPLETED:
+            flash('Analysis not yet completed for this document.', 'warning')
+            return redirect(url_for('document_history'))
+        
+        # Get analysis results
+        analysis_result = AnalysisResult.query.filter_by(document_id=document.id).first()
+        if not analysis_result:
+            flash('No analysis results found for this document.', 'warning')
+            return redirect(url_for('document_history'))
+        
+        # Get highlighted sentences
+        highlighted_sentences = HighlightedSentence.query.filter_by(
+            document_id=document.id
+        ).order_by(HighlightedSentence.start_position).all()
+        
+        return render_template('report.html',
+                             document=document,
+                             analysis_result=analysis_result,
+                             highlighted_sentences=highlighted_sentences,
+                             user=fake_user)
+                             
+    except Exception as e:
+        logging.error(f"Error loading report for document {document_id}: {e}")
+        flash('Error loading report.', 'danger')
         return redirect(url_for('document_history'))
-    
-    analysis_result = document.analysis_result
-    if not analysis_result:
-        flash('No analysis results found for this document.', 'danger')
-        return redirect(url_for('document_history'))
-    
-    # Get highlighted sentences
-    plagiarism_sentences = HighlightedSentence.query.filter_by(
-        document_id=document.id,
-        is_plagiarism=True
-    ).all()
-    
-    ai_sentences = HighlightedSentence.query.filter_by(
-        document_id=document.id,
-        is_ai_generated=True
-    ).all()
-    
-    # Generate highlighted text for display
-    highlighted_text = report_generator._generate_highlighted_text(
-        document.extracted_text or "",
-        plagiarism_sentences,
-        ai_sentences
-    )
-    
-    return render_template('report.html',
-                         document=document,
-                         analysis_result=analysis_result,
-                         highlighted_text=highlighted_text,
-                         plagiarism_sentences=plagiarism_sentences,
-                         ai_sentences=ai_sentences,
-                         user=current_user)
 
-@app.route('/download_report/<int:document_id>')
-@require_login
+@app.route('/download-report/<int:document_id>')
 def download_report(document_id):
     """Download PDF report"""
-    document = Document.query.get_or_404(document_id)
-    
-    # Check if user owns the document or is admin/professor
-    if document.user_id != current_user.id and current_user.role not in [UserRole.ADMIN, UserRole.PROFESSOR]:
-        abort(403)
-    
-    if document.status != DocumentStatus.COMPLETED:
-        flash('Analysis is not yet complete for this document.', 'info')
-        return redirect(url_for('document_history'))
-    
-    # Generate PDF report
-    pdf_path = report_generator.generate_pdf_report(document)
-    if not pdf_path:
-        flash('Failed to generate PDF report.', 'danger')
-        return redirect(url_for('view_report', document_id=document_id))
-    
-    # Send file for download
-    return send_file(pdf_path, 
-                     as_attachment=True,
-                     download_name=f"acadcheck_report_{document.original_filename}.pdf",
-                     mimetype='application/pdf')
-
-@app.route('/webhook/<status>/<scan_id>', methods=['POST'])
-def webhook_handler(status, scan_id):
-    """Handle webhook from Copyleaks API"""
     try:
-        result_data = request.get_json() or {}
+        document = Document.query.filter_by(
+            id=document_id, 
+            user_id=fake_user.id
+        ).first_or_404()
         
-        logging.info(f"Received webhook for scan_id {scan_id} with status {status}")
+        if document.status != DocumentStatus.COMPLETED:
+            flash('Analysis not yet completed for this document.', 'warning')
+            return redirect(url_for('document_history'))
         
-        # Process the webhook result
-        success = copyleaks_service.process_webhook_result(scan_id, status, result_data)
+        # Generate PDF report
+        pdf_path = report_generator.generate_pdf_report(document)
+        if not pdf_path or not os.path.exists(pdf_path):
+            flash('Error generating PDF report.', 'danger')
+            return redirect(url_for('view_report', document_id=document_id))
         
-        if success:
-            return jsonify({'status': 'success'}), 200
-        else:
-            return jsonify({'status': 'error'}), 400
-            
+        return send_file(
+            pdf_path,
+            as_attachment=True,
+            download_name=f"analysis_report_{document.original_filename}.pdf",
+            mimetype='application/pdf'
+        )
+        
     except Exception as e:
-        logging.error(f"Error processing webhook: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        logging.error(f"Error downloading report for document {document_id}: {e}")
+        flash('Error downloading report.', 'danger')
+        return redirect(url_for('document_history'))
 
-@app.route('/admin')
-@require_login
-def admin_dashboard():
-    """Admin dashboard for managing all documents and users"""
-    if current_user.role != UserRole.ADMIN:
-        abort(403)
-    
-    # Get all documents
-    all_documents = Document.query.order_by(Document.created_at.desc()).limit(20).all()
-    
-    # Get statistics
-    total_users = db.session.query(db.func.count(db.distinct(Document.user_id))).scalar()
-    total_documents = Document.query.count()
-    completed_analyses = Document.query.filter_by(status=DocumentStatus.COMPLETED).count()
-    
-    stats = {
-        'total_users': total_users,
-        'total_documents': total_documents,
-        'completed_analyses': completed_analyses
-    }
-    
-    return render_template('admin_dashboard.html',
-                         documents=all_documents,
-                         stats=stats,
-                         user=current_user)
-
+# Error handlers
 @app.errorhandler(404)
 def not_found_error(error):
     return render_template('404.html'), 404
@@ -279,7 +252,7 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
-@app.errorhandler(RequestEntityTooLarge)
-def handle_file_too_large(e):
+@app.errorhandler(413)
+def request_entity_too_large(error):
     flash('File too large. Maximum file size is 16MB.', 'danger')
     return redirect(url_for('upload_document'))
