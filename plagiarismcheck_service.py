@@ -15,6 +15,7 @@ class PlagiarismCheckService:
     def __init__(self):
         self.base_url = "https://plagiarismcheck.org/api/v1"
         self.api_token = None
+        self.token = None  # Pour compatibilité avec l'interface commune
         self._initialized = False
     
     def _ensure_initialized(self):
@@ -28,9 +29,11 @@ class PlagiarismCheckService:
         self._ensure_initialized()
         if self.api_token:
             logging.info("PlagiarismCheck API token configuré")
+            self.token = self.api_token  # Marquer comme authentifié
             return True
         else:
             logging.warning("Aucun token PlagiarismCheck API configuré")
+            self.token = None
             return False
     
     def submit_document(self, document: Document) -> bool:

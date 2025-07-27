@@ -143,13 +143,12 @@ def upload_document():
             db.session.add(document)
             db.session.commit()
             
-            # Submit to active API service for analysis (will use demo mode if API unavailable)
+            # Submit to active API service for analysis (will try both APIs before demo mode)
             active_service = simple_api_switch.get_active_service()
             if active_service.submit_document(document):
-                # Check API status and provider
-                provider_status = simple_api_switch.get_provider_status()
+                # Check if we're using demo mode or real API
                 if not active_service.token:
-                    flash(f'Document uploaded! L\'API {provider_status["current_provider"]} est temporairement indisponible - analyse en mode démonstration.', 'info')
+                    flash('Document uploaded! APIs temporairement indisponibles - analyse en mode démonstration.', 'info')
                 else:
                     flash('Document uploaded successfully and submitted for analysis!', 'success')
                 return redirect(url_for('document_history'))

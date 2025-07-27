@@ -1,24 +1,104 @@
 """
-Service simple pour basculer entre APIs de plagiat
+Service simple pour basculer entre APIs de plagiat avec fallback automatique
 """
 import os
 import logging
 from copyleaks_service import CopyleaksService
+from plagiarismcheck_service import PlagiarismCheckService
 
-# Instance du service Copyleaks existant
-copyleaks_service = CopyleaksService()
+class SmartAPISwitch:
+    """Service intelligent qui teste les APIs avec fallback automatique"""
+    
+    def __init__(self):
+        self.copyleaks_service = CopyleaksService()
+        self.plagiarismcheck_service = PlagiarismCheckService()
+        self._current_service = None
+        self._last_working_service = None
+        self._initialize_primary_service()
+    
+    def _initialize_primary_service(self):
+        """Initialiser le service principal selon la configuration"""
+        provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'copyleaks').lower()
+        
+        if provider == 'plagiarismcheck':
+            self._current_service = self.plagiarismcheck_service
+            logging.info("Provider configuré : PlagiarismCheck")
+        else:
+            self._current_service = self.copyleaks_service
+            logging.info("Provider configuré : Copyleaks")
+    
+    def authenticate(self):
+        """Authentifier avec fallback automatique"""
+        # Tenter avec le service principal
+        if self._current_service.authenticate():
+            self._last_working_service = self._current_service
+            return True
+        
+        # Fallback vers l'autre service
+        fallback_service = self._get_fallback_service()
+        if fallback_service and fallback_service.authenticate():
+            logging.warning(f"Service principal échoué, basculement vers {self._get_service_name(fallback_service)}")
+            self._current_service = fallback_service
+            self._last_working_service = fallback_service
+            return True
+        
+        logging.warning("Tous les services ont échoué, utilisation du mode démonstration")
+        return False
+    
+    def submit_document(self, document):
+        """Soumettre un document avec fallback automatique"""
+        # Tenter avec le service principal
+        if self._current_service.submit_document(document):
+            self._last_working_service = self._current_service
+            return True
+        
+        # Fallback vers l'autre service
+        fallback_service = self._get_fallback_service()
+        if fallback_service:
+            logging.warning(f"Service principal échoué, tentative avec {self._get_service_name(fallback_service)}")
+            if fallback_service.submit_document(document):
+                logging.info(f"Basculement réussi vers {self._get_service_name(fallback_service)}")
+                self._current_service = fallback_service
+                self._last_working_service = fallback_service
+                return True
+        
+        logging.error("Tous les services ont échoué pour la soumission")
+        return False
+    
+    def _get_fallback_service(self):
+        """Obtenir le service de fallback"""
+        if self._current_service == self.copyleaks_service:
+            return self.plagiarismcheck_service if self._is_service_configured(self.plagiarismcheck_service) else None
+        else:
+            return self.copyleaks_service if self._is_service_configured(self.copyleaks_service) else None
+    
+    def _is_service_configured(self, service):
+        """Vérifier si un service est configuré"""
+        if service == self.copyleaks_service:
+            return bool(os.environ.get('COPYLEAKS_EMAIL') and os.environ.get('COPYLEAKS_API_KEY'))
+        elif service == self.plagiarismcheck_service:
+            return bool(os.environ.get('PLAGIARISMCHECK_API_TOKEN'))
+        return False
+    
+    def _get_service_name(self, service):
+        """Obtenir le nom du service"""
+        if service == self.copyleaks_service:
+            return "Copyleaks"
+        elif service == self.plagiarismcheck_service:
+            return "PlagiarismCheck"
+        return "Unknown"
+    
+    @property
+    def token(self):
+        """Propriété pour vérifier si le service actuel a un token"""
+        return getattr(self._current_service, 'token', None)
+
+# Instance globale
+_smart_switch = SmartAPISwitch()
 
 def get_active_service():
-    """Retourne le service actif selon la configuration"""
-    provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'copyleaks').lower()
-    
-    if provider == 'plagiarismcheck':
-        # Pour l'instant, on garde Copyleaks mais on peut étendre plus tard
-        logging.info("Provider configuré : PlagiarismCheck (utilisation future)")
-        return copyleaks_service
-    else:
-        logging.info("Provider configuré : Copyleaks")
-        return copyleaks_service
+    """Retourne le service actif avec fallback intelligent"""
+    return _smart_switch
 
 def get_provider_status():
     """Obtenir le statut du provider actuel"""
