@@ -6,6 +6,7 @@ from typing import Optional
 from api_config import APIConfig, APIProvider
 from copyleaks_service import CopyleaksService
 from plagiarismcheck_service import PlagiarismCheckService
+from gptzero_service_class import GPTZeroService
 from models import Document
 
 class UnifiedPlagiarismService:
@@ -14,65 +15,86 @@ class UnifiedPlagiarismService:
     def __init__(self):
         self.copyleaks_service = CopyleaksService()
         self.plagiarismcheck_service = PlagiarismCheckService()
+        self.gptzero_service = GPTZeroService()
+        self._services = []
         self._current_service = None
-        self._fallback_service = None
         self._initialize_services()
     
     def _initialize_services(self):
-        """Initialiser les services selon la configuration"""
+        """Initialiser les services avec fallback en cascade"""
         current_provider = APIConfig.get_current_provider()
         
+        # Ordre de fallback : Principal → PlagiarismCheck → GPTZero → Demo
         if current_provider == APIProvider.COPYLEAKS:
-            self._current_service = self.copyleaks_service
-            self._fallback_service = self.plagiarismcheck_service
+            self._services = [
+                self.copyleaks_service,
+                self.plagiarismcheck_service, 
+                self.gptzero_service
+            ]
         else:
-            self._current_service = self.plagiarismcheck_service
-            self._fallback_service = self.copyleaks_service
+            self._services = [
+                self.plagiarismcheck_service,
+                self.copyleaks_service,
+                self.gptzero_service
+            ]
         
-        logging.info(f"Service principal: {current_provider.value}")
+        self._current_service = self._services[0]
+        logging.info(f"Service principal: {current_provider.value}, fallback: PlagiarismCheck → GPTZero")
     
     def authenticate(self) -> bool:
-        """Authentifier avec le service principal, fallback si échec"""
-        # Tenter avec le service principal
-        if self._current_service.authenticate():
-            return True
-        
-        logging.warning(f"Échec authentification service principal, tentative fallback")
-        
-        # Tenter avec le service de fallback
-        if self._fallback_service.authenticate():
-            # Basculer vers le fallback
-            self._current_service, self._fallback_service = self._fallback_service, self._current_service
-            logging.info("Basculement vers service de fallback réussi")
-            return True
+        """Authentifier avec fallback en cascade sur tous les services"""
+        for i, service in enumerate(self._services):
+            service_name = self._get_service_name(service)
+            
+            try:
+                if service.authenticate():
+                    if i > 0:  # Si ce n'est pas le service principal
+                        logging.info(f"Basculement vers {service_name} réussi")
+                        self._current_service = service
+                    return True
+                else:
+                    logging.warning(f"Échec authentification {service_name}")
+                    
+            except Exception as e:
+                logging.error(f"Erreur authentification {service_name}: {str(e)}")
         
         logging.warning("Tous les services ont échoué, utilisation du mode démonstration")
         return False
     
     def submit_document(self, document: Document) -> bool:
-        """Soumettre un document avec fallback automatique"""
-        # Tenter avec le service principal
-        if self._current_service.submit_document(document):
-            return True
-        
-        logging.warning("Échec soumission service principal, tentative fallback")
-        
-        # Tenter avec le service de fallback
-        if self._fallback_service.submit_document(document):
-            # Basculer vers le fallback pour les prochaines requêtes
-            self._current_service, self._fallback_service = self._fallback_service, self._current_service
-            logging.info("Basculement vers service de fallback pour soumission")
-            return True
+        """Soumettre un document avec fallback en cascade"""
+        for i, service in enumerate(self._services):
+            service_name = self._get_service_name(service)
+            
+            try:
+                if service.submit_document(document):
+                    if i > 0:  # Si basculement nécessaire
+                        logging.info(f"Soumission réussie avec {service_name} après basculement")
+                        self._current_service = service
+                    return True
+                else:
+                    logging.warning(f"Échec soumission avec {service_name}")
+                    
+            except Exception as e:
+                logging.error(f"Erreur soumission {service_name}: {str(e)}")
         
         logging.error("Tous les services ont échoué pour la soumission")
         return False
     
     def get_current_provider_name(self) -> str:
         """Obtenir le nom du provider actuel"""
-        if self._current_service == self.copyleaks_service:
+        return self._get_service_name(self._current_service)
+    
+    def _get_service_name(self, service) -> str:
+        """Obtenir le nom d'un service"""
+        if service == self.copyleaks_service:
             return "Copyleaks"
-        elif self._current_service == self.plagiarismcheck_service:
+        elif service == self.plagiarismcheck_service:
             return "PlagiarismCheck"
+        elif service == self.gptzero_service:
+            return "GPTZero"
+        else:
+            return "Unknown"
         else:
             return "Demo"
     
