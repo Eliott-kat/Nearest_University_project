@@ -151,6 +151,59 @@ class GPTZeroService:
             logging.error(f"Erreur formatage GPTZero: {str(e)}")
             return None
     
+    def analyze_text(self, text: str) -> Dict[str, Any]:
+        """Analyser un texte directement avec GPTZero"""
+        if not self.is_configured():
+            return {
+                'success': False,
+                'error': 'GPTZero API key not configured',
+                'ai_probability': 0
+            }
+        
+        try:
+            headers = {
+                'x-api-key': self.api_key,
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                "document": text,
+                "multilingual": True
+            }
+            
+            response = requests.post(
+                f"{self.base_url}/predict/text",
+                headers=headers,
+                json=payload,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                formatted = self._format_results(result)
+                
+                if formatted:
+                    return {
+                        'success': True,
+                        'ai_probability': formatted.get('ai_percentage', 0),
+                        'details': formatted,
+                        'sentences': formatted.get('highlighted_sentences', [])
+                    }
+            
+            return {
+                'success': False,
+                'error': f'GPTZero API error: {response.status_code}',
+                'ai_probability': 0
+            }
+            
+        except Exception as e:
+            logging.error(f"Erreur analyse GPTZero: {str(e)}")
+            return {
+                'success': False,
+                'error': str(e),
+                'ai_probability': 0
+            }
+    
     def _estimate_plagiarism_score(self, class_probs: Dict[str, float]) -> float:
         """Estime le score de plagiat basé sur les probabilités"""
         # GPTZero focus sur l'IA, estimation du plagiat basée sur 'mixed' content

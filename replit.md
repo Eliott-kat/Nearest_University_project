@@ -42,10 +42,11 @@ The application supports two authentication modes:
 - **Production Mode**: OAuth-based authentication using Flask-Dance with session management
 - **Local Mode**: Simplified authentication with fake user for local development
 
-### API Integration Layer
-- **Multi-Provider Support**: Configurable switching between Copyleaks and PlagiarismCheck APIs
-- **Smart Fallback**: Automatic failover between APIs when primary service is unavailable
-- **Demo Mode**: Realistic analysis simulation when APIs are unavailable
+### Hybrid Analysis Architecture (Updated)
+- **AI Detection**: GPTZero API (cloud) for AI-generated content analysis via `/analyze` endpoint
+- **Plagiarism Detection**: Local processing using TF-IDF + sentence similarity against stored .docx/.pdf documents
+- **Hybrid Service**: Combines both analyses with parallel processing and unified results
+- **Local Database**: Document storage and comparison using pickle-based caching system
 
 ### File Processing Pipeline
 1. **Upload Handler**: Secure file upload with validation and virus scanning considerations
@@ -53,20 +54,21 @@ The application supports two authentication modes:
 3. **Analysis Queue**: Document processing with status tracking
 4. **Report Generation**: HTML and PDF report creation with highlighted content
 
-## Data Flow
+## Data Flow (Hybrid Architecture)
 
 1. **Document Upload**: User uploads document through drag-and-drop interface
 2. **Text Extraction**: System extracts plain text from uploaded file
-3. **API Analysis**: Document is submitted to configured plagiarism detection API
-4. **Results Processing**: API response is parsed and stored in database
-5. **Report Generation**: Detailed analysis report is generated with highlighted issues
-6. **User Access**: User can view online report or download PDF version
+3. **Hybrid Analysis**: Parallel processing of AI detection (GPTZero API) and plagiarism detection (local TF-IDF)
+4. **Local Database Update**: Document added to local database for future plagiarism comparisons
+5. **Results Combination**: AI and plagiarism scores combined with risk level assessment
+6. **Report Generation**: Unified analysis report with highlighted content from both detections
+7. **User Access**: User can view online report or download PDF version
 
 ## External Dependencies
 
 ### Required APIs
-- **Copyleaks API**: Primary plagiarism and AI detection service
-- **PlagiarismCheck API**: Alternative plagiarism detection service (fallback)
+- **GPTZero API**: AI-generated content detection service (cloud-based)
+- **Local Processing**: TF-IDF and sentence similarity algorithms (no external dependency)
 
 ### Python Packages
 - **Flask**: Web framework and extensions (SQLAlchemy, Login, Dance)
@@ -74,6 +76,7 @@ The application supports two authentication modes:
 - **PDF Generation**: WeasyPrint for report creation
 - **Database**: psycopg2-binary for PostgreSQL, SQLite for local development
 - **Security**: JWT, python-dotenv for configuration management
+- **Local Analysis**: Built-in TF-IDF, cosine similarity, and text processing algorithms
 
 ### Frontend Dependencies
 - **Bootstrap 5**: UI framework loaded via CDN
