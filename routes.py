@@ -4,6 +4,7 @@ Simplified routes for local installation without authentication
 import os
 import logging
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
+from language_utils import LanguageManager
 from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
@@ -293,3 +294,5 @@ def logout():
 def login():
     """Route de connexion simplifiée pour installation locale"""
     return redirect(url_for('index'))
+
+# Route de changement de langue gérée par language_utils.py

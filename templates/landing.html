@@ -9,11 +9,11 @@
         <div class="col-lg-6">
             <div class="hero-content">
                 <h1 class="display-4 fw-bold text-primary mb-4">
-                    <i class="fas fa-shield-alt me-3"></i>AcadCheck
+                    <i class="fas fa-shield-alt me-3"></i>{{ _('welcome_title') }}
                 </h1>
+                <h2 class="h4 text-muted mb-3">{{ _('welcome_subtitle') }}</h2>
                 <p class="lead mb-4">
-                    Advanced academic integrity platform that combines powerful plagiarism detection with cutting-edge AI content analysis. 
-                    Ensure originality and maintain academic standards with our comprehensive document analysis system.
+                    {{ _('welcome_description') }}
                 </p>
                 
                 <div class="features-preview mb-4">
@@ -21,25 +21,25 @@
                         <div class="col-md-6">
                             <div class="feature-item d-flex align-items-center">
                                 <i class="fas fa-search-plus text-primary me-3"></i>
-                                <span>Plagiarism Detection</span>
+                                <span>{{ _('plagiarism_score') }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="feature-item d-flex align-items-center">
                                 <i class="fas fa-robot text-primary me-3"></i>
-                                <span>AI Content Detection</span>
+                                <span>{{ _('ai_detection_score') }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="feature-item d-flex align-items-center">
                                 <i class="fas fa-file-alt text-primary me-3"></i>
-                                <span>Multiple File Formats</span>
+                                <span>{{ _('supported_formats') }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="feature-item d-flex align-items-center">
                                 <i class="fas fa-download text-primary me-3"></i>
-                                <span>Detailed Reports</span>
+                                <span>{{ _('download_report') }}</span>
                             </div>
                         </div>
                     </div>
@@ -47,10 +47,10 @@
                 
                 <div class="hero-actions">
                     <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-3">
-                        <i class="fas fa-sign-in-alt me-2"></i>Get Started
+                        <i class="fas fa-sign-in-alt me-2"></i>{{ _('get_started') }}
                     </a>
                     <a href="#features" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-info-circle me-2"></i>Learn More
+                        <i class="fas fa-info-circle me-2"></i>{{ _('learn_more') }}
                     </a>
                 </div>
             </div>
@@ -62,8 +62,8 @@
                     <div class="d-flex justify-content-center mb-4">
                         <div class="upload-preview border-3 border-dashed border-primary rounded-3 p-5 text-center" style="border-style: dashed !important; width: 100%; max-width: 400px;">
                             <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                            <h5 class="text-primary">Upload Document</h5>
-                            <p class="text-muted small">PDF, DOCX, TXT supported</p>
+                            <h5 class="text-primary">{{ _('upload_document') }}</h5>
+                            <p class="text-muted small">{{ _('supported_formats') }}</p>
                         </div>
                     </div>
                     
