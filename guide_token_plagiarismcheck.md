@@ -13,22 +13,31 @@
    - **Téléphone :** +1 844 319 5147 (24/7)
    - **Objet :** "Request API Token for Integration"
 
-3. **Votre message type :**
+3. **Votre message en français :**
 ```
+Objet : Demande de token API pour plateforme éducative
+
 Bonjour,
 
-Je souhaite intégrer l'API PlagiarismCheck dans mon application AcadCheck 
-pour la détection de plagiat et d'IA.
+Je développe AcadCheck, une plateforme d'intégrité académique pour 
+les établissements d'enseignement, et souhaiterais intégrer votre API 
+de détection de plagiat et d'IA.
 
-Pourriez-vous me fournir un token API pour commencer ?
+Pourriez-vous me fournir un token API pour commencer l'intégration ?
 
-Informations sur mon projet :
-- Application : AcadCheck (plateforme d'intégrité académique)
-- Usage : Analyse de documents étudiants
-- Volume estimé : [indiquez votre estimation]
+Détails du projet :
+- Application : AcadCheck (analyse d'intégrité académique)
+- Secteur : Éducation - universités et écoles
+- Usage : Vérification de documents étudiants (mémoires, dissertations)
+- Volume estimé : [précisez vos besoins]
+- Objectif : Améliorer l'intégrité académique avec détection IA + plagiat
 
-Merci,
+L'intégration permettra aux enseignants de vérifier automatiquement 
+l'authenticité des travaux étudiants.
+
+Merci pour votre aide,
 [Votre nom]
+[Votre établissement/organisation]
 ```
 
 ### **Option 2 : Dashboard Account (Si Disponible)**
