@@ -21,8 +21,8 @@ Preferred communication style: Simple, everyday language.
 - Enhanced .env configuration with PLAGIARISM_API_PROVIDER option
 - **NEW: Smart Fallback System** - Fixed automatic fallback between APIs when one fails
 - Created comprehensive token acquisition guide for PlagiarismCheck API
-- **NEW: Triple API Fallback** - Added GPTZero as third option (Copyleaks → PlagiarismCheck → GPTZero → Demo)
-- GPTZero provides both AI detection (99%+) and plagiarism checking in single API
+- **NEW: Dual API Fallback** - Simplified to Copyleaks → GPTZero → Demo mode
+- GPTZero provides both AI detection (99%+) and plagiarism checking as reliable fallback
 
 ## System Architecture
 

@@ -3,9 +3,8 @@ Service unifié pour la détection de plagiat - supporte plusieurs APIs
 """
 import logging
 from typing import Optional
-from api_config import APIConfig, APIProvider
+# Configuration simplifiée - plus besoin d'APIConfig
 from copyleaks_service import CopyleaksService
-from plagiarismcheck_service import PlagiarismCheckService
 from gptzero_service_class import GPTZeroService
 from models import Document
 
@@ -14,32 +13,21 @@ class UnifiedPlagiarismService:
     
     def __init__(self):
         self.copyleaks_service = CopyleaksService()
-        self.plagiarismcheck_service = PlagiarismCheckService()
         self.gptzero_service = GPTZeroService()
         self._services = []
         self._current_service = None
         self._initialize_services()
     
     def _initialize_services(self):
-        """Initialiser les services avec fallback en cascade"""
-        current_provider = APIConfig.get_current_provider()
-        
-        # Ordre de fallback : Principal → PlagiarismCheck → GPTZero → Demo
-        if current_provider == APIProvider.COPYLEAKS:
-            self._services = [
-                self.copyleaks_service,
-                self.plagiarismcheck_service, 
-                self.gptzero_service
-            ]
-        else:
-            self._services = [
-                self.plagiarismcheck_service,
-                self.copyleaks_service,
-                self.gptzero_service
-            ]
+        """Initialiser les services avec fallback simple Copyleaks → GPTZero"""
+        # Toujours commencer par Copyleaks, fallback vers GPTZero
+        self._services = [
+            self.copyleaks_service,
+            self.gptzero_service
+        ]
         
         self._current_service = self._services[0]
-        logging.info(f"Service principal: {current_provider.value}, fallback: PlagiarismCheck → GPTZero")
+        logging.info("Service principal: Copyleaks, fallback: GPTZero")
     
     def authenticate(self) -> bool:
         """Authentifier avec fallback en cascade sur tous les services"""
@@ -89,22 +77,16 @@ class UnifiedPlagiarismService:
         """Obtenir le nom d'un service"""
         if service == self.copyleaks_service:
             return "Copyleaks"
-        elif service == self.plagiarismcheck_service:
-            return "PlagiarismCheck"
         elif service == self.gptzero_service:
             return "GPTZero"
         else:
             return "Unknown"
-        else:
-            return "Demo"
     
     def get_api_status(self) -> dict:
         """Obtenir le statut détaillé des APIs"""
-        config_status = APIConfig.get_provider_status()
-        
         # Tester la connectivité
         copyleaks_working = False
-        plagiarismcheck_working = False
+        gptzero_working = False
         
         try:
             copyleaks_working = self.copyleaks_service.authenticate()
@@ -112,28 +94,31 @@ class UnifiedPlagiarismService:
             pass
         
         try:
-            plagiarismcheck_working = self.plagiarismcheck_service.authenticate()
+            gptzero_working = self.gptzero_service.authenticate()
         except:
             pass
         
         return {
-            **config_status,
+            'copyleaks_configured': bool(self.copyleaks_service.email and self.copyleaks_service.api_key),
+            'gptzero_configured': self.gptzero_service.is_configured(),
             'copyleaks_working': copyleaks_working,
-            'plagiarismcheck_working': plagiarismcheck_working,
+            'gptzero_working': gptzero_working,
             'current_service': self.get_current_provider_name(),
-            'recommendations': self._get_recommendations(copyleaks_working, plagiarismcheck_working)
+            'fallback_order': 'Copyleaks → GPTZero → Demo',
+            'recommendations': self._get_recommendations(copyleaks_working, gptzero_working)
         }
     
-    def _get_recommendations(self, copyleaks_working: bool, plagiarismcheck_working: bool) -> list:
+    def _get_recommendations(self, copyleaks_working: bool, gptzero_working: bool) -> list:
         """Générer des recommandations basées sur l'état des APIs"""
         recommendations = []
         
-        if not copyleaks_working and not plagiarismcheck_working:
+        if not copyleaks_working and not gptzero_working:
             recommendations.append("Aucune API fonctionnelle - Mode démonstration activé")
-        elif copyleaks_working and not plagiarismcheck_working:
-            recommendations.append("Seule l'API Copyleaks fonctionne")
-        elif not copyleaks_working and plagiarismcheck_working:
-            recommendations.append("Seule l'API PlagiarismCheck fonctionne - Considérez le basculement")
+            recommendations.append("Configurez COPYLEAKS_API_KEY ou GPTZERO_API_KEY dans .env")
+        elif copyleaks_working and not gptzero_working:
+            recommendations.append("Seule l'API Copyleaks fonctionne - GPTZero disponible comme fallback")
+        elif not copyleaks_working and gptzero_working:
+            recommendations.append("Seule GPTZero fonctionne - Considérez configurer Copyleaks")
         else:
             recommendations.append("Toutes les APIs fonctionnent correctement")
         

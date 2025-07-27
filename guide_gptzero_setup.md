@@ -19,11 +19,9 @@ Votre système teste maintenant automatiquement dans cet ordre :
 ```
 1. Copyleaks (principal) 
    ↓ (si échec)
-2. PlagiarismCheck 
-   ↓ (si échec)  
-3. GPTZero (nouveau!)
+2. GPTZero (fallback fiable)
    ↓ (si échec)
-4. Mode démonstration (dernier recours)
+3. Mode démonstration (dernier recours)
 ```
 
 ## 💰 TARIFICATION GPTZERO
