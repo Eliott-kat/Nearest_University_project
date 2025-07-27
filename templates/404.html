@@ -17,7 +17,7 @@
                     <a href="{{ url_for('index') }}" class="btn btn-primary">
                         <i class="fas fa-home me-2"></i>Go Home
                     </a>
-                    <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('replit_auth.login') }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary">
                         <i class="fas fa-tachometer-alt me-2"></i>Dashboard
                     </a>
                 </div>

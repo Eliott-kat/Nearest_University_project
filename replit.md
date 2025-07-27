@@ -2,114 +2,106 @@
 
 ## Overview
 
-AcadCheck is a Flask-based web application that provides academic integrity services by combining plagiarism detection with AI-generated content analysis. The platform allows users to upload documents (PDF, DOCX, TXT) and receive comprehensive analysis reports highlighting potential plagiarism and AI-generated content sections.
+AcadCheck is a Flask-based web application that provides academic integrity services by combining plagiarism detection with AI-generated content analysis. The platform allows users to upload documents (PDF, DOCX, TXT) for comprehensive analysis and generates detailed reports highlighting potential issues.
 
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-## Recent Changes
-
-**July 26, 2025:**
-- Fixed critical "Not Found" issue in local installation by ensuring routes.py import in run_local.py
-- Successfully deployed SQLite-based local version with real Copyleaks API integration
-- Application now fully functional with dashboard, upload, analysis, and PDF report generation
-- Real-time Copyleaks API authentication configured (currently server experiencing 500 errors, falls back to demo mode)
-- Created comprehensive local installation scripts (run_local.py, quick_start.py) for easy deployment
-- **NEW: Multi-API Support** - Added infrastructure to switch between Copyleaks and PlagiarismCheck APIs
-- Created migration scripts and documentation for easy API switching  
-- Enhanced .env configuration with PLAGIARISM_API_PROVIDER option
-- **NEW: Smart Fallback System** - Fixed automatic fallback between APIs when one fails
-- Created comprehensive token acquisition guide for PlagiarismCheck API
-
 ## System Architecture
 
 ### Backend Architecture
-- **Framework**: Flask with SQLAlchemy ORM
-- **Database**: SQLAlchemy with declarative base (configured for external database via DATABASE_URL)
-- **Authentication**: OAuth-based authentication system using Flask-Dance with Replit integration
-- **File Processing**: Multi-format document processing (PDF, DOCX, TXT) with text extraction
-- **External API Integration**: Copyleaks API for plagiarism and AI detection services
+- **Framework**: Flask with SQLAlchemy ORM using declarative base pattern
+- **Database**: SQLAlchemy with configurable database support (SQLite for local, PostgreSQL for production)
+- **Authentication**: Dual authentication system - OAuth-based for production (Flask-Dance) and simplified local authentication for development
+- **File Processing**: Multi-format document processing with text extraction utilities
+- **API Integration**: Multi-provider plagiarism detection with smart fallback system
 
 ### Frontend Architecture
 - **Template Engine**: Jinja2 templates with Bootstrap 5 UI framework
-- **Styling**: Custom CSS with academic-themed color scheme and responsive design
-- **JavaScript**: Vanilla JavaScript for file upload enhancements, drag-and-drop functionality, and UI interactions
+- **Styling**: Custom CSS with academic-themed design and responsive layout
+- **JavaScript**: Vanilla JavaScript for enhanced file upload, drag-and-drop, and UI interactions
 - **Icons**: Font Awesome for consistent iconography
 
-### Authentication System
-- **OAuth Provider**: Replit OAuth integration via Flask-Dance
-- **Session Management**: Flask-Login with persistent sessions
-- **User Roles**: Role-based access control (Student, Professor, Admin)
-- **Security**: ProxyFix middleware for proper header handling in deployment
+### Data Storage
+- **Primary Database**: SQLAlchemy with support for SQLite (local) and PostgreSQL (production)
+- **File Storage**: Local filesystem storage in uploads directory
+- **Reports**: PDF generation using WeasyPrint for analysis reports
 
 ## Key Components
 
 ### Models (models.py)
-- **User**: User management with role-based permissions and OAuth integration
+- **User**: User management with role-based permissions (Student, Professor, Admin)
 - **Document**: Document metadata, file paths, and analysis status tracking
-- **AnalysisResult**: Stores plagiarism scores, AI detection results, and analysis metadata
-- **HighlightedSentence**: Individual flagged sentences with confidence scores
-- **OAuth**: OAuth token storage with browser session tracking
+- **AnalysisResult**: Stores plagiarism and AI detection scores
+- **HighlightedSentence**: Stores sentence-level analysis for highlighting in reports
+- **OAuth**: OAuth token storage for authenticated sessions
 
-### Services
-- **CopyleaksService**: Handles API authentication, document submission, and result processing
-- **ReportGenerator**: Creates HTML and PDF reports with highlighted text sections
-- **FileUtils**: Document processing and text extraction from multiple formats
+### Authentication System
+The application supports two authentication modes:
+- **Production Mode**: OAuth-based authentication using Flask-Dance with session management
+- **Local Mode**: Simplified authentication with fake user for local development
 
-### Core Routes
-- **Landing/Dashboard**: Role-based interface (public landing vs authenticated dashboard)
-- **Document Upload**: Multi-format file upload with progress tracking
-- **Analysis Display**: Detailed results with highlighted problematic sections
-- **Report Generation**: Downloadable PDF reports with comprehensive analysis
-- **Admin Panel**: System-wide statistics and user management (admin-only)
+### API Integration Layer
+- **Multi-Provider Support**: Configurable switching between Copyleaks and PlagiarismCheck APIs
+- **Smart Fallback**: Automatic failover between APIs when primary service is unavailable
+- **Demo Mode**: Realistic analysis simulation when APIs are unavailable
+
+### File Processing Pipeline
+1. **Upload Handler**: Secure file upload with validation and virus scanning considerations
+2. **Text Extraction**: Support for PDF, DOCX, and TXT formats
+3. **Analysis Queue**: Document processing with status tracking
+4. **Report Generation**: HTML and PDF report creation with highlighted content
 
 ## Data Flow
 
-1. **Document Upload**: User uploads document → File validation → Text extraction → Database storage
-2. **Analysis Submission**: Document sent to Copyleaks API → Status tracking → Webhook processing
-3. **Result Processing**: API response parsed → Highlighted sentences identified → Analysis results stored
-4. **Report Generation**: Results compiled → HTML template rendered → Optional PDF export
-5. **User Access**: Dashboard displays analysis status → Detailed report viewing → Download options
+1. **Document Upload**: User uploads document through drag-and-drop interface
+2. **Text Extraction**: System extracts plain text from uploaded file
+3. **API Analysis**: Document is submitted to configured plagiarism detection API
+4. **Results Processing**: API response is parsed and stored in database
+5. **Report Generation**: Detailed analysis report is generated with highlighted issues
+6. **User Access**: User can view online report or download PDF version
 
 ## External Dependencies
 
-### Core Dependencies
-- **Flask**: Web framework with SQLAlchemy ORM integration
+### Required APIs
 - **Copyleaks API**: Primary plagiarism and AI detection service
-- **Flask-Dance**: OAuth authentication handling
-- **PyPDF2**: PDF text extraction
-- **python-docx**: Word document processing
-- **WeasyPrint**: PDF report generation from HTML
+- **PlagiarismCheck API**: Alternative plagiarism detection service (fallback)
 
-### UI Dependencies
-- **Bootstrap 5**: Responsive UI framework
-- **Font Awesome**: Icon library
-- **Custom CSS**: Academic-themed styling with highlight functionality
+### Python Packages
+- **Flask**: Web framework and extensions (SQLAlchemy, Login, Dance)
+- **Document Processing**: PyPDF2, python-docx for file parsing
+- **PDF Generation**: WeasyPrint for report creation
+- **Database**: psycopg2-binary for PostgreSQL, SQLite for local development
+- **Security**: JWT, python-dotenv for configuration management
 
-### Configuration Requirements
-- `DATABASE_URL`: Database connection string
-- `SESSION_SECRET`: Flask session encryption key
-- `COPYLEAKS_EMAIL`: Copyleaks API account email
-- `COPYLEAKS_API_KEY`: Copyleaks API authentication key
+### Frontend Dependencies
+- **Bootstrap 5**: UI framework loaded via CDN
+- **Font Awesome**: Icon library loaded via CDN
+- **Custom CSS/JS**: Local assets for enhanced functionality
 
 ## Deployment Strategy
 
-### Environment Configuration
-- **Upload Directory**: Configurable file storage location (default: 'uploads')
-- **File Size Limits**: 16MB maximum upload size
-- **Database**: External database via environment variable
-- **Proxy Configuration**: ProxyFix for deployment behind reverse proxy
+### Local Development
+- **Database**: SQLite for simplicity and no external dependencies
+- **Configuration**: `.env` file-based configuration with sensible defaults
+- **Launch Scripts**: Multiple entry points (main.py, run_local.py, quick_start.py)
+- **Authentication**: Bypass mode with fake user for testing
 
-### File Management
-- **Upload Storage**: Local filesystem with unique filename generation
-- **Report Storage**: Generated reports stored in uploads/reports subdirectory
-- **Text Processing**: In-memory processing with extracted content cached in database
+### Production Deployment
+- **Database**: PostgreSQL with connection pooling and health checks
+- **Authentication**: Full OAuth integration with user management
+- **API Integration**: Real API keys with fallback mechanisms
+- **File Security**: Proper upload directory permissions and size limits
 
-### Security Considerations
-- **File Validation**: Strict file type checking and secure filename handling
-- **Role-based Access**: Granular permissions for different user types
-- **Session Security**: Secure session management with browser session tracking
-- **API Security**: Secure token handling for external service integration
+### Configuration Management
+- **Environment Variables**: All sensitive data stored in environment variables
+- **API Switching**: Runtime switching between plagiarism detection providers
+- **Fallback Logic**: Automatic degradation to demo mode when APIs unavailable
 
-The application follows a traditional MVC pattern with clear separation between data models, business logic services, and presentation layers. The architecture supports scalability through external database integration and modular service design.
+### Multi-API Support
+The application includes a sophisticated API switching system:
+- **Primary Provider**: Configurable via `PLAGIARISM_API_PROVIDER` environment variable
+- **Automatic Fallback**: When primary API fails, system automatically tries secondary API
+- **Demo Mode**: When all APIs fail, system provides realistic simulated analysis
+- **Status Tracking**: Real-time monitoring of API availability and performance
