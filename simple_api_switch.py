@@ -22,12 +22,13 @@ class SmartAPISwitch:
         """Initialiser le service principal selon la configuration"""
         provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'plagiarismcheck').lower()
         
-        if provider == 'plagiarismcheck':
-            self._current_service = self.plagiarismcheck_service
-            logging.info("Provider configuré : PlagiarismCheck")
-        else:
+        if provider == 'copyleaks':
             self._current_service = self.copyleaks_service
             logging.info("Provider configuré : Copyleaks")
+        else:
+            # Default to PlagiarismCheck since it's working
+            self._current_service = self.plagiarismcheck_service
+            logging.info("Provider configuré : PlagiarismCheck")
     
     def authenticate(self):
         """Authentifier avec fallback automatique"""
