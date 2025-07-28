@@ -9,7 +9,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
-from hybrid_analysis_service import hybrid_analysis_service
+import simple_api_switch
 from report_generator import report_generator
 
 # Create a fake user for local development
@@ -144,29 +144,17 @@ def upload_document():
             db.session.add(document)
             db.session.commit()
             
-            # Analyze document with hybrid service (GPTZero + Local plagiarism)
-            document.status = DocumentStatus.PROCESSING
-            db.session.commit()
-            
-            try:
-                analysis_result = hybrid_analysis_service.analyze_document(document, extracted_text)
-                
-                if analysis_result.get('success'):
-                    document.status = DocumentStatus.COMPLETED
-                    flash('Document analyzed successfully! View your report below.', 'success')
+            # Submit to active API service for analysis (will try both APIs before demo mode)
+            active_service = simple_api_switch.get_active_service()
+            if active_service.submit_document(document):
+                # Check if we're using demo mode or real API
+                if not active_service.token:
+                    flash('Document uploaded! APIs temporairement indisponibles - analyse en mode démonstration.', 'info')
                 else:
-                    document.status = DocumentStatus.FAILED
-                    error_msg = analysis_result.get('error', 'Unknown error')
-                    flash(f'Analysis completed with partial results: {error_msg}', 'warning')
-                
-                db.session.commit()
-                return redirect(url_for('view_report', document_id=document.id))
-                
-            except Exception as e:
-                logging.error(f"Error during hybrid analysis: {e}")
-                document.status = DocumentStatus.FAILED
-                db.session.commit()
-                flash('Analysis failed. Please try again.', 'danger')
+                    flash('Document uploaded successfully and submitted for analysis!', 'success')
+                return redirect(url_for('document_history'))
+            else:
+                flash('Document uploaded but failed to submit for analysis. Please try again.', 'warning')
                 return redirect(url_for('document_history'))
             
         except RequestEntityTooLarge:
