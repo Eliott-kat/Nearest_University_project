@@ -45,14 +45,11 @@ class PlagiarismCheckService:
             return self._create_demo_analysis(document)
         
         try:
-            # Analyse de plagiat
+            # Analyse de plagiat seulement (API IA non disponible)
             plagiarism_result = self._check_plagiarism(document.extracted_text)
             
-            # Analyse de contenu IA
-            ai_result = self._check_ai_content(document.extracted_text)
-            
-            if plagiarism_result and ai_result:
-                self._save_analysis_results(document, plagiarism_result, ai_result)
+            if plagiarism_result:
+                self._save_analysis_results(document, plagiarism_result, None)
                 return True
             else:
                 logging.warning("Échec de l'analyse, utilisation du mode démonstration")
@@ -82,7 +79,7 @@ class PlagiarismCheckService:
                 timeout=30
             )
             
-            if response.status_code == 200:
+            if response.status_code == 201:  # PlagiarismCheck retourne 201 pour les créations
                 result = response.json()
                 logging.info("Analyse de plagiat réussie")
                 return result
@@ -126,12 +123,12 @@ class PlagiarismCheckService:
             logging.error(f"Erreur lors de la vérification IA: {e}")
             return None
     
-    def _save_analysis_results(self, document: Document, plagiarism_result: Dict, ai_result: Dict):
+    def _save_analysis_results(self, document: Document, plagiarism_result: Dict, ai_result: Optional[Dict]):
         """Sauvegarder les résultats d'analyse"""
         try:
             # Extraire les scores
             plagiarism_score = plagiarism_result.get('plagiarism', {}).get('percent', 0)
-            ai_score = ai_result.get('ai_score', 0)
+            ai_score = ai_result.get('ai_score', 0) if ai_result else 0
             
             # Créer l'analyse
             analysis = AnalysisResult()
@@ -142,6 +139,8 @@ class PlagiarismCheckService:
                 'plagiarism': plagiarism_result,
                 'ai_detection': ai_result
             }
+            analysis.sources_count = plagiarism_result.get('sources_found', 0)
+            analysis.analysis_provider = 'plagiarismcheck'
             
             # Identifier les phrases problématiques
             sentences = document.extracted_text.split('.')

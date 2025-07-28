@@ -124,3 +124,22 @@ def get_provider_status():
         'total_providers': 2,
         'available_providers': sum([copyleaks_configured, plagiarismcheck_configured])
     }
+
+def get_service_details():
+    """Obtenir les détails des services"""
+    return {
+        'copyleaks': {
+            'name': 'Copyleaks',
+            'description': 'Service professionnel de détection de plagiat avec IA intégrée',
+            'features': ['Plagiarism Detection', 'AI Detection', 'Multi-language Support'],
+            'configured': bool(os.environ.get('COPYLEAKS_EMAIL') and os.environ.get('COPYLEAKS_API_KEY')),
+            'status': 'Configured' if bool(os.environ.get('COPYLEAKS_EMAIL') and os.environ.get('COPYLEAKS_API_KEY')) else 'Not Configured'
+        },
+        'plagiarismcheck': {
+            'name': 'PlagiarismCheck',
+            'description': 'Service de vérification de plagiat rapide et précis',
+            'features': ['Plagiarism Detection', 'Fast Processing', 'Academic Focus'],
+            'configured': bool(os.environ.get('PLAGIARISMCHECK_API_TOKEN')),
+            'status': 'Configured' if bool(os.environ.get('PLAGIARISMCHECK_API_TOKEN')) else 'Not Configured'
+        }
+    }
