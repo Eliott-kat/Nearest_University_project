@@ -270,6 +270,106 @@ def download_report(document_id):
         flash('Error downloading report.', 'danger')
         return redirect(url_for('document_history'))
 
+@app.route('/admin')
+def admin_dashboard():
+    """Administration dashboard with API service management"""
+    try:
+        # Get provider status
+        provider_status = simple_api_switch.get_provider_status()
+        
+        # Get service status for each provider
+        switch = simple_api_switch.get_active_service()
+        
+        service_details = {
+            'copyleaks': {
+                'name': 'Copyleaks',
+                'configured': provider_status['copyleaks_configured'],
+                'status': 'Configured' if provider_status['copyleaks_configured'] else 'Not Configured',
+                'description': 'Plagiarism and AI detection via Copyleaks API'
+            },
+            'plagiarismcheck': {
+                'name': 'PlagiarismCheck',
+                'configured': provider_status['plagiarismcheck_configured'],
+                'status': 'Configured' if provider_status['plagiarismcheck_configured'] else 'Not Configured',
+                'description': 'Alternative plagiarism detection service'
+            },
+            'ai_detection': {
+                'name': 'AI Detection Service',
+                'configured': provider_status['ai_detection_configured'],
+                'status': 'Configured' if provider_status['ai_detection_configured'] else 'Not Configured',
+                'description': 'Specialized AI content detection with GPTZero API'
+            }
+        }
+        
+        # Get statistics
+        total_documents = Document.query.count()
+        completed_analyses = Document.query.filter_by(status=DocumentStatus.COMPLETED).count()
+        
+        return render_template('admin_dashboard.html',
+                             provider_status=provider_status,
+                             service_details=service_details,
+                             total_documents=total_documents,
+                             completed_analyses=completed_analyses,
+                             user=fake_user)
+                             
+    except Exception as e:
+        logging.error(f"Error loading admin dashboard: {e}")
+        flash('Error loading admin dashboard.', 'danger')
+        return redirect(url_for('index'))
+
+@app.route('/admin/switch-provider', methods=['POST'])
+def switch_provider():
+    """Switch to a different API provider"""
+    try:
+        new_provider = request.form.get('provider')
+        
+        if new_provider not in ['copyleaks', 'plagiarismcheck', 'ai_detection']:
+            flash('Invalid provider selected.', 'danger')
+            return redirect(url_for('admin_dashboard'))
+        
+        # Set environment variable (temporary for this session)
+        os.environ['PLAGIARISM_API_PROVIDER'] = new_provider
+        
+        # Reinitialize the service switch
+        simple_api_switch._smart_switch = simple_api_switch.SmartAPISwitch()
+        
+        flash(f'Successfully switched to {new_provider} provider.', 'success')
+        logging.info(f"Provider switched to: {new_provider}")
+        
+    except Exception as e:
+        logging.error(f"Error switching provider: {e}")
+        flash('Error switching provider.', 'danger')
+    
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/admin/test-provider/<provider>')
+def test_provider(provider):
+    """Test a specific provider authentication"""
+    try:
+        switch = simple_api_switch.get_active_service()
+        
+        if provider == 'copyleaks':
+            service = switch.copyleaks_service
+        elif provider == 'plagiarismcheck':
+            service = switch.plagiarismcheck_service
+        elif provider == 'ai_detection':
+            service = switch.ai_detection_service
+        else:
+            flash('Invalid provider specified.', 'danger')
+            return redirect(url_for('admin_dashboard'))
+        
+        # Test authentication
+        if service.authenticate():
+            flash(f'{provider} authentication successful!', 'success')
+        else:
+            flash(f'{provider} authentication failed.', 'warning')
+            
+    except Exception as e:
+        logging.error(f"Error testing provider {provider}: {e}")
+        flash(f'Error testing {provider} provider.', 'danger')
+    
+    return redirect(url_for('admin_dashboard'))
+
 # Error handlers
 @app.errorhandler(404)
 def not_found_error(error):

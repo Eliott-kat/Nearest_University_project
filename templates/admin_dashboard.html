@@ -41,7 +41,7 @@
                     <div class="feature-icon bg-info text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                         <i class="fas fa-file-alt fa-lg"></i>
                     </div>
-                    <h3 class="h4 fw-bold text-info">{{ stats.total_documents }}</h3>
+                    <h3 class="h4 fw-bold text-info">{{ total_documents }}</h3>
                     <p class="text-muted mb-0">Total Documents</p>
                 </div>
             </div>
@@ -53,7 +53,7 @@
                     <div class="feature-icon bg-success text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
                         <i class="fas fa-check-circle fa-lg"></i>
                     </div>
-                    <h3 class="h4 fw-bold text-success">{{ stats.completed_analyses }}</h3>
+                    <h3 class="h4 fw-bold text-success">{{ completed_analyses }}</h3>
                     <p class="text-muted mb-0">Analyses Completed</p>
                 </div>
             </div>
@@ -66,8 +66,8 @@
                         <i class="fas fa-percentage fa-lg"></i>
                     </div>
                     <h3 class="h4 fw-bold text-warning">
-                        {% if stats.total_documents > 0 %}
-                            {{ "%.1f"|format((stats.completed_analyses / stats.total_documents) * 100) }}%
+                        {% if total_documents > 0 %}
+                            {{ "%.1f"|format((completed_analyses / total_documents) * 100) }}%
                         {% else %}
                             0%
                         {% endif %}
@@ -78,136 +78,138 @@
         </div>
     </div>
 
-    <!-- Recent Documents -->
+    <!-- API Service Management -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-folder me-2 text-primary"></i>Recent Documents
-                    </h5>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold">
+                            <i class="fas fa-cogs me-2 text-primary"></i>API Service Management
+                        </h5>
+                        <div>
+                            <span class="badge bg-info">{{ provider_status.available_providers }}/{{ provider_status.total_providers }} Services Available</span>
+                        </div>
+                    </div>
                 </div>
                 
-                <div class="card-body p-0">
-                    {% if documents %}
+                <div class="card-body p-4">
+                    <!-- Current Provider Info -->
+                    <div class="alert alert-info mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="fas fa-info-circle me-3"></i>
+                            <div>
+                                <strong>Current Active Provider:</strong> 
+                                {{ provider_status.current_provider|title }} 
+                                {% if provider_status.current_provider == 'ai_detection' %}
+                                    (AI Detection Service)
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Service Provider Cards -->
+                    <div class="row g-4">
+                        {% for service_id, service in service_details.items() %}
+                        <div class="col-lg-4 col-md-6">
+                            <div class="card border-0 shadow-sm h-100 {% if provider_status.current_provider == service_id %}border-primary{% endif %}">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-3">
+                                        <div>
+                                            <h6 class="fw-bold mb-1">{{ service.name }}</h6>
+                                            {% if provider_status.current_provider == service_id %}
+                                                <span class="badge bg-primary">Active</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Available</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="text-end">
+                                            {% if service.configured %}
+                                                <i class="fas fa-check-circle text-success fa-lg"></i>
+                                            {% else %}
+                                                <i class="fas fa-times-circle text-danger fa-lg"></i>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="text-muted small mb-3">{{ service.description }}</p>
+                                    
+                                    <div class="mb-3">
+                                        <small class="text-muted">Status:</small>
+                                        <div class="fw-medium {% if service.configured %}text-success{% else %}text-danger{% endif %}">
+                                            {{ service.status }}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2">
+                                        {% if service.configured %}
+                                            <a href="{{ url_for('test_provider', provider=service_id) }}" 
+                                               class="btn btn-sm btn-outline-info">
+                                                <i class="fas fa-vial me-1"></i>Test
+                                            </a>
+                                            
+                                            {% if provider_status.current_provider != service_id %}
+                                                <form method="POST" action="{{ url_for('switch_provider') }}" class="d-inline">
+                                                    <input type="hidden" name="provider" value="{{ service_id }}">
+                                                    <button type="submit" class="btn btn-sm btn-success">
+                                                        <i class="fas fa-exchange-alt me-1"></i>Switch To
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                <i class="fas fa-cog me-1"></i>Not Configured
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Provider Features Comparison -->
+                    <div class="mt-5">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fas fa-list me-2"></i>Service Features Comparison
+                        </h6>
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
+                            <table class="table table-sm">
                                 <thead class="table-light">
                                     <tr>
-                                        <th class="border-0 py-3">Document</th>
-                                        <th class="border-0 py-3">User</th>
-                                        <th class="border-0 py-3">Status</th>
-                                        <th class="border-0 py-3">Plagiarism</th>
-                                        <th class="border-0 py-3">AI Detection</th>
-                                        <th class="border-0 py-3">Uploaded</th>
-                                        <th class="border-0 py-3">Actions</th>
+                                        <th>Service</th>
+                                        <th>Plagiarism Detection</th>
+                                        <th>AI Detection</th>
+                                        <th>Source Attribution</th>
+                                        <th>Language Support</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% for doc in documents %}
                                     <tr>
-                                        <td class="py-3">
-                                            <div class="d-flex align-items-center">
-                                                <div class="file-icon me-3">
-                                                    {% if doc.content_type == 'application/pdf' %}
-                                                        <i class="fas fa-file-pdf text-danger fa-lg"></i>
-                                                    {% elif 'word' in doc.content_type or doc.original_filename.endswith('.docx') %}
-                                                        <i class="fas fa-file-word text-primary fa-lg"></i>
-                                                    {% else %}
-                                                        <i class="fas fa-file-alt text-secondary fa-lg"></i>
-                                                    {% endif %}
-                                                </div>
-                                                <div>
-                                                    <div class="fw-medium">{{ doc.original_filename }}</div>
-                                                    <small class="text-muted">{{ "%.1f"|format(doc.file_size / 1024) }} KB</small>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3">
-                                            <div>
-                                                <div class="fw-medium">{{ doc.user.first_name or 'Unknown' }} {{ doc.user.last_name or '' }}</div>
-                                                <small class="text-muted">{{ doc.user.email or 'No email' }}</small>
-                                            </div>
-                                        </td>
-                                        <td class="py-3">
-                                            {% if doc.status.value == 'completed' %}
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-check me-1"></i>Completed
-                                                </span>
-                                            {% elif doc.status.value == 'processing' %}
-                                                <span class="badge bg-warning">
-                                                    <i class="fas fa-clock me-1"></i>Processing
-                                                </span>
-                                            {% elif doc.status.value == 'failed' %}
-                                                <span class="badge bg-danger">
-                                                    <i class="fas fa-times me-1"></i>Failed
-                                                </span>
-                                            {% else %}
-                                                <span class="badge bg-secondary">
-                                                    <i class="fas fa-upload me-1"></i>Uploaded
-                                                </span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-3">
-                                            {% if doc.analysis_result and doc.analysis_result.plagiarism_score is not none %}
-                                                {% set score = doc.analysis_result.plagiarism_score %}
-                                                <span class="fw-bold {% if score >= 30 %}text-danger{% elif score >= 15 %}text-warning{% else %}text-success{% endif %}">
-                                                    {{ "%.1f"|format(score) }}%
-                                                </span>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-3">
-                                            {% if doc.analysis_result and doc.analysis_result.ai_score is not none %}
-                                                {% set ai_score = doc.analysis_result.ai_score %}
-                                                <span class="fw-bold {% if ai_score >= 30 %}text-danger{% elif ai_score >= 15 %}text-warning{% else %}text-success{% endif %}">
-                                                    {{ "%.1f"|format(ai_score) }}%
-                                                </span>
-                                            {% else %}
-                                                <span class="text-muted">-</span>
-                                            {% endif %}
-                                        </td>
-                                        <td class="py-3">
-                                            <div>
-                                                <div class="small">{{ doc.created_at.strftime('%b %d, %Y') }}</div>
-                                                <small class="text-muted">{{ doc.created_at.strftime('%I:%M %p') }}</small>
-                                            </div>
-                                        </td>
-                                        <td class="py-3">
-                                            {% if doc.status.value == 'completed' %}
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <a href="{{ url_for('view_report', document_id=doc.id) }}" 
-                                                       class="btn btn-outline-primary" 
-                                                       title="View Report">
-                                                        <i class="fas fa-eye"></i>
-                                                    </a>
-                                                    <a href="{{ url_for('download_report', document_id=doc.id) }}" 
-                                                       class="btn btn-outline-success" 
-                                                       title="Download PDF">
-                                                        <i class="fas fa-download"></i>
-                                                    </a>
-                                                </div>
-                                            {% elif doc.status.value == 'processing' %}
-                                                <div class="spinner-border spinner-border-sm text-primary" role="status">
-                                                    <span class="visually-hidden">Processing...</span>
-                                                </div>
-                                            {% else %}
-                                                <span class="text-muted small">No actions</span>
-                                            {% endif %}
-                                        </td>
+                                        <td><strong>Copyleaks</strong></td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td>100+ Languages</td>
                                     </tr>
-                                    {% endfor %}
+                                    <tr>
+                                        <td><strong>PlagiarismCheck</strong></td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td>50+ Languages</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>AI Detection Service</strong></td>
+                                        <td><i class="fas fa-check text-warning"></i> Basic</td>
+                                        <td><i class="fas fa-check text-success"></i> Advanced</td>
+                                        <td><i class="fas fa-check text-success"></i></td>
+                                        <td>English + Major Languages</td>
+                                    </tr>
                                 </tbody>
                             </table>
                         </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No documents found</h5>
-                            <p class="text-muted">No documents have been uploaded to the system yet.</p>
-                        </div>
-                    {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -228,7 +230,7 @@
                             <div class="text-muted small">Platform Version</div>
                         </div>
                         <div class="col-md-3">
-                            <div class="fw-bold text-success">Copyleaks API</div>
+                            <div class="fw-bold text-success">Multi-Provider</div>
                             <div class="text-muted small">Detection Engine</div>
                         </div>
                         <div class="col-md-3">
