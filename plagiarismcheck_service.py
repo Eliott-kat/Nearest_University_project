@@ -161,7 +161,7 @@ class PlagiarismCheckService:
                         db.session.add(highlighted)
                         flagged_count += 1
             
-            analysis.flagged_sentences = flagged_count
+            # analysis.flagged_sentences = flagged_count  # Field not in model
             document.status = DocumentStatus.COMPLETED
             
             db.session.add(analysis)

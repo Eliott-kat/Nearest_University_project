@@ -32,7 +32,7 @@ class SmartAPISwitch:
     def authenticate(self):
         """Authentifier avec fallback automatique"""
         # Tenter avec le service principal
-        if self._current_service.authenticate():
+        if self._current_service and self._current_service.authenticate():
             self._last_working_service = self._current_service
             return True
         
@@ -51,7 +51,7 @@ class SmartAPISwitch:
     def submit_document(self, document):
         """Soumettre un document avec fallback automatique"""
         # Tenter avec le service principal
-        if self._current_service.submit_document(document):
+        if self._current_service and self._current_service.submit_document(document):
             self._last_working_service = self._current_service
             return True
         

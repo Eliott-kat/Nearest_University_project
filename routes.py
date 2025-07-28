@@ -293,12 +293,7 @@ def admin_dashboard():
                 'status': 'Configured' if provider_status['plagiarismcheck_configured'] else 'Not Configured',
                 'description': 'Alternative plagiarism detection service'
             },
-            'ai_detection': {
-                'name': 'AI Detection Service',
-                'configured': provider_status['ai_detection_configured'],
-                'status': 'Configured' if provider_status['ai_detection_configured'] else 'Not Configured',
-                'description': 'Specialized AI content detection with GPTZero API'
-            }
+
         }
         
         # Get statistics
