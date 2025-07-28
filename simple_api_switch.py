@@ -113,7 +113,7 @@ def get_active_service():
 
 def get_provider_status():
     """Obtenir le statut du provider actuel"""
-    provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'copyleaks').lower()
+    provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'plagiarismcheck').lower()
     copyleaks_configured = bool(os.environ.get('COPYLEAKS_EMAIL') and os.environ.get('COPYLEAKS_API_KEY'))
     plagiarismcheck_configured = bool(os.environ.get('PLAGIARISMCHECK_API_TOKEN'))
     
