@@ -81,7 +81,13 @@ class PlagiarismCheckService:
             
             if response.status_code == 201:  # PlagiarismCheck retourne 201 pour les créations
                 result = response.json()
-                logging.info("Analyse de plagiat réussie")
+                logging.info(f"Analyse de plagiat réussie - Réponse API: {result}")
+                
+                # Extraire l'ID du rapport pour récupérer les scores
+                if result.get('success') and result.get('data', {}).get('text', {}).get('report_id'):
+                    report_id = result['data']['text']['report_id']
+                    return self._get_plagiarism_report(report_id, result)
+                
                 return result
             else:
                 logging.error(f"Erreur API plagiat: {response.status_code}")
@@ -123,12 +129,77 @@ class PlagiarismCheckService:
             logging.error(f"Erreur lors de la vérification IA: {e}")
             return None
     
+    def _get_plagiarism_report(self, report_id: int, original_response: Dict) -> Dict:
+        """Récupérer le rapport de plagiat avec les scores"""
+        try:
+            headers = {
+                'X-API-TOKEN': self.api_token,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            
+            # Attendre quelques secondes pour que l'analyse soit terminée
+            import time
+            time.sleep(3)
+            
+            # Utiliser l'ID du texte au lieu de l'ID du rapport selon la documentation
+            text_id = original_response['data']['text']['id']
+            
+            # Attendre plus longtemps pour que l'analyse soit terminée
+            time.sleep(8)
+            
+            response = requests.get(
+                f"{self.base_url}/text/report/{text_id}",
+                headers=headers,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                report_data = response.json()
+                logging.info(f"Rapport de plagiat récupéré: {report_data}")
+                
+                # Extraire les scores réels directement de la réponse
+                # Les données sont dans data.report directement, pas data.report.data.report
+                report_details = report_data.get('data', {}).get('report', {})
+                matched_percent = report_details.get('matched_percent', 0)
+                sources_count = report_details.get('sources_count', 0)
+                sources = report_details.get('sources', [])
+                
+                logging.info(f"Extraction directe - matched_percent: {matched_percent}, sources_count: {sources_count}")
+                
+                combined_result = {
+                    'original_response': original_response,
+                    'report': report_data,
+                    'plagiarism': {
+                        'percent': matched_percent,
+                        'sources_found': sources_count,
+                        'details': sources,
+                        'matched_length': report_details.get('matched_length', 0)
+                    }
+                }
+                return combined_result
+            else:
+                logging.warning(f"Impossible de récupérer le rapport {report_id}: {response.status_code}")
+                # Retourner la réponse originale avec un score par défaut
+                return {
+                    'original_response': original_response,
+                    'plagiarism': {'percent': 0, 'sources_found': 0}
+                }
+                
+        except Exception as e:
+            logging.error(f"Erreur lors de la récupération du rapport: {e}")
+            return {
+                'original_response': original_response,
+                'plagiarism': {'percent': 0, 'sources_found': 0}
+            }
+    
     def _save_analysis_results(self, document: Document, plagiarism_result: Dict, ai_result: Optional[Dict]):
         """Sauvegarder les résultats d'analyse"""
         try:
-            # Extraire les scores
+            # Extraire les scores avec la nouvelle structure
             plagiarism_score = plagiarism_result.get('plagiarism', {}).get('percent', 0)
             ai_score = ai_result.get('ai_score', 0) if ai_result else 0
+            
+            logging.info(f"Scores extraits - Plagiat: {plagiarism_score}%, IA: {ai_score}%")
             
             # Créer l'analyse
             analysis = AnalysisResult()
@@ -139,7 +210,7 @@ class PlagiarismCheckService:
                 'plagiarism': plagiarism_result,
                 'ai_detection': ai_result
             }
-            analysis.sources_count = plagiarism_result.get('sources_found', 0)
+            analysis.sources_count = plagiarism_result.get('plagiarism', {}).get('sources_found', 0)
             analysis.analysis_provider = 'plagiarismcheck'
             
             # Identifier les phrases problématiques
@@ -168,6 +239,7 @@ class PlagiarismCheckService:
             db.session.commit()
             
             logging.info(f"Analyse sauvegardée: {plagiarism_score}% plagiat, {ai_score}% IA")
+            logging.info(f"Structure plagiarism_result: {plagiarism_result}")
             
         except Exception as e:
             logging.error(f"Erreur lors de la sauvegarde: {e}")
