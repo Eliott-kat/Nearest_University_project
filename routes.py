@@ -323,7 +323,7 @@ def switch_provider():
     try:
         new_provider = request.form.get('provider')
         
-        if new_provider not in ['copyleaks', 'plagiarismcheck', 'ai_detection']:
+        if new_provider not in ['copyleaks', 'plagiarismcheck']:
             flash('Invalid provider selected.', 'danger')
             return redirect(url_for('admin_dashboard'))
         
@@ -352,8 +352,6 @@ def test_provider(provider):
             service = switch.copyleaks_service
         elif provider == 'plagiarismcheck':
             service = switch.plagiarismcheck_service
-        elif provider == 'ai_detection':
-            service = switch.ai_detection_service
         else:
             flash('Invalid provider specified.', 'danger')
             return redirect(url_for('admin_dashboard'))

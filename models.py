@@ -82,8 +82,13 @@ class AnalysisResult(db.Model):
     ai_score = db.Column(db.Float)  # Percentage
     ai_words = db.Column(db.Integer)
     
-    # Raw results from Copyleaks
+    # Raw results from APIs
     raw_results = db.Column(db.JSON)
+    
+    # Additional fields for compatibility
+    sources_count = db.Column(db.Integer, default=0)
+    analysis_provider = db.Column(db.String(100))
+    raw_response = db.Column(db.Text)
     
     # Highlighted text with problematic sentences
     highlighted_text = db.Column(db.Text)

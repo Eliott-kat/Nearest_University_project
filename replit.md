@@ -100,8 +100,15 @@ The application supports two authentication modes:
 - **Fallback Logic**: Automatic degradation to demo mode when APIs unavailable
 
 ### Multi-API Support
-The application includes a sophisticated API switching system:
-- **Primary Provider**: Configurable via `PLAGIARISM_API_PROVIDER` environment variable
+The application includes a dual-API switching system:
+- **Primary Provider**: Configurable via `PLAGIARISM_API_PROVIDER` environment variable (copyleaks/plagiarismcheck)
 - **Automatic Fallback**: When primary API fails, system automatically tries secondary API
 - **Demo Mode**: When all APIs fail, system provides realistic simulated analysis
 - **Status Tracking**: Real-time monitoring of API availability and performance
+
+### Recent Changes (July 28, 2025)
+- **AI Detection Service Removed**: GPTZero integration removed due to authentication issues
+- **Simplified Architecture**: Now supports only Copyleaks and PlagiarismCheck APIs
+- **Database Schema Updated**: Added support for sources_count, analysis_provider, and raw_response fields
+- **Admin Dashboard Cleaned**: Removed references to AI Detection Service
+- **Improved Stability**: Dual-provider system with robust fallback mechanism

@@ -168,7 +168,6 @@ class AIDetectionService:
                 plagiarism_score=plagiarism_result.get('plagiarism_percentage', 0),
                 ai_score=ai_result.get('ai_percentage', 0),
                 total_words=plagiarism_result.get('word_count', 0),
-                flagged_words=int(ai_result.get('ai_percentage', 0) * plagiarism_result.get('word_count', 0) / 100),
                 sources_count=plagiarism_result.get('sources_found', 0),
                 analysis_provider='ai_detection_service',
                 raw_response=json.dumps({
@@ -218,7 +217,6 @@ class AIDetectionService:
                 plagiarism_score=plagiarism_score,
                 ai_score=ai_score,
                 total_words=word_count,
-                flagged_words=int(ai_score * word_count / 100),
                 sources_count=random.randint(0, 5),
                 analysis_provider='ai_detection_demo',
                 raw_response=json.dumps({

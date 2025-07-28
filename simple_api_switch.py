@@ -5,7 +5,7 @@ import os
 import logging
 from copyleaks_service import CopyleaksService
 from plagiarismcheck_service import PlagiarismCheckService
-from ai_detection_service import AIDetectionService
+
 
 class SmartAPISwitch:
     """Service intelligent qui teste les APIs avec fallback automatique"""
@@ -13,7 +13,7 @@ class SmartAPISwitch:
     def __init__(self):
         self.copyleaks_service = CopyleaksService()
         self.plagiarismcheck_service = PlagiarismCheckService()
-        self.ai_detection_service = AIDetectionService()
+
         self._current_service = None
         self._last_working_service = None
         self._initialize_primary_service()
@@ -25,9 +25,6 @@ class SmartAPISwitch:
         if provider == 'plagiarismcheck':
             self._current_service = self.plagiarismcheck_service
             logging.info("Provider configuré : PlagiarismCheck")
-        elif provider == 'ai_detection':
-            self._current_service = self.ai_detection_service
-            logging.info("Provider configuré : AI Detection Service")
         else:
             self._current_service = self.copyleaks_service
             logging.info("Provider configuré : Copyleaks")
@@ -75,7 +72,7 @@ class SmartAPISwitch:
     def _get_fallback_services(self):
         """Obtenir la liste des services de fallback"""
         fallback_services = []
-        all_services = [self.copyleaks_service, self.plagiarismcheck_service, self.ai_detection_service]
+        all_services = [self.copyleaks_service, self.plagiarismcheck_service]
         
         # Exclure le service actuel et ajouter les autres services configurés
         for service in all_services:
@@ -90,8 +87,7 @@ class SmartAPISwitch:
             return bool(os.environ.get('COPYLEAKS_EMAIL') and os.environ.get('COPYLEAKS_API_KEY'))
         elif service == self.plagiarismcheck_service:
             return bool(os.environ.get('PLAGIARISMCHECK_API_TOKEN'))
-        elif service == self.ai_detection_service:
-            return True  # Le token est intégré dans le service
+
         return False
     
     def _get_service_name(self, service):
@@ -100,8 +96,7 @@ class SmartAPISwitch:
             return "Copyleaks"
         elif service == self.plagiarismcheck_service:
             return "PlagiarismCheck"
-        elif service == self.ai_detection_service:
-            return "AI Detection Service"
+
         return "Unknown"
     
     @property
@@ -121,13 +116,11 @@ def get_provider_status():
     provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'copyleaks').lower()
     copyleaks_configured = bool(os.environ.get('COPYLEAKS_EMAIL') and os.environ.get('COPYLEAKS_API_KEY'))
     plagiarismcheck_configured = bool(os.environ.get('PLAGIARISMCHECK_API_TOKEN'))
-    ai_detection_configured = True  # Toujours configuré avec le token intégré
     
     return {
         'current_provider': provider,
         'copyleaks_configured': copyleaks_configured,
         'plagiarismcheck_configured': plagiarismcheck_configured,
-        'ai_detection_configured': ai_detection_configured,
-        'total_providers': 3,
-        'available_providers': sum([copyleaks_configured, plagiarismcheck_configured, ai_detection_configured])
+        'total_providers': 2,
+        'available_providers': sum([copyleaks_configured, plagiarismcheck_configured])
     }

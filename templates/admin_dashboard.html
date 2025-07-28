@@ -100,10 +100,7 @@
                             <i class="fas fa-info-circle me-3"></i>
                             <div>
                                 <strong>Current Active Provider:</strong> 
-                                {{ provider_status.current_provider|title }} 
-                                {% if provider_status.current_provider == 'ai_detection' %}
-                                    (AI Detection Service)
-                                {% endif %}
+                                {{ provider_status.current_provider|title }}
                             </div>
                         </div>
                     </div>
