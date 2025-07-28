@@ -20,7 +20,7 @@ class SmartAPISwitch:
     
     def _initialize_primary_service(self):
         """Initialiser le service principal selon la configuration"""
-        provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'copyleaks').lower()
+        provider = os.environ.get('PLAGIARISM_API_PROVIDER', 'plagiarismcheck').lower()
         
         if provider == 'plagiarismcheck':
             self._current_service = self.plagiarismcheck_service
