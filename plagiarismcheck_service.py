@@ -84,11 +84,23 @@ class PlagiarismCheckService:
                 logging.info(f"Analyse de plagiat réussie - Réponse API: {result}")
                 
                 # Extraire l'ID du rapport pour récupérer les scores
-                if result.get('success') and result.get('data', {}).get('text', {}).get('report_id'):
-                    report_id = result['data']['text']['report_id']
-                    return self._get_plagiarism_report(report_id, result)
+                text_data = result.get('data', {}).get('text', {})
+                report_id = text_data.get('report_id')
                 
-                return result
+                if result.get('success') and report_id:
+                    return self._get_plagiarism_report(report_id, result)
+                else:
+                    # Si pas de report_id, créer une réponse par défaut avec les données disponibles
+                    logging.warning(f"Aucun report_id trouvé, utilisation des données par défaut")
+                    return {
+                        'original_response': result,
+                        'plagiarism': {
+                            'percent': 0,
+                            'sources_found': 0,
+                            'details': [],
+                            'matched_length': 0
+                        }
+                    }
             else:
                 logging.error(f"Erreur API plagiat: {response.status_code}")
                 return None
@@ -191,7 +203,7 @@ class PlagiarismCheckService:
             logging.error(f"Erreur lors de la récupération du rapport: {e}")
             return {
                 'original_response': original_response,
-                'plagiarism': {'percent': 0, 'sources_found': 0}
+                'plagiarism': {'percent': 0, 'sources_found': 0, 'details': [], 'matched_length': 0}
             }
     
     def _save_analysis_results(self, document: Document, plagiarism_result: Dict, ai_result: Optional[Dict]):
