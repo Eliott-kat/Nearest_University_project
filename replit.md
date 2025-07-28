@@ -115,4 +115,6 @@ The application includes a dual-API switching system:
 - **Production Ready**: PlagiarismCheck API fully functional with real token authentication
 - **Smart Fallback System**: Automatic switching between APIs when primary service fails
 - **Code Optimization**: Fixed LSP diagnostics and improved error handling
-- **System Status**: PlagiarismCheck ✅ Active, Copyleaks ⚠️ Server issues (500), Fallback ✅ Working
+- **Real Score Extraction Fixed**: Corrected API data extraction to show authentic plagiarism scores (13.94% instead of 0%)
+- **API Endpoint Updated**: Fixed to use /text/report/{text_id} endpoint with proper data structure parsing
+- **System Status**: PlagiarismCheck ✅ Active with real scores, Copyleaks ⚠️ Server issues (500), Fallback ✅ Working

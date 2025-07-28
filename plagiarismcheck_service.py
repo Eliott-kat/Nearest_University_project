@@ -157,14 +157,16 @@ class PlagiarismCheckService:
                 report_data = response.json()
                 logging.info(f"Rapport de plagiat récupéré: {report_data}")
                 
-                # Extraire les scores réels directement de la réponse
-                # Les données sont dans data.report directement, pas data.report.data.report
-                report_details = report_data.get('data', {}).get('report', {})
+                # Extraire les scores réels de la structure correcte
+                # Les données sont dans data.report_data selon les logs
+                report_details = report_data.get('data', {}).get('report_data', {})
                 matched_percent = report_details.get('matched_percent', 0)
                 sources_count = report_details.get('sources_count', 0)
                 sources = report_details.get('sources', [])
                 
                 logging.info(f"Extraction directe - matched_percent: {matched_percent}, sources_count: {sources_count}")
+                logging.info(f"Structure complète report_details: {report_details}")
+                logging.info(f"Keys disponibles dans report_data: {list(report_data.get('data', {}).keys())}")
                 
                 combined_result = {
                     'original_response': original_response,
