@@ -140,25 +140,25 @@ class TurnitinStyleDetector:
                 pattern_count += 1
         
         # Si beaucoup de patterns académiques, probable plagiat de sources académiques
-        if pattern_count >= 3:
+        if pattern_count >= 4:  # Plus restrictif
             matches.append({
                 'source': 'Academic Database Match (Local Analysis)',
-                'percent': min(pattern_count * 2.5, 15),
-                'length': min(len(text) // 10, 200),
+                'percent': min(pattern_count * 1.8, 12),  # Scores plus réalistes
+                'length': min(len(text) // 12, 150),
                 'confidence': 'medium',
                 'type': 'pattern_analysis'
             })
         
-        # Vérifier la complexité du vocabulaire
+        # Vérifier la complexité du vocabulaire (plus restrictif)
         words = text.split()
         unique_words = set(words)
         complexity_ratio = len(unique_words) / len(words) if words else 0
         
-        if complexity_ratio > 0.7 and len(words) > 100:
+        if complexity_ratio > 0.8 and len(words) > 200:  # Plus restrictif
             matches.append({
                 'source': 'High Vocabulary Complexity (Potential Academic Source)',
-                'percent': 8.5,
-                'length': len(text) // 15,
+                'percent': 5.2,  # Score plus réaliste
+                'length': len(text) // 20,
                 'confidence': 'low',
                 'type': 'vocabulary_analysis'
             })
@@ -173,16 +173,16 @@ class TurnitinStyleDetector:
         sentences = re.split(r'[.!?]+', text)
         long_sentences = [s for s in sentences if len(s.split()) > 30]
         
-        if long_sentences:
+        if len(long_sentences) >= 3:  # Plus restrictif
             matches.append({
                 'source': 'Unusual Sentence Structure (AI/Copy Pattern)',
-                'percent': min(len(long_sentences) * 3, 12),
+                'percent': min(len(long_sentences) * 2.1, 8),  # Scores plus réalistes
                 'length': sum(len(s) for s in long_sentences),
                 'confidence': 'medium',
                 'type': 'structure_analysis'
             })
         
-        # Répétitions de structures
+        # Répétitions de structures (plus restrictif)
         common_starters = defaultdict(int)
         for sentence in sentences:
             words = sentence.strip().split()
@@ -190,12 +190,12 @@ class TurnitinStyleDetector:
                 starter = ' '.join(words[:2])
                 common_starters[starter] += 1
         
-        repetitive_starters = [k for k, v in common_starters.items() if v >= 3]
+        repetitive_starters = [k for k, v in common_starters.items() if v >= 4]  # Plus restrictif
         if repetitive_starters:
             matches.append({
                 'source': 'Repetitive Structure Pattern',
-                'percent': min(len(repetitive_starters) * 4, 10),
-                'length': len(text) // 20,
+                'percent': min(len(repetitive_starters) * 2.8, 7),  # Scores plus réalistes
+                'length': len(text) // 25,
                 'confidence': 'medium',
                 'type': 'repetition_analysis'
             })
@@ -217,21 +217,21 @@ class TurnitinStyleDetector:
         hapax_legomena = len([word for word, freq in word_freq.items() if freq == 1])
         lexical_diversity = hapax_legomena / len(words)
         
-        # Score basé sur les métriques
+        # Score basé sur les métriques (plus réaliste)
         structure_score = 0
         
-        # Phrases trop uniformes = suspect
-        if 20 <= avg_sentence_length <= 25:
-            structure_score += 5
+        # Phrases trop uniformes = suspect (plus restrictif)
+        if 22 <= avg_sentence_length <= 24:
+            structure_score += 3.2
         
-        # Diversité lexicale trop parfaite = suspect
-        if 0.6 <= lexical_diversity <= 0.8:
-            structure_score += 7
+        # Diversité lexicale trop parfaite = suspect (plus restrictif)
+        if 0.65 <= lexical_diversity <= 0.75:
+            structure_score += 4.1
         
-        # Trop de mots de transition
+        # Trop de mots de transition (plus restrictif)
         transition_words = ['however', 'furthermore', 'moreover', 'therefore', 'consequently', 'nevertheless']
         transition_count = sum(1 for word in words if word.lower() in transition_words)
-        if transition_count > len(words) / 50:
-            structure_score += 8
+        if transition_count > len(words) / 40:  # Plus restrictif
+            structure_score += 5.3
         
-        return min(structure_score, 25)  # Max 25% pour l'analyse structurelle
+        return min(structure_score, 15)  # Max 15% pour l'analyse structurelle

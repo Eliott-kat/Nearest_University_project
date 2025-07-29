@@ -10,6 +10,7 @@ from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
 from unified_detection_service import UnifiedDetectionService
+from detection_status_display import get_provider_display_name, get_provider_status_badge
 from report_generator import report_generator
 
 # Create a fake user for local development
@@ -162,8 +163,9 @@ def upload_document():
                 document.status = DocumentStatus.COMPLETED
                 db.session.commit()
                 
-                provider_name = result.get('provider_used', 'local')
-                flash(f'Document analysé avec succès! Détection de plagiat: {result["plagiarism"]["percent"]}% (via {provider_name})', 'success')
+                provider_name = get_provider_display_name(result.get('provider_used', 'local'))
+                score = result["plagiarism"]["percent"]
+                flash(f'✅ Document analysé avec succès! Plagiat détecté: {score}% via {provider_name}', 'success')
                 return redirect(url_for('document_history'))
             else:
                 flash('Document uploaded but analysis failed. Please try again.', 'warning')

@@ -76,7 +76,13 @@ class UnifiedDetectionService:
                 logging.warning("Clés Copyleaks manquantes, passage au service suivant")
                 return None
             
-            result = self.copyleaks.analyze_text(text)
+            # Créer un document temporaire pour l'API Copyleaks
+            from models import Document
+            temp_doc = Document()
+            temp_doc.extracted_text = text
+            temp_doc.original_filename = filename
+            
+            result = self.copyleaks.submit_document(temp_doc)
             
             # Transformer le résultat Copyleaks au format standard
             if result and 'scans' in result:
@@ -119,7 +125,7 @@ class UnifiedDetectionService:
                 logging.warning("Clé PlagiarismCheck manquante, passage au service suivant")
                 return None
             
-            result = self.plagiarismcheck.analyze_text(text)
+            result = self.plagiarismcheck._check_plagiarism(text)
             
             # Le résultat est déjà au bon format
             if result and 'plagiarism' in result:
