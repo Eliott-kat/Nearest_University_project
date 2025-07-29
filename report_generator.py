@@ -172,7 +172,9 @@ class ReportGenerator:
                     'end': sentence.end_position,
                     'type': 'plagiarism',
                     'text': sentence.sentence_text,
-                    'confidence': sentence.plagiarism_confidence
+                    'confidence': sentence.plagiarism_confidence,
+                    'source_url': sentence.source_url,
+                    'source_title': sentence.source_title
                 })
             
             # Add AI highlights
@@ -182,7 +184,9 @@ class ReportGenerator:
                     'end': sentence.end_position,
                     'type': 'ai',
                     'text': sentence.sentence_text,
-                    'confidence': sentence.ai_confidence
+                    'confidence': sentence.ai_confidence,
+                    'source_url': None,
+                    'source_title': 'Contenu IA détecté'
                 })
             
             # Sort highlights by start position
@@ -204,7 +208,12 @@ class ReportGenerator:
                 highlighted_text = original_text[start_pos:end_pos]
                 css_class = f"highlight-{highlight['type']}"
                 
-                result += f'<span class="{css_class}" title="{highlight["type"].title()}: {highlight["confidence"]:.1f}% confidence">{highlighted_text}</span>'
+                # Créer un tooltip informatif
+                tooltip = f"{highlight['type'].title()}: {highlight['confidence']:.1f}% confidence"
+                if highlight.get('source_url') and highlight['type'] == 'plagiarism':
+                    tooltip += f" - Source: {highlight.get('source_title', 'Document externe')}"
+                
+                result += f'<span class="{css_class}" title="{tooltip}" style="cursor: help; position: relative;">{highlighted_text}</span>'
                 
                 last_pos = end_pos
             
