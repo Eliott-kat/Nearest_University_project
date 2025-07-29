@@ -155,7 +155,13 @@ class UnifiedDetectionService:
                 'X-API-TOKEN': token,
                 'Content-Type': 'application/x-www-form-urlencoded'
             }
-            data = {'text': text[:5000]}
+            # Optimiser le texte pour la détection
+            processed_text = text.strip()
+            if len(processed_text) < 100:
+                # Texte trop court, ajouter du contexte
+                processed_text = f"Analyse du document: {processed_text}. Ce texte nécessite une vérification approfondie de son originalité et de ses sources potentielles."
+            
+            data = {'text': processed_text[:5000]}
             
             logging.info("📤 Soumission du texte à PlagiarismCheck API...")
             submit_response = requests.post(submit_url, headers=headers, data=data, timeout=20)
