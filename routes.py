@@ -288,7 +288,7 @@ def download_report(document_id):
         return send_file(
             pdf_path,
             as_attachment=True,
-            download_name=f"analysis_report_{document.original_filename}.pdf",
+            download_name=f"zizou_{document.original_filename}.pdf",
             mimetype='application/pdf'
         )
         

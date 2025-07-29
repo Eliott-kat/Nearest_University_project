@@ -5,14 +5,14 @@ from flask import render_template, request, redirect, url_for, flash, session, j
 from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
-# Commented out for local installation - uncomment if using Replit auth
-# from replit_auth import require_login, make_replit_blueprint
+# Commented out for local installation - uncomment if using auth system
+# from auth_system import require_login, make_auth_blueprint
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
 from copyleaks_service import copyleaks_service
 from report_generator import report_generator
 
 # Register authentication blueprint - commented out for local installation
-# app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
+# app.register_blueprint(make_auth_blueprint(), url_prefix="/auth")
 
 # Simple local authentication replacement
 def require_login(f):
