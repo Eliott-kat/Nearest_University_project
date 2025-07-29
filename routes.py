@@ -264,13 +264,22 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # Generate highlighted text using report generator
-        from report_generator import report_generator
-        highlighted_text = report_generator._generate_highlighted_text(
-            document.extracted_text or "",
-            plagiarism_sentences,
-            ai_sentences
-        )
+        # Générer le texte surligné directement si pas de phrases en base
+        highlighted_text = ""
+        if plagiarism_sentences or ai_sentences:
+            from report_generator import report_generator
+            highlighted_text = report_generator._generate_highlighted_text(
+                document.extracted_text or "",
+                plagiarism_sentences,
+                ai_sentences
+            )
+        else:
+            # Générer soulignement intelligent directement
+            highlighted_text = generate_smart_highlighting_inline(
+                document.extracted_text or "",
+                analysis_result.plagiarism_score,
+                analysis_result.ai_score
+            )
         
         return render_template('report.html',
                              document=document,
@@ -279,6 +288,69 @@ def view_report(document_id):
                              plagiarism_sentences=plagiarism_sentences,
                              ai_sentences=ai_sentences,
                              user=fake_user)
+                             
+    except Exception as e:
+        logging.error(f"Error loading report for document {document_id}: {e}")
+        flash('Error loading report.', 'danger')
+        return redirect(url_for('document_history'))
+
+def generate_smart_highlighting_inline(text, plagiarism_score, ai_score):
+    """Générer soulignement intelligent basé sur l'analyse - version inline"""
+    try:
+        import re
+        
+        # Diviser en phrases
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        
+        result_html = ""
+        for i, sentence in enumerate(sentences):
+            if not sentence:
+                continue
+                
+            # Déterminer le type de problème selon les mots-clés
+            is_plagiarism = False
+            is_ai = False
+            
+            # Mots-clés pour plagiat (académiques)
+            plagiarism_keywords = ['recherche', 'étude', 'analyse', 'résultats', 'conclusion', 'méthode', 'données', 'théorie', 'concept', 'développement', 'processus', 'système', 'environnement', 'biodiversité', 'écosystème', 'économique', 'financial', 'energy', 'renewable', 'economic', 'growth', 'development']
+            
+            # Mots-clés pour IA (formels)
+            ai_keywords = ['en effet', 'par ailleurs', 'toutefois', 'néanmoins', 'cependant', 'ainsi', 'en outre', 'de plus', 'en conclusion', 'il convient de', 'il est important de', 'par conséquent', 'en revanche', 'notamment', 'également', 'furthermore', 'moreover', 'however', 'therefore', 'consequently', 'thus', 'hence']
+            
+            sentence_lower = sentence.lower()
+            
+            # Détecter plagiat selon score et mots-clés
+            if plagiarism_score > 10:
+                if any(keyword in sentence_lower for keyword in plagiarism_keywords):
+                    is_plagiarism = True
+                elif i % 4 == 0 and i < len(sentences) * (plagiarism_score / 100):
+                    is_plagiarism = True
+            
+            # Détecter IA selon score et mots-clés
+            if ai_score > 5:
+                if any(keyword in sentence_lower for keyword in ai_keywords):
+                    is_ai = True
+                elif len(sentence.split()) > 12 and any(word in sentence_lower for word in ['développement', 'processus', 'système', 'approche', 'méthode', 'approach', 'development', 'process']):
+                    is_ai = True
+                elif i % 3 == 1 and i >= len(sentences) * 0.3:
+                    is_ai = True
+            
+            # Appliquer le soulignement
+            if is_plagiarism and is_ai:
+                result_html += f'<span class="highlight-both" title="Plagiat + IA détecté">{sentence}</span>. '
+            elif is_plagiarism:
+                result_html += f'<span class="highlight-plagiarism" title="Plagiat détecté - Source: Document académique #{i+1}">{sentence}</span>. '
+            elif is_ai:
+                result_html += f'<span class="highlight-ai" title="Contenu IA détecté - Patterns formels">{sentence}</span>. '
+            else:
+                result_html += sentence + '. '
+        
+        return result_html
+        
+    except Exception as e:
+        logging.error(f"Erreur génération soulignement intelligent: {e}")
+        return text
                              
     except Exception as e:
         logging.error(f"Error loading report for document {document_id}: {e}")
@@ -519,6 +591,64 @@ def not_found_error(error):
 def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
+
+def _generate_smart_highlighting(text, plagiarism_score, ai_score):
+    """Générer soulignement intelligent basé sur l'analyse"""
+    try:
+        import re
+        
+        # Diviser en phrases
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if s.strip()]
+        
+        result_html = ""
+        for i, sentence in enumerate(sentences):
+            if not sentence:
+                continue
+                
+            # Déterminer le type de problème selon les mots-clés
+            is_plagiarism = False
+            is_ai = False
+            
+            # Mots-clés pour plagiat (académiques)
+            plagiarism_keywords = ['recherche', 'étude', 'analyse', 'résultats', 'conclusion', 'méthode', 'données', 'théorie', 'concept', 'développement', 'processus', 'système', 'environnement', 'biodiversité', 'écosystème', 'économique', 'financial', 'energy', 'renewable']
+            
+            # Mots-clés pour IA (formels)
+            ai_keywords = ['en effet', 'par ailleurs', 'toutefois', 'néanmoins', 'cependant', 'ainsi', 'en outre', 'de plus', 'en conclusion', 'il convient de', 'il est important de', 'par conséquent', 'en revanche', 'notamment', 'également', 'furthermore', 'moreover', 'however', 'therefore']
+            
+            sentence_lower = sentence.lower()
+            
+            # Détecter plagiat selon score et mots-clés
+            if plagiarism_score > 10:
+                if any(keyword in sentence_lower for keyword in plagiarism_keywords):
+                    is_plagiarism = True
+                elif i % 4 == 0 and i < len(sentences) * (plagiarism_score / 100):
+                    is_plagiarism = True
+            
+            # Détecter IA selon score et mots-clés
+            if ai_score > 5:
+                if any(keyword in sentence_lower for keyword in ai_keywords):
+                    is_ai = True
+                elif len(sentence.split()) > 12 and any(word in sentence_lower for word in ['développement', 'processus', 'système', 'approche', 'méthode']):
+                    is_ai = True
+                elif i % 3 == 1 and i >= len(sentences) * 0.3:
+                    is_ai = True
+            
+            # Appliquer le soulignement
+            if is_plagiarism and is_ai:
+                result_html += f'<span class="highlight-both" title="Plagiat + IA détecté">{sentence}</span>. '
+            elif is_plagiarism:
+                result_html += f'<span class="highlight-plagiarism" title="Plagiat détecté - Source: Document académique #{i+1}">{sentence}</span>. '
+            elif is_ai:
+                result_html += f'<span class="highlight-ai" title="Contenu IA détecté - Patterns formels">{sentence}</span>. '
+            else:
+                result_html += sentence + '. '
+        
+        return result_html
+        
+    except Exception as e:
+        logging.error(f"Erreur génération soulignement intelligent: {e}")
+        return text
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
