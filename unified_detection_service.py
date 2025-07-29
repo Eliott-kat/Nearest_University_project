@@ -175,7 +175,10 @@ class UnifiedDetectionService:
             logging.info("📤 Soumission du texte à PlagiarismCheck API...")
             submit_response = requests.post(submit_url, headers=headers, data=data, timeout=20)
             
-            if submit_response.status_code not in [200, 201]:
+            if submit_response.status_code == 409:
+                logging.warning("⚠️ Quota API dépassé temporairement - utilisation détection locale")
+                return None
+            elif submit_response.status_code not in [200, 201]:
                 logging.error(f"Erreur soumission: {submit_response.status_code}")
                 return None
             
@@ -384,16 +387,31 @@ class UnifiedDetectionService:
             return False
     
     def _try_turnitin_local(self, text: str, filename: str) -> Optional[Dict]:
-        """Essaie l'analyse avec l'algorithme local"""
+        """Essaie l'analyse avec l'algorithme local avancé (Sentence-BERT + IA)"""
         try:
-            logging.info("Utilisation de l'algorithme local Turnitin-style")
-            result = self.turnitin_local.detect_plagiarism(text)
+            logging.info("🚀 Utilisation de l'algorithme avancé Sentence-BERT + Détection IA")
             
-            # Transformer au format standard avec détection IA
+            # Importer le service de détection avancé
+            from advanced_detection_service import get_advanced_detection_service
+            advanced_service = get_advanced_detection_service()
+            
+            # Effectuer la détection avancée
+            result = advanced_service.detect_plagiarism_and_ai(text, filename)
+            
+            # Transformer au format standard
             response = {
-                'plagiarism': result,
+                'plagiarism': {
+                    'percent': result.get('percent', 0),
+                    'sources_found': result.get('sources_found', 0),
+                    'details': result.get('details', {}),
+                    'matched_length': len(text) * (result.get('percent', 0) / 100)
+                },
+                'ai_content': {
+                    'percent': result.get('ai_percent', 0)
+                },
+                'provider_used': 'advanced_sentence_bert_ai_local',
                 'original_response': {
-                    'method': 'turnitin_local_algorithm',
+                    'method': result.get('method', 'advanced_sentence_bert_ai_detection'),
                     'analysis_details': result
                 }
             }
