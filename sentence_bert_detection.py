@@ -209,6 +209,8 @@ class ManualLogisticRegression:
         """Prédit les probabilités"""
         results = []
         for features in X:
+            if self.weights is None:
+                return [[0.5, 0.5] for _ in X]
             z = sum(w * f for w, f in zip(self.weights, features)) + self.bias
             prob = self._sigmoid(z)
             results.append([1 - prob, prob])  # [prob_class_0, prob_class_1]
@@ -555,7 +557,7 @@ class SentenceBertDetectionService:
                 comparisons += 1
                 
                 # OPTIMISATION: Stop si très bonne correspondance trouvée
-                if similarity > 95 or comparisons > 20:  # Limite à 20 comparaisons
+                if max_similarity > 95 or comparisons > 20:  # Limite à 20 comparaisons
                     break
             
             conn.close()
@@ -736,19 +738,24 @@ class SentenceBertDetectionService:
             
             # COUCHE 8: Intégration GPTZero (perplexité + burstiness)
             gptzero_bonus = 0
-            if GPTZERO_AVAILABLE:
-                try:
-                    gptzero_result = detect_ai_gptzero_like(text)
-                    if gptzero_result['is_ai']:
-                        # Bonus adaptatif basé sur nombre d'indicateurs détectés
-                        indicator_multiplier = min(gptzero_result.get('indicators_detected', 1) / 7, 1)
-                        gptzero_bonus = gptzero_result['confidence'] * 0.4 * indicator_multiplier  # Max 40% du score GPTZero
-                        overall_ai_prob = min(overall_ai_prob + gptzero_bonus, 100)
-                        logging.info(f"🔍 GPTZero ULTRA: {gptzero_result['confidence']}% IA ({gptzero_result.get('indicators_detected', 0)} indicateurs - P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']})")
-                    else:
-                        logging.info(f"🔍 GPTZero: {gptzero_result['confidence']}% (P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']}) - Humain détecté")
-                except Exception as e:
-                    logging.error(f"Erreur GPTZero: {e}")
+            gptzero_result = None
+            try:
+                from utils.ai_gptzero_like import detect_ai_gptzero_like, GPTZERO_AVAILABLE
+                if GPTZERO_AVAILABLE:
+                    try:
+                        gptzero_result = detect_ai_gptzero_like(text)
+                        if gptzero_result['is_ai']:
+                            # Bonus adaptatif basé sur nombre d'indicateurs détectés
+                            indicator_multiplier = min(gptzero_result.get('indicators_detected', 1) / 7, 1)
+                            gptzero_bonus = gptzero_result['confidence'] * 0.4 * indicator_multiplier  # Max 40% du score GPTZero
+                            overall_ai_prob = min(overall_ai_prob + gptzero_bonus, 100)
+                            logging.info(f"🔍 GPTZero ULTRA: {gptzero_result['confidence']}% IA ({gptzero_result.get('indicators_detected', 0)} indicateurs - P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']})")
+                        else:
+                            logging.info(f"🔍 GPTZero: {gptzero_result['confidence']}% (P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']}) - Humain détecté")
+                    except Exception as e:
+                        logging.error(f"Erreur GPTZero: {e}")
+            except ImportError:
+                logging.debug("GPTZero non disponible")
             
             return {
                 'ai_probability': round(overall_ai_prob, 1),
@@ -757,10 +764,10 @@ class SentenceBertDetectionService:
                 'detection_details': {
                     'repetitive_structures': repetitive_starts,
                     'avg_sentence_length': sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0,
-                    'formal_ratio': detection_ratio if 'detection_ratio' in locals() else 0,
-                    'gptzero_bonus': round(gptzero_bonus, 1) if GPTZERO_AVAILABLE else 0
+                    'formal_ratio': detection_ratio,
+                    'gptzero_bonus': round(gptzero_bonus, 1)
                 },
-                'gptzero_analysis': detect_ai_gptzero_like(text) if GPTZERO_AVAILABLE else None
+                'gptzero_analysis': gptzero_result
             }
             
         except Exception as e:
