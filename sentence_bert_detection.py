@@ -705,6 +705,9 @@ class SentenceBertDetectionService:
                     ai_sentences += 1
                     logging.debug(f"Phrase IA détectée ({final_sentence_score:.1f}%): {sentence[:80]}...")
             
+            # Initialiser detection_ratio par défaut
+            detection_ratio = 0
+            
             # Calcul score global avec ajustement pour contenu académique
             if ai_scores:
                 base_score = sum(ai_scores) / len(ai_scores)
@@ -722,13 +725,14 @@ class SentenceBertDetectionService:
                     base_score *= variance_bonus
                 
                 # BONUS GLOBAL réduit: Proportion de phrases détectées
-                detection_ratio = ai_sentences / total_sentences
-                if detection_ratio > 0.7:  # Seuil plus élevé (0.6→0.7)
-                    ratio_bonus = 1.1 if is_academic else 1.2  # Bonus réduit pour académique
-                    base_score *= ratio_bonus
-                elif detection_ratio > 0.5:  # Seuil plus élevé (0.4→0.5)
-                    ratio_bonus = 1.05 if is_academic else 1.1
-                    base_score *= ratio_bonus
+                if total_sentences > 0:
+                    detection_ratio = ai_sentences / total_sentences
+                    if detection_ratio > 0.7:  # Seuil plus élevé (0.6→0.7)
+                        ratio_bonus = 1.1 if is_academic else 1.2  # Bonus réduit pour académique
+                        base_score *= ratio_bonus
+                    elif detection_ratio > 0.5:  # Seuil plus élevé (0.4→0.5)
+                        ratio_bonus = 1.05 if is_academic else 1.1
+                        base_score *= ratio_bonus
                 
                 overall_ai_prob = min(base_score, 100)
             else:
@@ -740,8 +744,8 @@ class SentenceBertDetectionService:
             gptzero_bonus = 0
             gptzero_result = None
             try:
-                from utils.ai_gptzero_like import detect_ai_gptzero_like, GPTZERO_AVAILABLE
-                if GPTZERO_AVAILABLE:
+                from utils.ai_gptzero_like import detect_ai_gptzero_like
+                if True:  # GPTZero toujours disponible
                     try:
                         gptzero_result = detect_ai_gptzero_like(text)
                         if gptzero_result['is_ai']:
