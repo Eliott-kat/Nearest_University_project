@@ -68,7 +68,6 @@ class PlagiarismCheckService:
             }
             
             data = {
-                'author': 'student@acadcheck.com',
                 'text': text[:5000]  # Limite de 5000 caractères
             }
             
