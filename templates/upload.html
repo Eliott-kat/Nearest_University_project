@@ -64,7 +64,7 @@
                                 
                                 <input type="file" name="file" id="fileInput" class="d-none" accept=".pdf,.docx,.txt" required>
                                 
-                                <button type="button" class="btn btn-outline-primary" onclick="document.getElementById('fileInput').click()">
+                                <button type="button" class="btn btn-outline-primary" id="chooseFileBtn">
                                     <i class="fas fa-folder-open me-2"></i>Choose File
                                 </button>
                                 
@@ -196,116 +196,4 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
-<script>
-    // File upload handling
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('fileInput');
-    const fileInfo = document.getElementById('fileInfo');
-    const fileName = document.getElementById('fileName');
-    const fileSize = document.getElementById('fileSize');
-    const fileIcon = document.getElementById('fileIcon');
-    const submitBtn = document.getElementById('submitBtn');
-    const uploadForm = document.getElementById('uploadForm');
-    const uploadProgress = document.getElementById('uploadProgress');
-
-    // Drag and drop events
-    dropZone.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        dropZone.classList.add('dragover');
-    });
-
-    dropZone.addEventListener('dragleave', function(e) {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-    });
-
-    dropZone.addEventListener('drop', function(e) {
-        e.preventDefault();
-        dropZone.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            handleFile(files[0]);
-        }
-    });
-
-    // Click to upload
-    dropZone.addEventListener('click', function() {
-        fileInput.click();
-    });
-
-    // File input change
-    fileInput.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            handleFile(this.files[0]);
-        }
-    });
-
-    function handleFile(file) {
-        // Validate file type
-        const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'];
-        const allowedExtensions = ['.pdf', '.docx', '.txt'];
-        
-        const isValidType = allowedTypes.includes(file.type) || allowedExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-        
-        if (!isValidType) {
-            alert('Please upload a PDF, DOCX, or TXT file.');
-            return;
-        }
-
-        // Validate file size (16MB)
-        if (file.size > 16 * 1024 * 1024) {
-            alert('File size must be less than 16MB.');
-            return;
-        }
-
-        // Update file input
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInput.files = dataTransfer.files;
-
-        // Show file info
-        fileName.textContent = file.name;
-        fileSize.textContent = formatFileSize(file.size);
-        
-        // Set appropriate icon
-        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
-            fileIcon.className = 'fas fa-file-pdf fa-2x text-danger me-3';
-        } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.name.toLowerCase().endsWith('.docx')) {
-            fileIcon.className = 'fas fa-file-word fa-2x text-primary me-3';
-        } else {
-            fileIcon.className = 'fas fa-file-alt fa-2x text-secondary me-3';
-        }
-
-        fileInfo.style.display = 'block';
-        submitBtn.disabled = false;
-    }
-
-    function clearFile() {
-        fileInput.value = '';
-        fileInfo.style.display = 'none';
-        submitBtn.disabled = true;
-    }
-
-    function formatFileSize(bytes) {
-        if (bytes === 0) return '0 Bytes';
-        const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
-
-    // Form submission
-    uploadForm.addEventListener('submit', function(e) {
-        if (!fileInput.files.length) {
-            e.preventDefault();
-            alert('Please select a file to upload.');
-            return;
-        }
-
-        // Show progress
-        submitBtn.disabled = true;
-        uploadProgress.style.display = 'block';
-    });
-</script>
 {% endblock %}

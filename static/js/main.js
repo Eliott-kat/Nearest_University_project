@@ -27,12 +27,21 @@ function initializeFileUpload() {
         dropZone.addEventListener('dragleave', handleDragLeave);
         dropZone.addEventListener('drop', handleDrop);
         
-        // Click to upload
+        // Click to upload - only if clicking on the dropzone itself, not buttons
         dropZone.addEventListener('click', function(e) {
-            if (e.target.type !== 'file') {
+            if (e.target.type !== 'file' && !e.target.closest('button') && e.target === dropZone) {
                 fileInput.click();
             }
         });
+        
+        // Handle choose file button
+        const chooseFileBtn = document.getElementById('chooseFileBtn');
+        if (chooseFileBtn) {
+            chooseFileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                fileInput.click();
+            });
+        }
         
         // File input change
         fileInput.addEventListener('change', function() {
