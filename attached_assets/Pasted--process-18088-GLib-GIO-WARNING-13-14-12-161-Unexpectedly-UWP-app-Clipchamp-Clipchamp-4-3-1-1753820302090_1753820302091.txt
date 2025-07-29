@@ -1,0 +1,35 @@
+(process:18088): GLib-GIO-WARNING **: 13:14:12.161: Unexpectedly, UWP app `Clipchamp.Clipchamp_4.3.10120.0_x64__yxz26nhyzhsrt' (AUMId `Clipchamp.Clipchamp_yxz26nhyzhsrt!App') supports 41 extensions but has no verbs
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:24] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:25] "GET /static/css/style.css HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:25] "GET /static/js/main.js HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:35] "GET /upload HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:35] "GET /static/css/style.css HTTP/1.1" 304 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:35] "GET /static/js/main.js HTTP/1.1" 304 -
+INFO:root:Démarrage analyse unifiée pour: 1cd66783d8654401ae0f44fcac8eca6b.docx
+INFO:root:Tentative avec copyleaks
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): id.copyleaks.com:443
+DEBUG:urllib3.connectionpool:https://id.copyleaks.com:443 "POST /v3/account/login HTTP/1.1" 500 0
+WARNING:root:Copyleaks server error (500) - service temporairement indisponible. Utilisation du mode démonstration.
+INFO:root:Authentification Copyleaks: False
+WARNING:root:Échec de l'API Copyleaks réelle, passage au service suivant
+WARNING:root:Échec ou résultat invalide avec copyleaks
+INFO:root:Tentative avec plagiarismcheck
+WARNING:root:Token PlagiarismCheck manquant
+WARNING:root:Échec ou résultat invalide avec plagiarismcheck
+INFO:root:Tentative avec turnitin_local
+INFO:root:🚀 Utilisation de l'algorithme avancé Sentence-BERT + Détection IA
+INFO:root:✅ Détecteur GPTZero-like chargé avec succès
+INFO:root:🧠 Modèle de détection IA entraîné sur données étendues
+INFO:root:✅ Système Sentence-BERT manuel initialisé avec succès
+INFO:root:📄 Optimisation texte : 214886 → 3000 caractères
+ERROR:root:Erreur analyse: module 'signal' has no attribute 'SIGALRM'
+DEBUG:root:Résultat validé: 0% plagiat
+INFO:root:Succès avec turnitin_local: 0% plagiat détecté
+INFO:root:🔍 Résultat algorithme: {'plagiarism': {'percent': 0, 'sources_found': 0, 'details': {}, 'matched_length': 0.0}, 'ai_content': {'percent': 0, 'detected': False}, 'provider_used': 'turnitin_local', 'original_response': {'method': 'error_fallback', 'analysis_details': {'plagiarism_percentage': 0, 'ai_probability': 0, 'sources_found': 0, 'method': 'error_fallback', 'error': "module 'signal' has no attribute 'SIGALRM'"}}}
+INFO:root:💡 Sauvegardé 0 phrases problématiques pour soulignement
+INFO:root:💾 Sauvegarde en BDD: 0% plagiat, 0% IA, provider: turnitin_local
+INFO:root:📊 Analysis result saved - ID: 1, plagiarism: 0.0, ai: 0.0
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:57] "POST /upload HTTP/1.1" 302 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:58] "GET /history HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:58] "GET /static/css/style.css HTTP/1.1" 304 -
+INFO:werkzeug:127.0.0.1 - - [29/Jul/2025 13:14:58] "GET /static/js/main.js HTTP/1.1" 304 -

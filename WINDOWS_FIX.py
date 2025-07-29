@@ -1,4 +1,21 @@
+#!/usr/bin/env python3
 """
+CORRECTIF WINDOWS pour AcadCheck
+Résout l'erreur: module 'signal' has no attribute 'SIGALRM'
+
+UTILISATION:
+1. Placer ce fichier dans le dossier AcadCheck
+2. Exécuter: python WINDOWS_FIX.py
+3. Redémarrer l'application: python run_local.py
+"""
+
+import os
+import shutil
+
+def fix_timeout_optimization():
+    """Corrige le fichier timeout_optimization.py pour Windows"""
+    
+    timeout_fix = '''"""
 Optimisation pour éviter les timeouts sur gros documents
 Compatible Windows et Unix/Linux
 """
@@ -101,7 +118,7 @@ def safe_analysis_wrapper(analysis_func: Callable, text: str, *args, **kwargs) -
             'ai_probability': 0,
             'sources_found': 0,
             'method': 'timeout_fallback',
-            'error': 'Document trop volumineux - analyse partielle'
+            'error': 'Timeout'
         }
     except Exception as e:
         logging.error(f"Erreur analyse: {e}")
@@ -112,3 +129,32 @@ def safe_analysis_wrapper(analysis_func: Callable, text: str, *args, **kwargs) -
             'method': 'error_fallback',
             'error': str(e)
         }
+'''
+    
+    # Sauvegarder l'ancien fichier
+    if os.path.exists('timeout_optimization.py'):
+        shutil.copy('timeout_optimization.py', 'timeout_optimization.py.backup')
+        print("✅ Sauvegarde de l'ancien fichier: timeout_optimization.py.backup")
+    
+    # Écrire le nouveau fichier
+    with open('timeout_optimization.py', 'w', encoding='utf-8') as f:
+        f.write(timeout_fix)
+    
+    print("✅ Fichier timeout_optimization.py corrigé pour Windows")
+
+def main():
+    """Applique tous les correctifs Windows"""
+    print("🔧 Application des correctifs Windows pour AcadCheck...")
+    
+    try:
+        fix_timeout_optimization()
+        print("✅ Tous les correctifs appliqués avec succès!")
+        print("\n📌 Instructions:")
+        print("1. Redémarrez l'application: python run_local.py")
+        print("2. L'algorithme local fonctionnera maintenant correctement sur Windows")
+        print("3. Les analyses donneront des résultats > 0%")
+    except Exception as e:
+        print(f"❌ Erreur lors de l'application des correctifs: {e}")
+
+if __name__ == "__main__":
+    main()
