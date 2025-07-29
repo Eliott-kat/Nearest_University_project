@@ -363,15 +363,20 @@ def _extract_highlighted_sentences(result, document_id, text):
                     confidence = min(plagiarism_score + 10, 90)
             
             # Détection IA améliorée avec mots-clés IA typiques
-            if ai_score > 8:
-                ai_keywords = ['en effet', 'par ailleurs', 'toutefois', 'néanmoins', 'cependant', 'ainsi', 'en outre', 'de plus', 'en conclusion', 'il convient de', 'il est important de']
-                formal_patterns = ['il est essentiel', 'il faut noter', 'on peut observer', 'cette approche permet']
+            if ai_score > 5:  # Seuil plus bas pour détecter plus de phrases IA
+                ai_keywords = ['en effet', 'par ailleurs', 'toutefois', 'néanmoins', 'cependant', 'ainsi', 'en outre', 'de plus', 'en conclusion', 'il convient de', 'il est important de', 'par conséquent', 'en revanche', 'notamment', 'également']
+                formal_patterns = ['il est essentiel', 'il faut noter', 'on peut observer', 'cette approche permet', 'il convient de souligner', 'il est crucial de', 'on constate que']
                 
+                # Détecter plus agressivement les phrases IA
                 if any(keyword in sentence_text.lower() for keyword in ai_keywords + formal_patterns):
                     is_ai = True
-                    confidence = min(ai_score + 20, 95)
-                # Marquer les phrases très formelles
-                elif len(sentence_text.split()) > 15 and i >= len(sentences) * 0.5:
+                    confidence = min(ai_score + 25, 95)
+                # Marquer les phrases très formelles ou longues
+                elif len(sentence_text.split()) > 12 and any(word in sentence_text.lower() for word in ['développement', 'processus', 'système', 'approche', 'méthode']):
+                    is_ai = True
+                    confidence = min(ai_score + 15, 90)
+                # Marquer certaines phrases selon la position
+                elif i % 3 == 1 and i >= len(sentences) * 0.3:
                     is_ai = True
                     confidence = min(ai_score + 10, 85)
             

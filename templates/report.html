@@ -5,19 +5,60 @@
 {% block head %}
 <style>
     .highlight-plagiarism {
-        background-color: #ffebee;
-        border-left: 4px solid #f44336;
-        padding: 2px 4px;
-        margin: 1px 0;
-        border-radius: 2px;
+        background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+        border: 2px solid #f44336;
+        padding: 4px 8px;
+        margin: 2px 0;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(244, 67, 54, 0.2);
+        font-weight: 500;
+        position: relative;
     }
     
     .highlight-ai {
-        background-color: #e3f2fd;
-        border-left: 4px solid #2196f3;
-        padding: 2px 4px;
-        margin: 1px 0;
-        border-radius: 2px;
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border: 2px solid #2196f3;
+        padding: 4px 8px;
+        margin: 2px 0;
+        border-radius: 6px;
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+        font-weight: 500;
+        font-style: italic;
+        position: relative;
+    }
+    
+    .highlight-plagiarism:before {
+        content: "🔍";
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #f44336;
+        color: white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+    }
+    
+    .highlight-ai:before {
+        content: "🤖";
+        position: absolute;
+        left: -8px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: #2196f3;
+        color: white;
+        border-radius: 50%;
+        width: 16px;
+        height: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
     }
     
     .highlight-both {
@@ -33,12 +74,69 @@
     .score-low { color: #388e3c; }
     
     .document-text {
-        line-height: 1.8;
+        line-height: 2.2;
         font-size: 1.1rem;
-        background-color: #fafafa;
-        border-radius: 0.5rem;
+        background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+        border-radius: 0.75rem;
+        padding: 3rem;
+        border: 2px solid #e0e0e0;
+        font-family: 'Georgia', 'Times New Roman', serif;
+        text-align: justify;
+        color: #2c3e50;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .document-text:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #f44336 0%, #2196f3 100%);
+    }
+    
+    .document-header {
+        background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+        color: white;
         padding: 2rem;
-        border: 1px solid #e0e0e0;
+        border-radius: 0.75rem 0.75rem 0 0;
+        text-align: center;
+        margin-bottom: 0;
+    }
+    
+    .analysis-badge {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 2rem;
+        font-weight: bold;
+        margin: 0.25rem;
+        font-size: 0.9rem;
+    }
+    
+    .analysis-badge.plagiarism {
+        background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+        color: white;
+    }
+    
+    .analysis-badge.ai {
+        background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%);
+        color: white;
+    }
+    
+    .page-professional {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        min-height: 100vh;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    .analysis-summary {
+        background: white;
+        border-radius: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     .issue-card {
@@ -83,27 +181,41 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <!-- Header -->
-    <div class="row mb-4">
+<div class="page-professional">
+<div class="container py-4">
+    <!-- Professional Header -->
+    <div class="row mb-5">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-start">
-                <div>
-                    <h1 class="h2 fw-bold mb-2">
-                        <i class="fas fa-file-alt me-2 text-primary"></i>Analysis Report
-                    </h1>
-                    <h2 class="h4 text-muted mb-1">{{ document.original_filename }}</h2>
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-clock me-1"></i>Analyzed on {{ analysis_result.created_at.strftime('%B %d, %Y at %I:%M %p') }}
-                    </p>
-                </div>
-                <div class="text-end">
-                    <a href="{{ url_for('download_report', document_id=document.id) }}" class="btn btn-success me-2">
-                        <i class="fas fa-download me-2"></i>Download PDF
-                    </a>
-                    <a href="{{ url_for('document_history') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-arrow-left me-2"></i>Back to History
-                    </a>
+            <div class="analysis-summary p-4">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h1 class="h2 fw-bold mb-3" style="color: #1a237e;">
+                            <i class="fas fa-shield-check me-3 text-primary"></i>RAPPORT D'INTÉGRITÉ ACADÉMIQUE
+                        </h1>
+                        <h2 class="h4 mb-2" style="color: #283593;">📄 {{ document.original_filename }}</h2>
+                        <p class="text-muted mb-3">
+                            <i class="fas fa-calendar-alt me-2"></i>Analysé le {{ analysis_result.created_at.strftime('%d %B %Y à %H:%M') }}
+                        </p>
+                        <div class="d-flex gap-3">
+                            <span class="badge bg-danger fs-6 px-3 py-2">
+                                🔍 {{ analysis_result.plagiarism_score|round(1) }}% Plagiat
+                            </span>
+                            <span class="badge bg-primary fs-6 px-3 py-2">
+                                🤖 {{ analysis_result.ai_score|round(1) }}% IA
+                            </span>
+                            <span class="badge bg-success fs-6 px-3 py-2">
+                                🏠 Algorithme Local
+                            </span>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <a href="{{ url_for('download_report', document_id=document.id) }}" class="btn btn-success btn-lg me-2">
+                            <i class="fas fa-download me-2"></i>Télécharger PDF
+                        </a>
+                        <a href="{{ url_for('document_history') }}" class="btn btn-outline-secondary btn-lg">
+                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -187,41 +299,99 @@
     <!-- Document Analysis -->
     <div class="row">
         <div class="col-12">
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0 fw-bold">
-                            <i class="fas fa-highlighter me-2 text-primary"></i>Document Analysis
-                        </h5>
-                        <div class="d-flex gap-3">
-                            <div class="d-flex align-items-center">
-                                <div class="highlight-plagiarism d-inline-block me-2" style="width: 20px; height: 15px;"></div>
-                                <small class="text-muted">Plagiarism ({{ plagiarism_sentences|length }})</small>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <div class="highlight-ai d-inline-block me-2" style="width: 20px; height: 15px;"></div>
-                                <small class="text-muted">AI Generated ({{ ai_sentences|length }})</small>
-                            </div>
-                        </div>
+            <div class="card border-0 shadow-lg">
+                <!-- Professional Header -->
+                <div class="document-header">
+                    <h3 class="mb-3 fw-bold">
+                        <i class="fas fa-file-search me-3"></i>RAPPORT D'ANALYSE ACADÉMIQUE
+                    </h3>
+                    <div class="d-flex justify-content-center gap-4 mb-3">
+                        <span class="analysis-badge plagiarism">
+                            🔍 {{ plagiarism_sentences|length }} Phrases Plagiées
+                        </span>
+                        <span class="analysis-badge ai">
+                            🤖 {{ ai_sentences|length }} Phrases IA
+                        </span>
                     </div>
+                    <p class="mb-0 opacity-75">
+                        <i class="fas fa-shield-alt me-2"></i>Analyse par Algorithme Turnitin-Style Avancé
+                    </p>
                 </div>
                 
-                <div class="card-body p-4">
+                <div class="card-body p-0">
                     {% if highlighted_text %}
                         <div class="document-text">
                             {{ highlighted_text|safe }}
                         </div>
                     {% else %}
                         <div class="text-center py-5">
-                            <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
-                            <h5 class="text-muted">No highlighted content available</h5>
-                            <p class="text-muted">The document text could not be processed for highlighting.</p>
+                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                            <h5 class="text-muted">Contenu non disponible pour analyse</h5>
+                            <p class="text-muted">Le texte du document n'a pas pu être traité pour le soulignement.</p>
                         </div>
                     {% endif %}
+                </div>
+                
+                <!-- Legend -->
+                <div class="card-footer bg-light border-0 py-3">
+                    <div class="row text-center">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="highlight-plagiarism d-inline-block me-3 px-3 py-1">Exemple plagiat</span>
+                                <small class="text-muted">Contenu similaire trouvé dans sources académiques</small>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <span class="highlight-ai d-inline-block me-3 px-3 py-1">Exemple IA</span>
+                                <small class="text-muted">Patterns formels typiques de génération automatique</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
+</div>
+
+<script>
+// Amélioration du soulignement des phrases IA
+document.addEventListener('DOMContentLoaded', function() {
+    // Forcer le style des phrases IA
+    const aiSentences = document.querySelectorAll('.highlight-ai');
+    aiSentences.forEach(function(element) {
+        element.style.background = 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)';
+        element.style.border = '2px solid #2196f3';
+        element.style.color = '#1565c0';
+        element.style.fontStyle = 'italic';
+        element.style.fontWeight = '500';
+        element.style.borderRadius = '6px';
+        element.style.padding = '4px 8px';
+        element.style.margin = '2px 0';
+        element.style.display = 'inline-block';
+        element.style.position = 'relative';
+        element.style.boxShadow = '0 2px 4px rgba(33, 150, 243, 0.2)';
+    });
+    
+    // Forcer le style des phrases plagiat
+    const plagiarismSentences = document.querySelectorAll('.highlight-plagiarism');
+    plagiarismSentences.forEach(function(element) {
+        element.style.background = 'linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%)';
+        element.style.border = '2px solid #f44336';
+        element.style.color = '#c62828';
+        element.style.fontWeight = '500';
+        element.style.borderRadius = '6px';
+        element.style.padding = '4px 8px';
+        element.style.margin = '2px 0';
+        element.style.display = 'inline-block';
+        element.style.position = 'relative';
+        element.style.boxShadow = '0 2px 4px rgba(244, 67, 54, 0.2)';
+    });
+    
+    console.log('Soulignement amélioré appliqué:', aiSentences.length, 'phrases IA et', plagiarismSentences.length, 'phrases plagiat');
+});
+</script>
 
     <!-- Detailed Issues -->
     {% if plagiarism_sentences or ai_sentences %}
