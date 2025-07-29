@@ -452,35 +452,88 @@ class SentenceBertDetectionService:
             return {'score': 0}
     
     def _detect_ai_content(self, text: str, sentences: List[str]) -> Dict:
-        """Détection de contenu IA avec modèle entraîné"""
+        """Détection de contenu IA avec modèle entraîné et analyse linguistique"""
         try:
             if not sentences:
                 return {'ai_probability': 0, 'ai_sentences': 0}
             
             ai_sentences = 0
             total_sentences = len(sentences)
+            ai_scores = []
+            
+            # Mots-clés typiques de l'IA
+            ai_keywords = [
+                'based on', 'comprehensive analysis', 'demonstrates', 'empirical evidence',
+                'furthermore', 'subsequently', 'methodology', 'framework', 'optimal',
+                'facilitate', 'indicates', 'reveals', 'significant', 'substantial',
+                'implementation', 'systematic', 'evaluation', 'parameters', 'leverages',
+                'enhanced', 'effectiveness', 'efficiency', 'performance', 'furthermore'
+            ]
+            
+            # Structures typiques IA
+            ai_patterns = [
+                r'based on .+ analysis', r'the .+ demonstrates', r'furthermore.+',
+                r'subsequently.+', r'the empirical evidence', r'in conclusion.+',
+                r'the proposed .+ exhibits', r'through systematic'
+            ]
             
             for sentence in sentences:
-                if len(sentence.strip()) < 20:
+                sentence_lower = sentence.lower().strip()
+                if len(sentence_lower) < 20:
                     continue
                 
-                # Vectoriser la phrase
-                sentence_vector = self.ai_tfidf.transform([sentence])[0]
+                ai_score = 0
                 
-                # Prédire probabilité IA
-                probabilities = self.ai_detector.predict_proba([sentence_vector])[0]
-                ai_probability = probabilities[1]  # Probabilité classe IA
+                # 1. Analyse par modèle ML
+                try:
+                    sentence_vector = self.ai_tfidf.transform([sentence])[0]
+                    probabilities = self.ai_detector.predict_proba([sentence_vector])[0]
+                    ml_score = probabilities[1] * 100  # Score ML en pourcentage
+                    ai_score += ml_score * 0.4  # 40% du score
+                except:
+                    ml_score = 0
                 
-                if ai_probability > 0.6:  # Seuil de détection IA
+                # 2. Analyse des mots-clés IA
+                keyword_count = sum(1 for keyword in ai_keywords if keyword in sentence_lower)
+                keyword_score = min(keyword_count * 25, 100)  # Max 100%
+                ai_score += keyword_score * 0.3  # 30% du score
+                
+                # 3. Analyse des patterns IA
+                pattern_matches = sum(1 for pattern in ai_patterns if re.search(pattern, sentence_lower))
+                pattern_score = min(pattern_matches * 40, 100)
+                ai_score += pattern_score * 0.2  # 20% du score
+                
+                # 4. Analyse de la complexité linguistique (style formel IA)
+                formal_indicators = ['therefore', 'however', 'moreover', 'nevertheless', 'consequently']
+                formal_count = sum(1 for indicator in formal_indicators if indicator in sentence_lower)
+                formal_score = min(formal_count * 30, 100)
+                ai_score += formal_score * 0.1  # 10% du score
+                
+                # Score final pour cette phrase
+                final_sentence_score = min(ai_score, 100)
+                ai_scores.append(final_sentence_score)
+                
+                # Seuil de détection IA (plus sensible)
+                if final_sentence_score > 40:  # Seuil abaissé
                     ai_sentences += 1
+                    logging.debug(f"Phrase IA détectée ({final_sentence_score:.1f}%): {sentence[:100]}...")
             
-            overall_ai_prob = 0
-            if total_sentences > 0:
-                overall_ai_prob = (ai_sentences / total_sentences) * 100
+            # Calcul score global
+            if ai_scores:
+                overall_ai_prob = sum(ai_scores) / len(ai_scores)
+            else:
+                overall_ai_prob = 0
+            
+            # Bonus si plusieurs phrases détectées
+            if ai_sentences >= 2:
+                overall_ai_prob = min(overall_ai_prob * 1.2, 100)
+            
+            logging.info(f"🤖 Détection IA: {ai_sentences}/{total_sentences} phrases IA = {overall_ai_prob:.1f}%")
             
             return {
                 'ai_probability': round(overall_ai_prob, 1),
-                'ai_sentences': ai_sentences
+                'ai_sentences': ai_sentences,
+                'total_analyzed': total_sentences
             }
             
         except Exception as e:
