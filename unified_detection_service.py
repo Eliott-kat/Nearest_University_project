@@ -403,18 +403,35 @@ class UnifiedDetectionService:
                 filename
             )
             
-            # Transformer au format standard
+            # Corriger la transformation au format standard
+            plagiarism_percent = result.get('percent', 0)
+            ai_percent = result.get('ai_percent', 0)
+            
+            # Assurer que les valeurs sont des nombres valides
+            if isinstance(plagiarism_percent, str):
+                try:
+                    plagiarism_percent = float(plagiarism_percent)
+                except ValueError:
+                    plagiarism_percent = 0
+            
+            if isinstance(ai_percent, str):
+                try:
+                    ai_percent = float(ai_percent)
+                except ValueError:
+                    ai_percent = 0
+            
             response = {
                 'plagiarism': {
-                    'percent': result.get('percent', 0),
+                    'percent': round(plagiarism_percent, 1),
                     'sources_found': result.get('sources_found', 0),
                     'details': result.get('details', {}),
-                    'matched_length': len(text) * (result.get('percent', 0) / 100)
+                    'matched_length': len(text) * (plagiarism_percent / 100)
                 },
                 'ai_content': {
-                    'percent': result.get('ai_percent', 0)
+                    'percent': round(ai_percent, 1),
+                    'detected': ai_percent > 15
                 },
-                'provider_used': 'advanced_sentence_bert_ai_local',
+                'provider_used': 'turnitin_local',
                 'original_response': {
                     'method': result.get('method', 'advanced_sentence_bert_ai_detection'),
                     'analysis_details': result
@@ -437,15 +454,24 @@ class UnifiedDetectionService:
     def _is_valid_result(self, result: Dict) -> bool:
         """Vérifie si un résultat est valide"""
         if not result:
+            logging.debug("Résultat vide")
             return False
         
         plagiarism = result.get('plagiarism', {})
         if not isinstance(plagiarism, dict):
+            logging.debug(f"Plagiarism n'est pas un dict: {type(plagiarism)}")
             return False
         
         # Un résultat est valide s'il a au moins un pourcentage
         percent = plagiarism.get('percent')
-        return percent is not None and isinstance(percent, (int, float)) and percent >= 0
+        is_valid = percent is not None and isinstance(percent, (int, float)) and percent >= 0
+        
+        if not is_valid:
+            logging.debug(f"Pourcentage invalide: {percent} (type: {type(percent)})")
+        else:
+            logging.debug(f"Résultat validé: {percent}% plagiat")
+            
+        return is_valid
     
     def get_service_status(self) -> Dict:
         """Retourne le statut de chaque service"""
