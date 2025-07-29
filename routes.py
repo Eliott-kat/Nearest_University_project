@@ -354,11 +354,6 @@ def generate_smart_highlighting_inline(text, plagiarism_score, ai_score):
     except Exception as e:
         logging.error(f"Erreur génération soulignement intelligent: {e}")
         return text
-                             
-    except Exception as e:
-        logging.error(f"Error loading report for document {document_id}: {e}")
-        flash('Error loading report.', 'danger')
-        return redirect(url_for('document_history'))
 
 @app.route('/download-report/<int:document_id>')
 def download_report(document_id):
