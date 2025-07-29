@@ -235,9 +235,39 @@ class UnifiedDetectionService:
                         else:
                             logging.info(f"⏳ État: {state} - Traitement en cours...")
                             continue
-                    elif state == 5:  # Erreur de traitement
-                        logging.error("Erreur de traitement côté PlagiarismCheck")
-                        return None
+                    elif state == 5:  # Traitement terminé avec rapport disponible
+                        logging.info(f"État 5 détecté - Analyse terminée pour ID: {text_id}")
+                        
+                        # Récupérer les données de rapport (état 5 = traitement terminé dans ce contexte)
+                        ai_report_data = text_data.get('ai_report', {})
+                        report_data = text_data.get('report')
+                        
+                        plagiarism_percent = 0
+                        sources_count = 0
+                        ai_percent = 0
+                        
+                        # Traiter le rapport de plagiat
+                        if report_data:
+                            plagiarism_str = report_data.get('percent', '0')
+                            plagiarism_percent = float(plagiarism_str) if plagiarism_str else 0
+                            sources_count = report_data.get('source_count', 0)
+                        
+                        # Traiter le rapport IA (peut être null si pas encore traité)
+                        if ai_report_data and ai_report_data.get('percent'):
+                            ai_percent = float(ai_report_data.get('percent', 0))
+                        
+                        logging.info(f"🎯 PlagiarismCheck API état 5: {plagiarism_percent}% plagiat + {ai_percent}% IA")
+                        
+                        return {
+                            'plagiarism': {
+                                'percent': plagiarism_percent,
+                                'sources_found': sources_count,
+                                'details': []
+                            },
+                            'ai_content': {'percent': ai_percent},
+                            'provider_used': 'plagiarismcheck_api_complete',
+                            'text_id': text_id
+                        }
                     else:
                         logging.info(f"⏳ État: {state} - Traitement en cours...")
                         continue
