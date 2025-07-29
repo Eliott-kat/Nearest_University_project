@@ -391,9 +391,9 @@ class UnifiedDetectionService:
         try:
             logging.info("🚀 Utilisation de l'algorithme avancé Sentence-BERT + Détection IA")
             
-            # Importer le service de détection avancé
-            from advanced_detection_service import get_advanced_detection_service
-            advanced_service = get_advanced_detection_service()
+            # Importer le service Sentence-BERT complet
+            from sentence_bert_detection import get_sentence_bert_service
+            advanced_service = get_sentence_bert_service()
             
             # Effectuer la détection avancée
             result = advanced_service.detect_plagiarism_and_ai(text, filename)

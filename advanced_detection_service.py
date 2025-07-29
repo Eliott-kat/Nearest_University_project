@@ -64,39 +64,28 @@ class AdvancedDetectionService:
         self._setup_local_database()
     
     def _initialize_models(self):
-        """Initialise les modèles selon les dépendances disponibles"""
+        """Initialise les modèles Sentence-BERT, TF-IDF et détection IA"""
         try:
-            if SENTENCE_TRANSFORMERS_AVAILABLE:
-                logging.info("🤖 Initialisation Sentence-BERT (paraphrase-MiniLM-L6-v2)...")
-                try:
-                    self.sentence_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-                except Exception as e:
-                    logging.warning(f"Impossible de charger Sentence-BERT: {e}")
-                    self.sentence_model = None
-            else:
-                logging.warning("Sentence-transformers non disponible, utilisation d'algorithmes alternatifs")
-                self.sentence_model = None
+            logging.info("🤖 Initialisation Sentence-BERT (paraphrase-MiniLM-L6-v2)...")
+            self.sentence_model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
             
-            if SKLEARN_AVAILABLE:
-                logging.info("📊 Initialisation TF-IDF vectorizer...")
-                self.tfidf_vectorizer = TfidfVectorizer(
-                    max_features=5000,
-                    stop_words='english',
-                    ngram_range=(1, 3),
-                    min_df=1
-                )
-            else:
-                logging.warning("Scikit-learn non disponible")
-                self.tfidf_vectorizer = None
+            logging.info("📊 Initialisation TF-IDF vectorizer...")
+            self.tfidf_vectorizer = TfidfVectorizer(
+                max_features=5000,
+                stop_words='english',
+                ngram_range=(1, 3),
+                min_df=1,
+                max_df=0.8
+            )
             
             # Charger ou créer le modèle de détection IA
             self._load_or_create_ai_detector()
             
-            logging.info("✅ Modèles initialisés avec dépendances disponibles")
+            logging.info("✅ Tous les modèles avancés initialisés avec succès")
             
         except Exception as e:
             logging.error(f"Erreur initialisation modèles: {e}")
-            # Continue avec fonctionnalités limitées
+            raise
     
     def _setup_local_database(self):
         """Configure la base de données locale pour stocker les documents"""
@@ -135,13 +124,7 @@ class AdvancedDetectionService:
             logging.error(f"Erreur setup DB: {e}")
     
     def _load_or_create_ai_detector(self):
-        """Charge ou crée le modèle de détection IA si les dépendances sont disponibles"""
-        if not SKLEARN_AVAILABLE or not JOBLIB_AVAILABLE:
-            logging.warning("Dépendances IA non disponibles, utilisation de détection basique")
-            self.ai_detector_model = None
-            self.ai_vectorizer = None
-            return
-            
+        """Charge ou crée le modèle de détection IA"""
         model_path = os.path.join(self.models_path, "ai_detector.joblib")
         vectorizer_path = os.path.join(self.models_path, "ai_vectorizer.joblib")
         
@@ -159,12 +142,7 @@ class AdvancedDetectionService:
             self._train_ai_detector()
     
     def _train_ai_detector(self):
-        """Entraîne le modèle de détection IA avec des données d'exemple"""
-        if not SKLEARN_AVAILABLE or not JOBLIB_AVAILABLE:
-            self.ai_detector_model = None
-            self.ai_vectorizer = None
-            return
-            
+        """Entraîne le modèle de détection IA avec des données d'exemple étendues"""
         try:
             # Données d'entraînement d'exemple (à enrichir avec de vraies données)
             human_texts = [
