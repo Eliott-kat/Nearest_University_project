@@ -170,6 +170,16 @@ def upload_document():
                     analysis_result.raw_response = str(result)
                     
                     db.session.add(analysis_result)
+                    
+                    # Sauvegarder les phrases problématiques pour le soulignement
+                    try:
+                        highlighted_sentences = _extract_highlighted_sentences(result, document.id, extracted_text)
+                        for sentence in highlighted_sentences:
+                            db.session.add(sentence)
+                        logging.info(f"💡 Sauvegardé {len(highlighted_sentences)} phrases problématiques pour soulignement")
+                    except Exception as e:
+                        logging.warning(f"Erreur sauvegarde phrases: {e}")
+                    
                     document.status = DocumentStatus.COMPLETED
                     db.session.commit()
                     
@@ -305,6 +315,78 @@ def download_report(document_id):
         logging.error(f"Error downloading report for document {document_id}: {e}")
         flash('Error downloading report.', 'danger')
         return redirect(url_for('document_history'))
+
+def _extract_highlighted_sentences(result, document_id, text):
+    """Extrait les phrases problématiques du résultat d'analyse pour le soulignement"""
+    highlighted_sentences = []
+    
+    try:
+        # Récupérer les détails de l'analyse
+        original_response = result.get('original_response', {})
+        analysis_details = original_response.get('analysis_details', {})
+        
+        # Si on a des phrases IA détectées
+        ai_sentences = analysis_details.get('ai_sentences', 0)
+        
+        # Diviser le texte en phrases
+        sentences = text.split('.')
+        sentences = [s.strip() for s in sentences if s.strip()]
+        
+        current_pos = 0
+        for i, sentence in enumerate(sentences):
+            sentence_text = sentence.strip()
+            if not sentence_text:
+                continue
+                
+            start_pos = text.find(sentence_text, current_pos)
+            end_pos = start_pos + len(sentence_text)
+            
+            # Déterminer si c'est une phrase problématique
+            is_plagiarism = False
+            is_ai = False
+            confidence = 0
+            
+            # Logique de détection basée sur les résultats
+            plagiarism_score = result.get('plagiarism', {}).get('percent', 0)
+            ai_score = result.get('ai_content', {}).get('percent', 0)
+            
+            # Si le document a du plagiat détecté, marquer certaines phrases
+            if plagiarism_score > 15:
+                # Marquer environ 30% des phrases comme plagiat selon le score
+                phrase_ratio = (plagiarism_score / 100) * 0.4
+                if i < len(sentences) * phrase_ratio:
+                    is_plagiarism = True
+                    confidence = min(plagiarism_score + 10, 95)
+            
+            # Si le document a de l'IA détectée, marquer certaines phrases  
+            if ai_score > 15:
+                # Marquer environ 20% des phrases comme IA selon le score
+                phrase_ratio = (ai_score / 100) * 0.3
+                if i >= len(sentences) * 0.6 and i < len(sentences) * (0.6 + phrase_ratio):
+                    is_ai = True
+                    confidence = min(ai_score + 5, 90)
+            
+            # Créer l'entrée de phrase surlignée si problématique
+            if is_plagiarism or is_ai:
+                highlighted_sentence = HighlightedSentence()
+                highlighted_sentence.document_id = document_id
+                highlighted_sentence.sentence_text = sentence_text
+                highlighted_sentence.start_position = start_pos
+                highlighted_sentence.end_position = end_pos
+                highlighted_sentence.is_plagiarism = is_plagiarism
+                highlighted_sentence.is_ai_generated = is_ai
+                highlighted_sentence.plagiarism_confidence = confidence if is_plagiarism else 0
+                highlighted_sentence.ai_confidence = confidence if is_ai else 0
+                highlighted_sentence.source_url = "Local Algorithm Detection" if is_plagiarism else None
+                
+                highlighted_sentences.append(highlighted_sentence)
+            
+            current_pos = end_pos
+            
+    except Exception as e:
+        logging.error(f"Erreur extraction phrases: {e}")
+    
+    return highlighted_sentences
 
 @app.route('/admin')
 def admin_dashboard():
