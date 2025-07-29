@@ -150,6 +150,9 @@ def upload_document():
                 unified_service = UnifiedDetectionService()
                 result = unified_service.analyze_text(extracted_text, filename)
                 
+                # Log du résultat brut pour débogage
+                logging.info(f"🔍 Résultat algorithme: {result}")
+                
                 if result and 'plagiarism' in result:
                     # Save analysis results
                     analysis_result = AnalysisResult()
@@ -172,7 +175,13 @@ def upload_document():
                     
                     provider_name = get_provider_display_name(result.get('provider_used', 'local'))
                     score = result["plagiarism"]["percent"]
-                    flash(f'✅ Document analysé avec succès! Plagiat détecté: {score}% via {provider_name}', 'success')
+                    ai_score = result.get('ai_content', {}).get('percent', 0)
+                    
+                    # Log des valeurs pour débogage
+                    logging.info(f"💾 Sauvegarde en BDD: {score}% plagiat, {ai_score}% IA, provider: {result.get('provider_used')}")
+                    logging.info(f"📊 Analysis result saved - ID: {analysis_result.id}, plagiarism: {analysis_result.plagiarism_score}, ai: {analysis_result.ai_score}")
+                    
+                    flash(f'✅ Document analysé avec succès! Plagiat: {score}% + IA: {ai_score}% via {provider_name}', 'success')
                     return redirect(url_for('document_history'))
                 else:
                     flash('Document uploaded but analysis failed. Please try again.', 'warning')
