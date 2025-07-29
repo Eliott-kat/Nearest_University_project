@@ -76,14 +76,31 @@ class UnifiedDetectionService:
                 logging.warning("Clés Copyleaks manquantes, passage au service suivant")
                 return None
             
-            # Test d'authentification Copyleaks
+            # Test d'authentification Copyleaks avec vos vraies clés
             try:
                 auth_success = self.copyleaks.authenticate()
                 logging.info(f"Authentification Copyleaks: {auth_success}")
-                # Utiliser simulation Copyleaks même si auth échoue (pour démonstration)
-                from test_api_simulation import simulate_copyleaks_response
-                logging.info("Utilisation de la simulation Copyleaks avec scores réalistes (mode démonstration)")
-                return simulate_copyleaks_response(text)
+                
+                if auth_success:
+                    logging.info("Utilisation de l'API Copyleaks RÉELLE avec vos clés")
+                    # Créer un document temporaire pour l'API
+                    from models import Document
+                    temp_doc = Document()
+                    temp_doc.extracted_text = text
+                    temp_doc.filename = filename
+                    
+                    # Soumettre à l'API Copyleaks réelle
+                    if self.copyleaks.submit_document(temp_doc):
+                        # Soumettre et attendre les résultats
+                        logging.info("Document soumis à Copyleaks, attente des résultats...")
+                        return {
+                            'plagiarism': {'percent': 'En cours...', 'sources_found': 0},
+                            'ai_content': {'percent': 'En cours...'},
+                            'provider_used': 'copyleaks_real'
+                        }
+                    
+                logging.warning("Échec de l'API Copyleaks réelle, passage au service suivant")
+                return None
             except Exception as e:
                 logging.error(f"Erreur Copyleaks: {e}")
                 return None
@@ -122,21 +139,115 @@ class UnifiedDetectionService:
             return None
     
     def _try_plagiarismcheck(self, text: str, filename: str) -> Optional[Dict]:
-        """Essaie l'analyse avec PlagiarismCheck"""
+        """Analyse RÉELLE avec l'API PlagiarismCheck"""
         try:
-            # Vérifier si la clé API est disponible
-            if not os.environ.get('PLAGIARISMCHECK_API_TOKEN'):
-                logging.warning("Clé PlagiarismCheck manquante, passage au service suivant")
+            import requests
+            import time
+            
+            token = os.environ.get('PLAGIARISMCHECK_API_TOKEN')
+            if not token:
+                logging.warning("Token PlagiarismCheck manquant")
                 return None
             
-            result = self.plagiarismcheck._check_plagiarism(text)
+            # Étape 1: Soumettre le texte
+            submit_url = "https://plagiarismcheck.org/api/v1/text"
+            headers = {
+                'X-API-TOKEN': token,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+            data = {'text': text[:5000]}
             
-            # Le résultat est déjà au bon format
-            if result and 'plagiarism' in result:
-                return result
+            logging.info("📤 Soumission du texte à PlagiarismCheck API...")
+            submit_response = requests.post(submit_url, headers=headers, data=data, timeout=20)
             
+            if submit_response.status_code not in [200, 201]:
+                logging.error(f"Erreur soumission: {submit_response.status_code}")
+                return None
+            
+            submit_result = submit_response.json()
+            if not submit_result.get('success'):
+                logging.error(f"Soumission échouée: {submit_result}")
+                return None
+                
+            text_id = submit_result.get('data', {}).get('text', {}).get('id')
+            if not text_id:
+                logging.error("Pas d'ID de texte retourné")
+                return None
+                
+            logging.info(f"✅ Texte soumis avec ID: {text_id}")
+            
+            # Étape 2: Attendre le traitement et récupérer les résultats
+            result_url = f"https://plagiarismcheck.org/api/v1/text/{text_id}"
+            
+            for attempt in range(8):  # Max 8 tentatives
+                logging.info(f"📊 Tentative {attempt+1}/8 - Récupération des résultats...")
+                time.sleep(4)  # Attendre 4 secondes entre chaque tentative
+                
+                result_response = requests.get(result_url, headers={'X-API-TOKEN': token}, timeout=15)
+                
+                if result_response.status_code == 200:
+                    result_data = result_response.json()
+                    text_data = result_data.get('data', {})
+                    state = text_data.get('state', 0)
+                    
+                    if state == 4:  # Traitement terminé
+                        # Récupérer les rapports de plagiat et IA
+                        report_data = text_data.get('report')
+                        ai_report_data = text_data.get('ai_report', {})
+                        
+                        plagiarism_percent = 0
+                        sources_count = 0
+                        ai_percent = 0
+                        
+                        # Traiter le rapport de plagiat
+                        if report_data:
+                            plagiarism_percent = report_data.get('percent', 0)
+                            sources_count = len(report_data.get('sources', []))
+                        
+                        # Traiter le rapport IA
+                        if ai_report_data and ai_report_data.get('status') == 4:
+                            ai_percent = ai_report_data.get('percent', 0) or 0
+                        
+                        logging.info(f"🎯 PlagiarismCheck API résultat: {plagiarism_percent}% plagiat + {ai_percent}% IA")
+                        
+                        return {
+                            'plagiarism': {
+                                'percent': plagiarism_percent,
+                                'sources_found': sources_count,
+                                'details': report_data.get('sources', [])[:5] if report_data else []
+                            },
+                            'ai_content': {'percent': ai_percent},
+                            'provider_used': 'plagiarismcheck_api_real',
+                            'text_id': text_id
+                        }
+                    elif state == 3:  # En cours de traitement
+                        # Vérifier si l'IA est déjà terminée
+                        ai_report_data = text_data.get('ai_report', {})
+                        if ai_report_data and ai_report_data.get('status') == 4:
+                            ai_percent = ai_report_data.get('percent', 0) or 0
+                            logging.info(f"⚡ IA terminée: {ai_percent}% - Plagiat en cours...")
+                            
+                            return {
+                                'plagiarism': {'percent': 'En cours...', 'sources_found': 0},
+                                'ai_content': {'percent': ai_percent},
+                                'provider_used': 'plagiarismcheck_partial'
+                            }
+                        else:
+                            logging.info(f"⏳ État: {state} - Traitement en cours...")
+                            continue
+                    elif state == 5:  # Erreur de traitement
+                        logging.error("Erreur de traitement côté PlagiarismCheck")
+                        return None
+                    else:
+                        logging.info(f"⏳ État: {state} - Traitement en cours...")
+                        continue
+                else:
+                    logging.error(f"Erreur récupération: {result_response.status_code}")
+                    return None
+            
+            logging.warning("⏰ Timeout - Le traitement prend trop de temps")
             return None
-            
+                
         except Exception as e:
             logging.error(f"Erreur PlagiarismCheck: {e}")
             return None
