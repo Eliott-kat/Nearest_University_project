@@ -106,15 +106,14 @@ The application includes a dual-API switching system:
 - **Demo Mode**: When all APIs fail, system provides realistic simulated analysis
 - **Status Tracking**: Real-time monitoring of API availability and performance
 
-### Recent Changes (July 28, 2025)
-- **AI Detection Service Removed**: GPTZero integration removed due to authentication issues
-- **Simplified Architecture**: Now supports only Copyleaks and PlagiarismCheck APIs  
-- **Database Schema Updated**: Added support for sources_count, analysis_provider, and raw_response fields
-- **Admin Dashboard Cleaned**: Removed references to AI Detection Service
-- **Improved Stability**: Dual-provider system with robust fallback mechanism
-- **Production Ready**: PlagiarismCheck API fully functional with real token authentication
-- **Smart Fallback System**: Automatic switching between APIs when primary service fails
-- **Code Optimization**: Fixed LSP diagnostics and improved error handling
-- **Real Score Extraction Fixed**: Corrected API data extraction to show authentic plagiarism scores (13.94% instead of 0%)
-- **API Endpoint Updated**: Fixed to use /text/report/{text_id} endpoint with proper data structure parsing
-- **System Status**: PlagiarismCheck ✅ Active with real scores, Copyleaks ⚠️ Server issues (500), Fallback ✅ Working
+### Recent Changes (July 29, 2025)
+- **3-Tier Detection System**: Implemented user-requested priority system: Copyleaks → PlagiarismCheck → Local Turnitin-style algorithm
+- **Turnitin-Style Local Algorithm**: Created comprehensive local detection using n-grams, fingerprints, pattern analysis, and structural metrics
+- **Unified Detection Service**: Single service managing all three detection methods with intelligent fallback
+- **Enhanced Local Analysis**: Advanced pattern recognition for academic content, vocabulary complexity analysis, and suspicious structure detection
+- **Real-Time Failover**: Automatic progression through detection services when primary methods fail
+- **Improved Reliability**: Local algorithm ensures results even when all external APIs are unavailable
+- **Smart Provider Selection**: Automatic API key detection and service availability checking
+- **Performance Optimization**: Parallel processing capabilities and efficient text analysis algorithms
+- **User Preference Integration**: System now prioritizes Copyleaks as requested, with robust fallback chain
+- **Enhanced Admin Dashboard**: Updated to show 3-tier system status and provider priorities

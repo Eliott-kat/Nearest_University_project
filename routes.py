@@ -9,7 +9,7 @@ from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
 from models import Document, AnalysisResult, HighlightedSentence, DocumentStatus, UserRole
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
-import simple_api_switch
+from unified_detection_service import UnifiedDetectionService
 from report_generator import report_generator
 
 # Create a fake user for local development
@@ -144,17 +144,29 @@ def upload_document():
             db.session.add(document)
             db.session.commit()
             
-            # Submit to active API service for analysis (will try both APIs before demo mode)
-            active_service = simple_api_switch.get_active_service()
-            if active_service.submit_document(document):
-                # Check if we're using demo mode or real API
-                if not active_service.token:
-                    flash('Document uploaded! APIs temporairement indisponibles - analyse en mode démonstration.', 'info')
-                else:
-                    flash('Document uploaded successfully and submitted for analysis!', 'success')
+            # Submit to unified detection service (3-tier system)
+            unified_service = UnifiedDetectionService()
+            result = unified_service.analyze_text(extracted_text, filename)
+            
+            if result and 'plagiarism' in result:
+                # Save analysis results
+                analysis_result = AnalysisResult()
+                analysis_result.document_id = document.id
+                analysis_result.plagiarism_score = result['plagiarism']['percent']
+                analysis_result.ai_score = 0  # Pas de détection IA pour l'instant
+                analysis_result.sources_count = result['plagiarism']['sources_found']
+                analysis_result.analysis_provider = result.get('provider_used', 'unknown')
+                analysis_result.raw_response = str(result)
+                
+                db.session.add(analysis_result)
+                document.status = DocumentStatus.COMPLETED
+                db.session.commit()
+                
+                provider_name = result.get('provider_used', 'local')
+                flash(f'Document analysé avec succès! Détection de plagiat: {result["plagiarism"]["percent"]}% (via {provider_name})', 'success')
                 return redirect(url_for('document_history'))
             else:
-                flash('Document uploaded but failed to submit for analysis. Please try again.', 'warning')
+                flash('Document uploaded but analysis failed. Please try again.', 'warning')
                 return redirect(url_for('document_history'))
             
         except RequestEntityTooLarge:
@@ -274,26 +286,29 @@ def download_report(document_id):
 def admin_dashboard():
     """Administration dashboard with API service management"""
     try:
-        # Get provider status
-        provider_status = simple_api_switch.get_provider_status()
-        
-        # Get service status for each provider
-        switch = simple_api_switch.get_active_service()
+        # Get provider status from unified service
+        unified_service = UnifiedDetectionService()
+        service_status = unified_service.get_service_status()
         
         service_details = {
             'copyleaks': {
-                'name': 'Copyleaks',
-                'configured': provider_status['copyleaks_configured'],
-                'status': 'Configured' if provider_status['copyleaks_configured'] else 'Not Configured',
-                'description': 'Plagiarism and AI detection via Copyleaks API'
+                'name': 'Copyleaks (Priorité 1)',
+                'configured': service_status['copyleaks']['available'],
+                'status': 'Configured' if service_status['copyleaks']['available'] else 'Not Configured',
+                'description': service_status['copyleaks']['description']
             },
             'plagiarismcheck': {
-                'name': 'PlagiarismCheck',
-                'configured': provider_status['plagiarismcheck_configured'],
-                'status': 'Configured' if provider_status['plagiarismcheck_configured'] else 'Not Configured',
-                'description': 'Alternative plagiarism detection service'
+                'name': 'PlagiarismCheck (Fallback)',
+                'configured': service_status['plagiarismcheck']['available'],
+                'status': 'Configured' if service_status['plagiarismcheck']['available'] else 'Not Configured',
+                'description': service_status['plagiarismcheck']['description']
             },
-
+            'turnitin_local': {
+                'name': 'Algorithme Local (Final Fallback)',
+                'configured': service_status['turnitin_local']['available'],
+                'status': 'Always Available',
+                'description': service_status['turnitin_local']['description']
+            }
         }
         
         # Get statistics
@@ -301,7 +316,7 @@ def admin_dashboard():
         completed_analyses = Document.query.filter_by(status=DocumentStatus.COMPLETED).count()
         
         return render_template('admin_dashboard.html',
-                             provider_status=provider_status,
+                             provider_status=service_status,
                              service_details=service_details,
                              total_documents=total_documents,
                              completed_analyses=completed_analyses,
@@ -322,14 +337,10 @@ def switch_provider():
             flash('Invalid provider selected.', 'danger')
             return redirect(url_for('admin_dashboard'))
         
-        # Set environment variable (temporary for this session)
-        os.environ['PLAGIARISM_API_PROVIDER'] = new_provider
-        
-        # Reinitialize the service switch
-        simple_api_switch._smart_switch = simple_api_switch.SmartAPISwitch()
-        
-        flash(f'Successfully switched to {new_provider} provider.', 'success')
-        logging.info(f"Provider switched to: {new_provider}")
+        # Le nouveau système unifié utilise automatiquement l'ordre de priorité
+        # Copyleaks -> PlagiarismCheck -> Local Algorithm
+        flash(f'Le système utilise maintenant automatiquement la priorité: Copyleaks → PlagiarismCheck → Algorithme Local', 'info')
+        logging.info(f"Unified detection system manages priority automatically")
         
     except Exception as e:
         logging.error(f"Error switching provider: {e}")
