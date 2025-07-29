@@ -315,22 +315,39 @@ class SentenceBertDetectionService:
             # 4. Détection IA
             ai_result = self._detect_ai_content(text, sentences)
             
-            # Combiner les scores (pondération)
+            # NOUVEAU: Détection de contenu académique légitime
+            is_academic = self._is_academic_content(text)
+            
+            # Combiner les scores avec ajustement pour contenu académique
+            bert_score = bert_result.get('score', 0)
+            tfidf_score = tfidf_result.get('score', 0)
+            levenshtein_score = levenshtein_result.get('score', 0)
+            
+            # Réduire sensibilité pour contenu académique
+            if is_academic:
+                bert_score *= 0.5  # Réduction plus forte de 50%
+                tfidf_score *= 0.6  # Réduction plus forte de 40%
+                levenshtein_score *= 0.7  # Réduction plus forte de 30%
+                logging.info("📚 Contenu académique détecté - ajustement des scores")
+            
+            # Pondération améliorée
             final_score = max(
-                bert_result.get('score', 0) * 0.5,
-                tfidf_result.get('score', 0) * 0.3,
-                levenshtein_result.get('score', 0) * 0.2
+                bert_score * 0.4,      # Réduction de 50% → 40%
+                tfidf_score * 0.35,    # Augmentation 30% → 35%
+                levenshtein_score * 0.25  # Augmentation 20% → 25%
             )
             
-            # Bonus si multiple méthodes détectent
+            # Bonus si multiple méthodes détectent (seuils plus élevés)
             detection_count = sum([
-                1 if bert_result.get('score', 0) > 10 else 0,
-                1 if tfidf_result.get('score', 0) > 10 else 0,
-                1 if levenshtein_result.get('score', 0) > 10 else 0
+                1 if bert_score > 15 else 0,    # Seuil augmenté 10 → 15
+                1 if tfidf_score > 15 else 0,   # Seuil augmenté 10 → 15
+                1 if levenshtein_score > 20 else 0  # Seuil augmenté 10 → 20
             ])
             
+            # Bonus réduit pour éviter sur-détection
             if detection_count >= 2:
-                final_score = min(final_score * 1.3, 95)
+                bonus_factor = 1.15 if is_academic else 1.25  # Bonus réduit pour académique
+                final_score = min(final_score * bonus_factor, 90)  # Limite abaissée 95 → 90
             
             # Stocker le document
             self._store_document(filename, text, sentences)
@@ -361,6 +378,56 @@ class SentenceBertDetectionService:
         """Divise en phrases"""
         sentences = re.split(r'[.!?]+', text)
         return [s.strip() for s in sentences if len(s.strip()) > 15]
+    
+    def _is_academic_content(self, text: str) -> bool:
+        """Détecte si le contenu est académique/thèse légitime"""
+        try:
+            text_lower = text.lower()
+            
+            # Indicateurs de contenu académique
+            academic_indicators = [
+                'thesis', 'dissertation', 'abstract', 'methodology', 'literature review',
+                'chapter', 'introduction', 'conclusion', 'references', 'bibliography',
+                'university', 'institute', 'department', 'supervisor', 'professor',
+                'master', 'phd', 'degree', 'research', 'study', 'analysis',
+                'acknowledgments', 'declaration', 'approved by', 'examining committee',
+                'empirical findings', 'theoretical framework', 'data analysis',
+                'regression', 'econometric', 'panel data', 'statistical significance'
+            ]
+            
+            # Patterns de thèse/mémoire
+            thesis_patterns = [
+                r'master.{0,20}thesis', r'phd.{0,20}dissertation', r'research.{0,20}question',
+                r'chapter.{0,5}[ivx\d]+', r'table.{0,5}of.{0,5}contents',
+                r'approved.{0,20}by', r'examining.{0,20}committee',
+                r'empirical.{0,20}findings', r'literature.{0,20}review'
+            ]
+            
+            # Compter indicateurs
+            indicator_count = sum(1 for indicator in academic_indicators if indicator in text_lower)
+            pattern_count = sum(1 for pattern in thesis_patterns if re.search(pattern, text_lower))
+            
+            # Structure académique (chapitres, sections)
+            has_chapters = bool(re.search(r'chapter\s+[ivx\d]+', text_lower))
+            has_abstract = 'abstract' in text_lower
+            has_references = any(word in text_lower for word in ['references', 'bibliography', 'works cited'])
+            
+            # Score académique
+            academic_score = indicator_count + (pattern_count * 2)
+            if has_chapters: academic_score += 3
+            if has_abstract: academic_score += 2
+            if has_references: academic_score += 2
+            
+            is_academic = academic_score >= 8  # Seuil pour considérer comme académique
+            
+            if is_academic:
+                logging.info(f"📚 Contenu académique identifié (score: {academic_score})")
+            
+            return is_academic
+            
+        except Exception as e:
+            logging.error(f"Erreur détection académique: {e}")
+            return False
     
     def _detect_with_sentence_bert(self, text: str, sentences: List[str]) -> Dict:
         """Détection avec embeddings de phrases"""
@@ -434,9 +501,9 @@ class SentenceBertDetectionService:
             
             for i, stored_vector in enumerate(tfidf_vectors[:-1]):
                 similarity = cosine_similarity_manual(current_vector, stored_vector)
-                if similarity > 0.3:  # Seuil pour TF-IDF
+                if similarity > 0.35:  # Seuil augmenté 0.3 → 0.35 pour réduire false positives
                     max_similarity = max(max_similarity, similarity * 100)
-                    if similarity > 0.5:
+                    if similarity > 0.6:  # Seuil augmenté 0.5 → 0.6 pour sources
                         sources_found += 1
             
             return {
@@ -473,8 +540,8 @@ class SentenceBertDetectionService:
                 stored_words = set(stored_text.lower().split()[:50])
                 common_ratio = len(text_words & stored_words) / max(len(text_words), 1)
                 
-                # Skip si très peu de mots communs
-                if common_ratio < 0.1:
+                # Skip si très peu de mots communs (seuil augmenté)
+                if common_ratio < 0.15:  # Augmenté 0.1 → 0.15 pour réduire comparaisons
                     continue
                 
                 # Calculer distance Levenshtein seulement si prometteur
@@ -510,13 +577,12 @@ class SentenceBertDetectionService:
             total_sentences = len(sentences)
             ai_scores = []
             
-            # 1. MOTS-CLÉS IA ÉTENDUS (catégorisés par domaine)
+            # 1. MOTS-CLÉS IA ÉTENDUS (catégorisés par domaine) - AJUSTÉS pour académique
             ai_keywords_academic = [
-                'based on', 'comprehensive analysis', 'demonstrates', 'empirical evidence',
-                'furthermore', 'subsequently', 'methodology', 'framework', 'optimal',
-                'facilitate', 'indicates', 'reveals', 'significant', 'substantial',
-                'implementation', 'systematic', 'evaluation', 'parameters', 'leverages',
-                'enhanced', 'effectiveness', 'efficiency', 'performance', 'comprehensive'
+                'optimal solution', 'leverages advanced', 'state-of-the-art implementation',
+                'cutting-edge methodology', 'revolutionary approach', 'unprecedented results',
+                'groundbreaking analysis', 'innovative framework', 'disruptive technology',
+                'paradigm-shifting', 'next-generation solution'  # Réduit les mots académiques normaux
             ]
             
             ai_keywords_business = [
@@ -626,27 +692,41 @@ class SentenceBertDetectionService:
                 final_sentence_score = min(ai_score, 100)
                 ai_scores.append(final_sentence_score)
                 
-                # Seuil de détection IA plus sophistiqué
-                threshold = 35 if len(sentence.split()) > 20 else 45  # Seuil adaptatif
+                # Seuil de détection IA adaptatif et plus strict
+                is_academic = self._is_academic_content(text)
+                if is_academic:
+                    threshold = 50 if len(sentence.split()) > 20 else 60  # Seuils plus élevés pour académique
+                else:
+                    threshold = 40 if len(sentence.split()) > 20 else 50  # Seuils normaux
+                
                 if final_sentence_score > threshold:
                     ai_sentences += 1
                     logging.debug(f"Phrase IA détectée ({final_sentence_score:.1f}%): {sentence[:80]}...")
             
-            # Calcul score global avec analyse textuelle
+            # Calcul score global avec ajustement pour contenu académique
             if ai_scores:
                 base_score = sum(ai_scores) / len(ai_scores)
                 
-                # BONUS GLOBAL: Cohérence stylistique (toutes phrases similaires = IA)
-                score_variance = sum((score - base_score) ** 2 for score in ai_scores) / len(ai_scores)
-                if score_variance < 100:  # Faible variance = style uniforme IA
-                    base_score *= 1.2
+                # Réduction pour contenu académique légitime
+                is_academic = self._is_academic_content(text)
+                if is_academic:
+                    base_score *= 0.5  # Réduction plus forte (-50%) pour thèses légitimes
+                    logging.info("📚 Ajustement IA pour contenu académique (-50%)")
                 
-                # BONUS GLOBAL: Proportion élevée de phrases détectées
+                # BONUS GLOBAL réduit: Cohérence stylistique
+                score_variance = sum((score - base_score) ** 2 for score in ai_scores) / len(ai_scores)
+                if score_variance < 50:  # Seuil plus strict (100→50)
+                    variance_bonus = 1.1 if is_academic else 1.15  # Bonus réduit pour académique
+                    base_score *= variance_bonus
+                
+                # BONUS GLOBAL réduit: Proportion de phrases détectées
                 detection_ratio = ai_sentences / total_sentences
-                if detection_ratio > 0.6:
-                    base_score *= 1.3
-                elif detection_ratio > 0.4:
-                    base_score *= 1.15
+                if detection_ratio > 0.7:  # Seuil plus élevé (0.6→0.7)
+                    ratio_bonus = 1.1 if is_academic else 1.2  # Bonus réduit pour académique
+                    base_score *= ratio_bonus
+                elif detection_ratio > 0.5:  # Seuil plus élevé (0.4→0.5)
+                    ratio_bonus = 1.05 if is_academic else 1.1
+                    base_score *= ratio_bonus
                 
                 overall_ai_prob = min(base_score, 100)
             else:
