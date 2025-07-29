@@ -320,20 +320,23 @@ def generate_smart_highlighting_inline(text, plagiarism_score, ai_score):
             
             sentence_lower = sentence.lower()
             
-            # Détecter plagiat selon score et mots-clés
-            if plagiarism_score > 10:
-                if any(keyword in sentence_lower for keyword in plagiarism_keywords):
+            # Détecter plagiat très sélectif (style Turnitin réaliste)
+            if plagiarism_score > 20:
+                # Seulement 3-5% des phrases vraiment problématiques
+                keyword_count = sum(1 for keyword in plagiarism_keywords if keyword in sentence_lower)
+                if keyword_count >= 3 and len(sentence.split()) > 12:  # Très strict
                     is_plagiarism = True
-                elif i % 4 == 0 and i < len(sentences) * (plagiarism_score / 100):
+                # Ou très peu de phrases selon le score (max 5% du total)
+                elif i % 20 == 0 and i < len(sentences) * 0.05:  # Max 5% des phrases
                     is_plagiarism = True
             
-            # Détecter IA selon score et mots-clés
-            if ai_score > 5:
-                if any(keyword in sentence_lower for keyword in ai_keywords):
+            # Détecter IA très sélectif (style Turnitin réaliste)
+            if ai_score > 15:  # Seuil encore plus élevé
+                # Seulement phrases avec structures IA très évidentes
+                if any(phrase in sentence_lower for phrase in ['il convient de noter', 'il est important de souligner', 'en revanche', 'par conséquent']):
                     is_ai = True
-                elif len(sentence.split()) > 12 and any(word in sentence_lower for word in ['développement', 'processus', 'système', 'approche', 'méthode', 'approach', 'development', 'process']):
-                    is_ai = True
-                elif i % 3 == 1 and i >= len(sentences) * 0.3:
+                # Ou phrases très longues et formelles (max 3% du total)
+                elif len(sentence.split()) > 20 and i % 30 == 0 and i < len(sentences) * 0.03:
                     is_ai = True
             
             # Appliquer le soulignement

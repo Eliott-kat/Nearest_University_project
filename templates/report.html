@@ -320,7 +320,18 @@
                 
                 <div class="card-body p-0">
                     {% if highlighted_text %}
-                        <div class="document-text">
+                        <div class="document-text-turnitin" style="
+                            font-family: 'Times New Roman', Times, serif;
+                            line-height: 1.6;
+                            color: #333;
+                            font-size: 14px;
+                            background: #fff;
+                            padding: 40px;
+                            max-height: 600px;
+                            overflow-y: auto;
+                            text-align: justify;
+                            border-left: 4px solid #1976d2;
+                        ">
                             {{ highlighted_text|safe }}
                         </div>
                     {% else %}
