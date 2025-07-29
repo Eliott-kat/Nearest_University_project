@@ -76,13 +76,10 @@ class UnifiedDetectionService:
                 logging.warning("Clés Copyleaks manquantes, passage au service suivant")
                 return None
             
-            # Créer un document temporaire pour l'API Copyleaks
-            from models import Document
-            temp_doc = Document()
-            temp_doc.extracted_text = text
-            temp_doc.original_filename = filename
-            
-            result = self.copyleaks.submit_document(temp_doc)
+            # Copyleaks n'est pas compatible avec le nouveau système unifié
+            # Passage au service suivant
+            logging.warning("Copyleaks nécessite une intégration différée, passage au service suivant")
+            return None
             
             # Transformer le résultat Copyleaks au format standard
             if result and 'scans' in result:

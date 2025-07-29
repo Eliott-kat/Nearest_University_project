@@ -145,30 +145,37 @@ def upload_document():
             db.session.add(document)
             db.session.commit()
             
-            # Submit to unified detection service (3-tier system)
-            unified_service = UnifiedDetectionService()
-            result = unified_service.analyze_text(extracted_text, filename)
-            
-            if result and 'plagiarism' in result:
-                # Save analysis results
-                analysis_result = AnalysisResult()
-                analysis_result.document_id = document.id
-                analysis_result.plagiarism_score = result['plagiarism']['percent']
-                analysis_result.ai_score = 0  # Pas de détection IA pour l'instant
-                analysis_result.sources_count = result['plagiarism']['sources_found']
-                analysis_result.analysis_provider = result.get('provider_used', 'unknown')
-                analysis_result.raw_response = str(result)
+            try:
+                # Submit to unified detection service (3-tier system)
+                unified_service = UnifiedDetectionService()
+                result = unified_service.analyze_text(extracted_text, filename)
                 
-                db.session.add(analysis_result)
-                document.status = DocumentStatus.COMPLETED
-                db.session.commit()
-                
-                provider_name = get_provider_display_name(result.get('provider_used', 'local'))
-                score = result["plagiarism"]["percent"]
-                flash(f'✅ Document analysé avec succès! Plagiat détecté: {score}% via {provider_name}', 'success')
-                return redirect(url_for('document_history'))
-            else:
-                flash('Document uploaded but analysis failed. Please try again.', 'warning')
+                if result and 'plagiarism' in result:
+                    # Save analysis results
+                    analysis_result = AnalysisResult()
+                    analysis_result.document_id = document.id
+                    analysis_result.plagiarism_score = result['plagiarism']['percent']
+                    analysis_result.ai_score = 0  # Pas de détection IA pour l'instant
+                    analysis_result.sources_count = result['plagiarism']['sources_found']
+                    analysis_result.analysis_provider = result.get('provider_used', 'unknown')
+                    analysis_result.raw_response = str(result)
+                    
+                    db.session.add(analysis_result)
+                    document.status = DocumentStatus.COMPLETED
+                    db.session.commit()
+                    
+                    provider_name = get_provider_display_name(result.get('provider_used', 'local'))
+                    score = result["plagiarism"]["percent"]
+                    flash(f'✅ Document analysé avec succès! Plagiat détecté: {score}% via {provider_name}', 'success')
+                    return redirect(url_for('document_history'))
+                else:
+                    flash('Document uploaded but analysis failed. Please try again.', 'warning')
+                    return redirect(url_for('document_history'))
+            except Exception as analysis_error:
+                logging.error(f"Erreur lors de l'analyse: {analysis_error}")
+                # Rollback en cas d'erreur
+                db.session.rollback()
+                flash('Une erreur est survenue lors de l\'analyse. Veuillez réessayer.', 'danger')
                 return redirect(url_for('document_history'))
             
         except RequestEntityTooLarge:
