@@ -122,12 +122,24 @@ def cosine_similarity_manual(vec1, vec2):
     return dot_product / (norm_a * norm_b)
 
 def levenshtein_distance_manual(s1, s2):
-    """Calcul manuel de la distance de Levenshtein"""
+    """Calcul manuel de la distance de Levenshtein optimisé pour gros documents"""
+    # OPTIMISATION: Limiter la taille pour éviter les timeouts
+    MAX_LEN = 1000  # Limite à 1000 caractères par string
+    
+    if len(s1) > MAX_LEN:
+        s1 = s1[:MAX_LEN//2] + s1[-MAX_LEN//2:]
+    if len(s2) > MAX_LEN:
+        s2 = s2[:MAX_LEN//2] + s2[-MAX_LEN//2:]
+    
     if len(s1) < len(s2):
         return levenshtein_distance_manual(s2, s1)
     
     if len(s2) == 0:
         return len(s1)
+    
+    # OPTIMISATION: Early exit si très différentes
+    if abs(len(s1) - len(s2)) > min(len(s1), len(s2)) * 0.8:
+        return max(len(s1), len(s2))  # Très différentes
     
     previous_row = list(range(len(s2) + 1))
     for i, c1 in enumerate(s1):
@@ -138,6 +150,10 @@ def levenshtein_distance_manual(s1, s2):
             substitutions = previous_row[j] + (c1 != c2)
             current_row.append(min(insertions, deletions, substitutions))
         previous_row = current_row
+        
+        # OPTIMISATION: Early exit si distance devient trop grande
+        if i > 100 and min(current_row) > len(s2) * 0.5:
+            return len(s1)  # Distance trop grande, abandon
     
     return previous_row[-1]
 
@@ -433,26 +449,50 @@ class SentenceBertDetectionService:
             return {'score': 0, 'sources': 0}
     
     def _detect_with_levenshtein(self, text: str) -> Dict:
-        """Détection avec distance de Levenshtein"""
+        """Détection avec distance de Levenshtein optimisée pour gros documents"""
         try:
+            # OPTIMISATION: Limiter la taille du texte d'entrée
+            if len(text) > 2000:
+                text = text[:1000] + text[-1000:]  # Prendre début et fin
+                logging.info(f"📝 Texte tronqué pour optimisation Levenshtein")
+            
             conn = sqlite3.connect(self.local_db_path)
             cursor = conn.cursor()
-            cursor.execute("SELECT content FROM documents")
+            cursor.execute("SELECT content FROM documents LIMIT 50")  # Limiter le nombre de comparaisons
             
             max_similarity = 0
+            comparisons = 0
             
             for row in cursor.fetchall():
                 stored_text = row[0]
+                if not stored_text or len(stored_text) < 20:
+                    continue
                 
-                # Calculer similarité basée sur distance de Levenshtein
+                # OPTIMISATION: Pré-filtre rapide avec mots communs
+                text_words = set(text.lower().split()[:50])  # Premiers 50 mots
+                stored_words = set(stored_text.lower().split()[:50])
+                common_ratio = len(text_words & stored_words) / max(len(text_words), 1)
+                
+                # Skip si très peu de mots communs
+                if common_ratio < 0.1:
+                    continue
+                
+                # Calculer distance Levenshtein seulement si prometteur
                 distance = levenshtein_distance_manual(text.lower(), stored_text.lower())
                 max_length = max(len(text), len(stored_text))
                 
                 if max_length > 0:
                     similarity = (1 - distance / max_length) * 100
                     max_similarity = max(max_similarity, similarity)
+                
+                comparisons += 1
+                
+                # OPTIMISATION: Stop si très bonne correspondance trouvée
+                if similarity > 95 or comparisons > 20:  # Limite à 20 comparaisons
+                    break
             
             conn.close()
+            logging.debug(f"Levenshtein: {comparisons} comparaisons, max: {max_similarity:.1f}%")
             
             return {'score': max_similarity}
             

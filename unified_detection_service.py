@@ -395,8 +395,13 @@ class UnifiedDetectionService:
             from sentence_bert_detection import get_sentence_bert_service
             advanced_service = get_sentence_bert_service()
             
-            # Effectuer la détection avancée
-            result = advanced_service.detect_plagiarism_and_ai(text, filename)
+            # Effectuer la détection avancée avec protection timeout
+            from timeout_optimization import safe_analysis_wrapper
+            result = safe_analysis_wrapper(
+                advanced_service.detect_plagiarism_and_ai, 
+                text, 
+                filename
+            )
             
             # Transformer au format standard
             response = {
