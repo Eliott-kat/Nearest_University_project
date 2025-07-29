@@ -156,7 +156,12 @@ def upload_document():
                     analysis_result.document_id = document.id
                     analysis_result.plagiarism_score = result['plagiarism']['percent']
                     # Utiliser le score IA réel de l'algorithme local
-                    analysis_result.ai_score = result.get('ai_content', {}).get('percent', 0)
+                    # Utiliser le score IA réel de l'algorithme local avec vérification
+                    ai_content = result.get('ai_content', {})
+                    if isinstance(ai_content, dict):
+                        analysis_result.ai_score = ai_content.get('percent', 0)
+                    else:
+                        analysis_result.ai_score = 0
                     analysis_result.sources_count = result['plagiarism']['sources_found']
                     analysis_result.analysis_provider = result.get('provider_used', 'unknown')
                     analysis_result.raw_response = str(result)
