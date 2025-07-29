@@ -155,14 +155,23 @@ class UnifiedDetectionService:
             logging.info("Utilisation de l'algorithme local Turnitin-style")
             result = self.turnitin_local.detect_plagiarism(text)
             
-            # Transformer au format standard
-            return {
+            # Transformer au format standard avec détection IA
+            response = {
                 'plagiarism': result,
                 'original_response': {
                     'method': 'turnitin_local_algorithm',
                     'analysis_details': result
                 }
             }
+            
+            # Ajouter la détection IA si disponible
+            if 'ai_percent' in result:
+                response['ai_content'] = {
+                    'percent': result['ai_percent'],
+                    'detected': result.get('has_ai_content', False)
+                }
+            
+            return response
             
         except Exception as e:
             logging.error(f"Erreur algorithme local: {e}")

@@ -92,14 +92,19 @@ class TurnitinStyleDetector:
             if plagiarism_percent < 15.0 and len(text) > 100:
                 plagiarism_percent = min(35.0, max(15.0, len(text) / 50))
             
+            # Calculer le score d'IA séparément
+            ai_score = self._calculate_ai_score(cleaned_text, matches)
+            
             return {
                 'percent': round(plagiarism_percent, 2),
+                'ai_percent': round(ai_score, 2),  # Score IA séparé
                 'sources_found': len(matches),
                 'details': matches[:10],  # Limiter à 10 sources max
                 'matched_length': total_matched_chars,
                 'analysis_method': 'turnitin_local_algorithm',
                 'fingerprints_generated': len(fingerprints),
-                'ngrams_analyzed': len(ngrams)
+                'ngrams_analyzed': len(ngrams),
+                'has_ai_content': ai_score > 50
             }
             
         except Exception as e:
@@ -320,3 +325,48 @@ class TurnitinStyleDetector:
             structure_score += 5.3
         
         return min(structure_score, 15)  # Max 15% pour l'analyse structurelle
+    
+    def _calculate_ai_score(self, text: str, matches: List[Dict]) -> float:
+        """Calcule spécifiquement le score de détection d'IA"""
+        ai_score = 0
+        
+        # Vérifier les mots-clés typiques d'IA
+        ai_indicators = [
+            'est essentielle à', 'joue un rôle', 'il est important de', 'permet de',
+            'contribue à', 'favorise', 'améliore', 'optimise', 'facilite',
+            'englobe', 'comprend', 'inclut', 'représente', 'constitue',
+            'par conséquent', 'en outre', 'de plus', 'par ailleurs',
+            'notamment', 'en particulier', 'principalement', 'essentiellement'
+        ]
+        
+        ai_keyword_count = sum(1 for indicator in ai_indicators if indicator.lower() in text.lower())
+        if ai_keyword_count >= 3:
+            ai_score += min(ai_keyword_count * 15, 60)
+        
+        # Analyser la structure des phrases (IA tend à avoir des structures très régulières)
+        sentences = text.split('.')
+        avg_sentence_length = sum(len(s.split()) for s in sentences if s.strip()) / max(len([s for s in sentences if s.strip()]), 1)
+        
+        # IA génère souvent des phrases de longueur très uniforme
+        if 15 <= avg_sentence_length <= 25:
+            ai_score += 25
+        
+        # Vérifier les transitions typiques d'IA
+        ai_transitions = ['cependant', 'néanmoins', 'toutefois', 'en revanche', 'par ailleurs', 'de surcroît']
+        transition_count = sum(1 for trans in ai_transitions if trans.lower() in text.lower())
+        if transition_count >= 2:
+            ai_score += min(transition_count * 10, 30)
+        
+        # Vérifier si du contenu IA a été détecté dans les matches
+        ai_content_detected = any('ai' in match.get('type', '').lower() for match in matches)
+        if ai_content_detected:
+            ai_score += 40
+        
+        # Score basé sur la régularité du vocabulaire (typique de l'IA)
+        words = text.split()
+        if len(words) > 50:
+            word_variety = len(set(words)) / len(words)
+            if 0.6 <= word_variety <= 0.8:  # IA a une diversité lexicale très "parfaite"
+                ai_score += 20
+        
+        return min(ai_score, 100)
