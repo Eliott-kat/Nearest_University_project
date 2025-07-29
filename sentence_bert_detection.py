@@ -14,6 +14,15 @@ from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 from collections import Counter, defaultdict
 
+# Import du détecteur GPTZero-like
+try:
+    from utils.ai_gptzero_like import detect_ai_gptzero_like
+    GPTZERO_AVAILABLE = True
+    logging.info("✅ Détecteur GPTZero-like chargé avec succès")
+except ImportError as e:
+    GPTZERO_AVAILABLE = False
+    logging.warning(f"⚠️ Détecteur GPTZero non disponible: {e}")
+
 class ManualTfIdf:
     """Implémentation manuelle de TF-IDF"""
     
@@ -605,6 +614,18 @@ class SentenceBertDetectionService:
             
             logging.info(f"🤖 Détection IA AVANCÉE: {ai_sentences}/{total_sentences} phrases = {overall_ai_prob:.1f}%")
             
+            # COUCHE 8: Intégration GPTZero (perplexité + burstiness)
+            gptzero_bonus = 0
+            if GPTZERO_AVAILABLE:
+                try:
+                    gptzero_result = detect_ai_gptzero_like(text)
+                    if gptzero_result['is_ai']:
+                        gptzero_bonus = gptzero_result['confidence'] * 0.3  # 30% du score GPTZero
+                        overall_ai_prob = min(overall_ai_prob + gptzero_bonus, 100)
+                        logging.info(f"🔍 GPTZero: {gptzero_result['confidence']}% IA (P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']})")
+                except Exception as e:
+                    logging.error(f"Erreur GPTZero: {e}")
+            
             return {
                 'ai_probability': round(overall_ai_prob, 1),
                 'ai_sentences': ai_sentences,
@@ -612,8 +633,10 @@ class SentenceBertDetectionService:
                 'detection_details': {
                     'repetitive_structures': repetitive_starts,
                     'avg_sentence_length': sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0,
-                    'formal_ratio': detection_ratio if 'detection_ratio' in locals() else 0
-                }
+                    'formal_ratio': detection_ratio if 'detection_ratio' in locals() else 0,
+                    'gptzero_bonus': round(gptzero_bonus, 1) if GPTZERO_AVAILABLE else 0
+                },
+                'gptzero_analysis': detect_ai_gptzero_like(text) if GPTZERO_AVAILABLE else None
             }
             
         except Exception as e:
