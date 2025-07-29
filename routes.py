@@ -142,8 +142,14 @@ def upload_document():
             document.user_id = fake_user.id
             document.status = DocumentStatus.UPLOADED
             
-            db.session.add(document)
-            db.session.commit()
+            try:
+                db.session.add(document)
+                db.session.commit()
+            except Exception as db_error:
+                logging.error(f"Erreur sauvegarde document: {db_error}")
+                db.session.rollback()
+                flash('Erreur de base de données. Veuillez réessayer.', 'danger')
+                return redirect(request.url)
             
             try:
                 # Submit to unified detection service (3-tier system)
@@ -169,19 +175,30 @@ def upload_document():
                     analysis_result.analysis_provider = result.get('provider_used', 'unknown')
                     analysis_result.raw_response = str(result)
                     
-                    db.session.add(analysis_result)
-                    
-                    # Sauvegarder les phrases problématiques pour le soulignement
                     try:
-                        highlighted_sentences = _extract_highlighted_sentences(result, document.id, extracted_text)
-                        for sentence in highlighted_sentences:
-                            db.session.add(sentence)
-                        logging.info(f"💡 Sauvegardé {len(highlighted_sentences)} phrases problématiques pour soulignement")
-                    except Exception as e:
-                        logging.warning(f"Erreur sauvegarde phrases: {e}")
-                    
-                    document.status = DocumentStatus.COMPLETED
-                    db.session.commit()
+                        db.session.add(analysis_result)
+                        
+                        # Sauvegarder les phrases problématiques pour le soulignement
+                        try:
+                            highlighted_sentences = _extract_highlighted_sentences(result, document.id, extracted_text)
+                            for sentence in highlighted_sentences:
+                                db.session.add(sentence)
+                            logging.info(f"💡 Sauvegardé {len(highlighted_sentences)} phrases problématiques pour soulignement")
+                        except Exception as e:
+                            logging.warning(f"Erreur sauvegarde phrases: {e}")
+                        
+                        document.status = DocumentStatus.COMPLETED
+                        db.session.commit()
+                        
+                    except Exception as save_error:
+                        logging.error(f"Erreur sauvegarde résultats: {save_error}")
+                        db.session.rollback()
+                        # Même en cas d'erreur de sauvegarde, on peut afficher les résultats
+                        provider_name = get_provider_display_name(result.get('provider_used', 'local'))
+                        score = result["plagiarism"]["percent"]
+                        ai_score = result.get('ai_content', {}).get('percent', 0)
+                        flash(f'⚠️ Analyse réussie (Plagiat: {score}%, IA: {ai_score}%) mais erreur de sauvegarde. Résultats temporaires disponibles.', 'warning')
+                        return redirect(url_for('document_history'))
                     
                     provider_name = get_provider_display_name(result.get('provider_used', 'local'))
                     score = result["plagiarism"]["percent"]
