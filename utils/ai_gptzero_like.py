@@ -126,8 +126,78 @@ class GPTZeroLikeDetector:
             'avg_complexity': avg_complexity
         }
     
+    def analyze_advanced_ai_patterns(self, text: str) -> Dict:
+        """Analyse avancée des patterns IA supplémentaires"""
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+        
+        if not sentences:
+            return {'coherence_score': 0, 'vocabulary_diversity': 100, 'temporal_consistency': 0}
+        
+        # 1. COHÉRENCE THÉMATIQUE EXCESSIVE (IA reste sur le sujet)
+        all_words = ' '.join(sentences).lower().split()
+        word_freq = Counter(all_words)
+        
+        # Calculer concentration thématique
+        top_words = [word for word, count in word_freq.most_common(10) if len(word) > 3]
+        theme_concentration = sum(word_freq[word] for word in top_words) / len(all_words) * 100
+        
+        # 2. DIVERSITÉ LEXICALE (IA utilise vocabulaire limité mais sophistiqué)
+        unique_words = len(set(all_words))
+        total_words = len(all_words)
+        vocabulary_diversity = (unique_words / total_words * 100) if total_words > 0 else 0
+        
+        # 3. CONSISTANCE TEMPORELLE (IA utilise toujours même temps)
+        present_tense = len(re.findall(r'\b(is|are|has|have|does|do)\b', text.lower()))
+        past_tense = len(re.findall(r'\b(was|were|had|did|went|came)\b', text.lower()))
+        future_tense = len(re.findall(r'\b(will|shall|going to)\b', text.lower()))
+        
+        total_tense = present_tense + past_tense + future_tense
+        if total_tense > 0:
+            max_tense = max(present_tense, past_tense, future_tense)
+            temporal_consistency = (max_tense / total_tense) * 100
+        else:
+            temporal_consistency = 0
+        
+        # 4. DÉTECTION DE FORMALITÉ EXCESSIVE
+        formal_markers = len(re.findall(r'\b(thus|hence|therefore|furthermore|moreover|consequently|subsequently)\b', text.lower()))
+        informal_markers = len(re.findall(r'\b(yeah|ok|well|you know|I think|maybe|probably)\b', text.lower()))
+        
+        formality_ratio = formal_markers / max(informal_markers + formal_markers, 1) * 100
+        
+        return {
+            'theme_concentration': round(theme_concentration, 1),
+            'vocabulary_diversity': round(vocabulary_diversity, 1),
+            'temporal_consistency': round(temporal_consistency, 1),
+            'formality_ratio': round(formality_ratio, 1)
+        }
+    
+    def calculate_semantic_coherence(self, text: str) -> float:
+        """Calcule la cohérence sémantique (IA = trop cohérent)"""
+        sentences = re.split(r'[.!?]+', text)
+        sentences = [s.strip() for s in sentences if len(s.strip()) > 10]
+        
+        if len(sentences) < 2:
+            return 0
+        
+        # Analyser transitions entre phrases
+        transition_words = [
+            'however', 'furthermore', 'moreover', 'therefore', 'consequently',
+            'subsequently', 'additionally', 'nevertheless', 'nonetheless'
+        ]
+        
+        smooth_transitions = 0
+        for i in range(1, len(sentences)):
+            sentence = sentences[i].lower()
+            if any(word in sentence for word in transition_words):
+                smooth_transitions += 1
+        
+        # Score de cohérence (trop de transitions = IA)
+        coherence_score = (smooth_transitions / max(len(sentences) - 1, 1)) * 100
+        return min(coherence_score, 100)
+
     def detect_ai_gptzero_like(self, text: str, perplexity_thresh: float = 50, burstiness_thresh: float = 15) -> Dict:
-        """Détection IA style GPTZero avec métriques avancées"""
+        """Détection IA ultra-avancée style GPTZero avec 5+ métriques"""
         if len(text.strip()) < 50:
             return {
                 'is_ai': False,
@@ -137,53 +207,90 @@ class GPTZeroLikeDetector:
                 'reason': 'Texte trop court pour analyse'
             }
         
-        # Calculer métriques principales
+        # Métriques principales GPTZero
         perplexity = self.calculate_simple_perplexity(text)
         burstiness = self.calculate_burstiness(text)
         patterns = self.analyze_sentence_patterns(text)
         
-        # Décision basée sur seuils GPTZero
-        low_perplexity = perplexity < perplexity_thresh
-        low_burstiness = burstiness < burstiness_thresh
-        high_uniformity = patterns['uniformity_score'] > 30
-        high_complexity = patterns['avg_complexity'] > 1.5
+        # Nouvelles métriques avancées
+        advanced_patterns = self.analyze_advanced_ai_patterns(text)
+        semantic_coherence = self.calculate_semantic_coherence(text)
         
-        # Score de confiance IA
-        ai_indicators = 0
-        if low_perplexity:
-            ai_indicators += 30
-        if low_burstiness:
-            ai_indicators += 25
-        if high_uniformity:
-            ai_indicators += 25
-        if high_complexity:
-            ai_indicators += 20
+        # Seuils adaptatifs basés sur longueur du texte
+        words_count = len(text.split())
+        if words_count < 100:
+            perplexity_thresh *= 0.8  # Plus strict pour textes courts
+            burstiness_thresh *= 0.9
+        elif words_count > 300:
+            perplexity_thresh *= 1.2  # Plus permissif pour textes longs
+            burstiness_thresh *= 1.1
         
-        is_ai = ai_indicators >= 50
-        confidence = min(ai_indicators, 100)
+        # Analyse des indicateurs IA
+        indicators = []
+        ai_score = 0
         
-        # Raison détaillée
-        reasons = []
-        if low_perplexity:
-            reasons.append(f"Perplexité faible ({perplexity:.1f})")
-        if low_burstiness:
-            reasons.append(f"Faible variabilité phrases ({burstiness:.1f})")
-        if high_uniformity:
-            reasons.append(f"Débuts phrases répétitifs ({patterns['uniformity_score']:.1f}%)")
-        if high_complexity:
-            reasons.append(f"Complexité syntaxique élevée ({patterns['avg_complexity']:.1f})")
+        # 1. Perplexité (25 points max)
+        if perplexity < perplexity_thresh:
+            perplexity_contribution = min((perplexity_thresh - perplexity) / perplexity_thresh * 25, 25)
+            ai_score += perplexity_contribution
+            indicators.append(f"Perplexité faible ({perplexity:.1f})")
         
-        reason = " + ".join(reasons) if reasons else "Indicateurs humains détectés"
+        # 2. Burstiness (20 points max)
+        if burstiness < burstiness_thresh:
+            burstiness_contribution = min((burstiness_thresh - burstiness) / burstiness_thresh * 20, 20)
+            ai_score += burstiness_contribution
+            indicators.append(f"Faible variabilité phrases ({burstiness:.1f})")
+        
+        # 3. Uniformité des débuts (15 points max)
+        if patterns['uniformity_score'] > 30:
+            uniformity_contribution = min((patterns['uniformity_score'] - 30) / 70 * 15, 15)
+            ai_score += uniformity_contribution
+            indicators.append(f"Structures répétitives ({patterns['uniformity_score']:.1f}%)")
+        
+        # 4. Complexité syntaxique (15 points max)
+        if patterns['avg_complexity'] > 1.5:
+            complexity_contribution = min((patterns['avg_complexity'] - 1.5) / 3 * 15, 15)
+            ai_score += complexity_contribution
+            indicators.append(f"Complexité excessive ({patterns['avg_complexity']:.1f})")
+        
+        # 5. Cohérence sémantique (10 points max)
+        if semantic_coherence > 40:
+            coherence_contribution = min((semantic_coherence - 40) / 60 * 10, 10)
+            ai_score += coherence_contribution
+            indicators.append(f"Cohérence excessive ({semantic_coherence:.1f}%)")
+        
+        # 6. Concentration thématique (10 points max)
+        if advanced_patterns['theme_concentration'] > 25:
+            theme_contribution = min((advanced_patterns['theme_concentration'] - 25) / 75 * 10, 10)
+            ai_score += theme_contribution
+            indicators.append(f"Concentration thématique ({advanced_patterns['theme_concentration']:.1f}%)")
+        
+        # 7. Formalité excessive (5 points max)
+        if advanced_patterns['formality_ratio'] > 60:
+            formality_contribution = min((advanced_patterns['formality_ratio'] - 60) / 40 * 5, 5)
+            ai_score += formality_contribution
+            indicators.append(f"Formalité excessive ({advanced_patterns['formality_ratio']:.1f}%)")
+        
+        # Score final
+        confidence = min(ai_score, 100)
+        is_ai = confidence >= 45  # Seuil adaptatif
+        
+        reason = " + ".join(indicators) if indicators else "Indicateurs humains naturels détectés"
         
         return {
             'is_ai': is_ai,
-            'confidence': confidence,
+            'confidence': round(confidence, 1),
             'perplexity': round(perplexity, 1),
             'burstiness': round(burstiness, 1),
             'uniformity_score': round(patterns['uniformity_score'], 1),
             'complexity_score': round(patterns['avg_complexity'], 1),
+            'semantic_coherence': round(semantic_coherence, 1),
+            'theme_concentration': advanced_patterns['theme_concentration'],
+            'vocabulary_diversity': advanced_patterns['vocabulary_diversity'],
+            'formality_ratio': advanced_patterns['formality_ratio'],
             'reason': reason,
-            'method': 'gptzero_like_analysis'
+            'method': 'ultra_advanced_gptzero_analysis',
+            'indicators_detected': len(indicators)
         }
 
 # Instance globale

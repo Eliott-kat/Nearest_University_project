@@ -620,9 +620,13 @@ class SentenceBertDetectionService:
                 try:
                     gptzero_result = detect_ai_gptzero_like(text)
                     if gptzero_result['is_ai']:
-                        gptzero_bonus = gptzero_result['confidence'] * 0.3  # 30% du score GPTZero
+                        # Bonus adaptatif basé sur nombre d'indicateurs détectés
+                        indicator_multiplier = min(gptzero_result.get('indicators_detected', 1) / 7, 1)
+                        gptzero_bonus = gptzero_result['confidence'] * 0.4 * indicator_multiplier  # Max 40% du score GPTZero
                         overall_ai_prob = min(overall_ai_prob + gptzero_bonus, 100)
-                        logging.info(f"🔍 GPTZero: {gptzero_result['confidence']}% IA (P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']})")
+                        logging.info(f"🔍 GPTZero ULTRA: {gptzero_result['confidence']}% IA ({gptzero_result.get('indicators_detected', 0)} indicateurs - P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']})")
+                    else:
+                        logging.info(f"🔍 GPTZero: {gptzero_result['confidence']}% (P={gptzero_result['perplexity']}, B={gptzero_result['burstiness']}) - Humain détecté")
                 except Exception as e:
                     logging.error(f"Erreur GPTZero: {e}")
             
