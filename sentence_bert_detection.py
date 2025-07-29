@@ -452,7 +452,7 @@ class SentenceBertDetectionService:
             return {'score': 0}
     
     def _detect_ai_content(self, text: str, sentences: List[str]) -> Dict:
-        """Détection de contenu IA avec modèle entraîné et analyse linguistique"""
+        """Détection de contenu IA ultra-avancée avec 7 couches d'analyse"""
         try:
             if not sentences:
                 return {'ai_probability': 0, 'ai_sentences': 0}
@@ -461,21 +461,54 @@ class SentenceBertDetectionService:
             total_sentences = len(sentences)
             ai_scores = []
             
-            # Mots-clés typiques de l'IA
-            ai_keywords = [
+            # 1. MOTS-CLÉS IA ÉTENDUS (catégorisés par domaine)
+            ai_keywords_academic = [
                 'based on', 'comprehensive analysis', 'demonstrates', 'empirical evidence',
                 'furthermore', 'subsequently', 'methodology', 'framework', 'optimal',
                 'facilitate', 'indicates', 'reveals', 'significant', 'substantial',
                 'implementation', 'systematic', 'evaluation', 'parameters', 'leverages',
-                'enhanced', 'effectiveness', 'efficiency', 'performance', 'furthermore'
+                'enhanced', 'effectiveness', 'efficiency', 'performance', 'comprehensive'
             ]
             
-            # Structures typiques IA
-            ai_patterns = [
+            ai_keywords_business = [
+                'strategic advantage', 'optimization', 'stakeholders', 'deliverables',
+                'synergies', 'best practices', 'core competencies', 'value proposition',
+                'scalability', 'paradigm', 'innovative solutions', 'cutting-edge',
+                'state-of-the-art', 'industry-leading', 'next-generation'
+            ]
+            
+            ai_keywords_technical = [
+                'algorithm', 'utilize', 'implement', 'architecture', 'infrastructure',
+                'deployment', 'configuration', 'integration', 'optimization',
+                'automated', 'machine learning', 'artificial intelligence', 'deep learning'
+            ]
+            
+            # 2. PATTERNS LINGUISTIQUES AVANCÉS
+            ai_patterns_advanced = [
                 r'based on .+ analysis', r'the .+ demonstrates', r'furthermore.+',
                 r'subsequently.+', r'the empirical evidence', r'in conclusion.+',
-                r'the proposed .+ exhibits', r'through systematic'
+                r'the proposed .+ exhibits', r'through systematic', r'it is important to note',
+                r'this approach ensures', r'the implementation of', r'as a result of',
+                r'in order to .+ it is .+', r'the utilization of', r'with regard to'
             ]
+            
+            # 3. STRUCTURES SYNTAXIQUES IA
+            ai_syntax_patterns = [
+                r'the .+ of .+ is .+ by', r'in .+ to .+ the .+',
+                r'through the use of', r'by means of', r'in accordance with',
+                r'with respect to', r'in terms of', r'as it relates to'
+            ]
+            
+            # 4. INDICATEURS STYLISTIQUES FORMELS
+            formal_transitions = [
+                'therefore', 'however', 'moreover', 'nevertheless', 'consequently',
+                'additionally', 'furthermore', 'nonetheless', 'thus', 'hence',
+                'accordingly', 'conversely', 'similarly', 'alternatively'
+            ]
+            
+            # 5. DÉTECTION DE RÉPÉTITIONS SUSPECTES
+            sentence_beginnings = [s.split()[:3] for s in sentences if len(s.split()) >= 3]
+            repetitive_starts = len(sentence_beginnings) - len(set([' '.join(start) for start in sentence_beginnings]))
             
             for sentence in sentences:
                 sentence_lower = sentence.lower().strip()
@@ -484,56 +517,103 @@ class SentenceBertDetectionService:
                 
                 ai_score = 0
                 
-                # 1. Analyse par modèle ML
+                # COUCHE 1: Modèle ML (35%)
                 try:
                     sentence_vector = self.ai_tfidf.transform([sentence])[0]
                     probabilities = self.ai_detector.predict_proba([sentence_vector])[0]
-                    ml_score = probabilities[1] * 100  # Score ML en pourcentage
-                    ai_score += ml_score * 0.4  # 40% du score
+                    ml_score = probabilities[1] * 100
+                    ai_score += ml_score * 0.35
                 except:
                     ml_score = 0
                 
-                # 2. Analyse des mots-clés IA
-                keyword_count = sum(1 for keyword in ai_keywords if keyword in sentence_lower)
-                keyword_score = min(keyword_count * 25, 100)  # Max 100%
-                ai_score += keyword_score * 0.3  # 30% du score
+                # COUCHE 2: Mots-clés académiques (20%)
+                academic_count = sum(1 for keyword in ai_keywords_academic if keyword in sentence_lower)
+                academic_score = min(academic_count * 20, 100)
+                ai_score += academic_score * 0.2
                 
-                # 3. Analyse des patterns IA
-                pattern_matches = sum(1 for pattern in ai_patterns if re.search(pattern, sentence_lower))
-                pattern_score = min(pattern_matches * 40, 100)
-                ai_score += pattern_score * 0.2  # 20% du score
+                # COUCHE 3: Mots-clés business/technique (15%)
+                business_count = sum(1 for keyword in ai_keywords_business if keyword in sentence_lower)
+                tech_count = sum(1 for keyword in ai_keywords_technical if keyword in sentence_lower)
+                combined_score = min((business_count + tech_count) * 15, 100)
+                ai_score += combined_score * 0.15
                 
-                # 4. Analyse de la complexité linguistique (style formel IA)
-                formal_indicators = ['therefore', 'however', 'moreover', 'nevertheless', 'consequently']
-                formal_count = sum(1 for indicator in formal_indicators if indicator in sentence_lower)
-                formal_score = min(formal_count * 30, 100)
-                ai_score += formal_score * 0.1  # 10% du score
+                # COUCHE 4: Patterns linguistiques avancés (10%)
+                pattern_matches = sum(1 for pattern in ai_patterns_advanced + ai_syntax_patterns 
+                                    if re.search(pattern, sentence_lower))
+                pattern_score = min(pattern_matches * 25, 100)
+                ai_score += pattern_score * 0.1
+                
+                # COUCHE 5: Transitions formelles (8%)
+                formal_count = sum(1 for indicator in formal_transitions if indicator in sentence_lower)
+                formal_score = min(formal_count * 20, 100)
+                ai_score += formal_score * 0.08
+                
+                # COUCHE 6: Analyse de longueur de phrase (7%)
+                words = sentence.split()
+                if len(words) > 25:  # Phrases très longues = style IA
+                    length_score = min((len(words) - 25) * 3, 100)
+                    ai_score += length_score * 0.07
+                
+                # COUCHE 7: Détection de vocabulaire sophistiqué (5%)
+                sophisticated_words = [
+                    'utilization', 'implementation', 'optimization', 'enhancement',
+                    'facilitation', 'consideration', 'demonstration', 'evaluation',
+                    'establishment', 'development', 'achievement', 'improvement'
+                ]
+                sophisticated_count = sum(1 for word in sophisticated_words if word in sentence_lower)
+                sophisticated_score = min(sophisticated_count * 30, 100)
+                ai_score += sophisticated_score * 0.05
+                
+                # BONUS: Répétitions suspectes de structures
+                if repetitive_starts > total_sentences * 0.3:
+                    ai_score *= 1.15
+                
+                # BONUS: Absence totale de pronoms personnels (très suspect)
+                personal_pronouns = ['i ', 'me ', 'my ', 'we ', 'us ', 'our ', 'you ', 'your ']
+                if not any(pronoun in sentence_lower for pronoun in personal_pronouns):
+                    ai_score *= 1.1
                 
                 # Score final pour cette phrase
                 final_sentence_score = min(ai_score, 100)
                 ai_scores.append(final_sentence_score)
                 
-                # Seuil de détection IA (plus sensible)
-                if final_sentence_score > 40:  # Seuil abaissé
+                # Seuil de détection IA plus sophistiqué
+                threshold = 35 if len(sentence.split()) > 20 else 45  # Seuil adaptatif
+                if final_sentence_score > threshold:
                     ai_sentences += 1
-                    logging.debug(f"Phrase IA détectée ({final_sentence_score:.1f}%): {sentence[:100]}...")
+                    logging.debug(f"Phrase IA détectée ({final_sentence_score:.1f}%): {sentence[:80]}...")
             
-            # Calcul score global
+            # Calcul score global avec analyse textuelle
             if ai_scores:
-                overall_ai_prob = sum(ai_scores) / len(ai_scores)
+                base_score = sum(ai_scores) / len(ai_scores)
+                
+                # BONUS GLOBAL: Cohérence stylistique (toutes phrases similaires = IA)
+                score_variance = sum((score - base_score) ** 2 for score in ai_scores) / len(ai_scores)
+                if score_variance < 100:  # Faible variance = style uniforme IA
+                    base_score *= 1.2
+                
+                # BONUS GLOBAL: Proportion élevée de phrases détectées
+                detection_ratio = ai_sentences / total_sentences
+                if detection_ratio > 0.6:
+                    base_score *= 1.3
+                elif detection_ratio > 0.4:
+                    base_score *= 1.15
+                
+                overall_ai_prob = min(base_score, 100)
             else:
                 overall_ai_prob = 0
             
-            # Bonus si plusieurs phrases détectées
-            if ai_sentences >= 2:
-                overall_ai_prob = min(overall_ai_prob * 1.2, 100)
-            
-            logging.info(f"🤖 Détection IA: {ai_sentences}/{total_sentences} phrases IA = {overall_ai_prob:.1f}%")
+            logging.info(f"🤖 Détection IA AVANCÉE: {ai_sentences}/{total_sentences} phrases = {overall_ai_prob:.1f}%")
             
             return {
                 'ai_probability': round(overall_ai_prob, 1),
                 'ai_sentences': ai_sentences,
-                'total_analyzed': total_sentences
+                'total_analyzed': total_sentences,
+                'detection_details': {
+                    'repetitive_structures': repetitive_starts,
+                    'avg_sentence_length': sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0,
+                    'formal_ratio': detection_ratio if 'detection_ratio' in locals() else 0
+                }
             }
             
         except Exception as e:
