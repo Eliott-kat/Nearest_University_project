@@ -291,13 +291,31 @@ def view_report(document_id):
                 ai_sentences
             )
         else:
-            # Utiliser le nouveau formateur professionnel
-            from professional_document_formatter import format_document_professionally
-            highlighted_text = format_document_professionally(
-                document.extracted_text or "",
-                analysis_result.plagiarism_score,
-                analysis_result.ai_score
-            )
+            # Utiliser le nouveau système de mise en page originale
+            try:
+                from document_layout_processor import process_document_layout
+                from document_layout_renderer import render_document_with_original_layout
+                
+                # Traiter la mise en page du document original
+                file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
+                layout_data = process_document_layout(file_path, document.extracted_text or "")
+                
+                # Rendre avec mise en page originale et soulignement
+                highlighted_text = render_document_with_original_layout(
+                    layout_data,
+                    analysis_result.plagiarism_score,
+                    analysis_result.ai_score
+                )
+                
+            except Exception as e:
+                logging.error(f"Erreur mise en page originale: {e}")
+                # Fallback vers le formateur professionnel
+                from professional_document_formatter import format_document_professionally
+                highlighted_text = format_document_professionally(
+                    document.extracted_text or "",
+                    analysis_result.plagiarism_score,
+                    analysis_result.ai_score
+                )
         
         return render_template('report.html',
                              document=document,

@@ -35,6 +35,7 @@ Preferred communication style: Simple, everyday language.
 - **File Processing Pipeline**: Secure upload, text extraction, analysis queuing, and report generation
 - **Sentence Highlighting**: Comprehensive sentence-level highlighting in reports with intelligent phrase detection and realistic source attribution.
 - **Dynamic Filenaming**: Customizable download filenames for analysis reports.
+- **Original Document Layout**: System to display documents exactly as they appear on user's computer with preserved formatting, title pages, and academic structure.
 
 ## External Dependencies
 

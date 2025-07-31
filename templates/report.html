@@ -162,6 +162,113 @@
         color: #3949ab;
     }
     
+    /* Styles pour l'affichage avec mise en page originale */
+    .document-container {
+        background: #fff;
+        border-radius: 0.5rem;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .document-header {
+        background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+        color: white;
+        padding: 1rem 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .document-type-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.3rem 0.8rem;
+        border-radius: 1rem;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    .page-counter {
+        font-size: 0.9rem;
+        opacity: 0.9;
+    }
+    
+    .document-pages {
+        max-height: 70vh;
+        overflow-y: auto;
+        background: #f8f9fa;
+    }
+    
+    .document-page {
+        background: white;
+        margin: 2rem;
+        padding: 3rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        min-height: 800px;
+        position: relative;
+        font-family: 'Times New Roman', Times, serif;
+    }
+    
+    .page-content {
+        min-height: 750px;
+    }
+    
+    .page-footer {
+        position: absolute;
+        bottom: 1rem;
+        right: 2rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .document-title-page {
+        text-align: center;
+        margin: 2rem 0;
+        line-height: 1.6;
+    }
+    
+    .document-chapter {
+        font-size: 1.4rem;
+        font-weight: bold;
+        margin: 3rem 0 2rem 0;
+        color: #1a237e;
+        text-align: center;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 1rem;
+    }
+    
+    .document-section {
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin: 2rem 0 1rem 0;
+        color: #283593;
+    }
+    
+    .document-special {
+        font-size: 1.3rem;
+        font-weight: bold;
+        margin: 2.5rem 0 1.5rem 0;
+        color: #1a237e;
+        text-align: center;
+        text-transform: uppercase;
+    }
+    
+    .document-paragraph {
+        margin-bottom: 1.5rem;
+        line-height: 1.8;
+        text-indent: 2rem;
+        text-align: justify;
+        font-size: 1.1rem;
+        color: #2c3e50;
+    }
+    
+    .page-break {
+        page-break-before: always;
+        margin-top: 2rem;
+        border-top: 1px dashed #ccc;
+        padding-top: 2rem;
+    }
+    
     .document-text:before {
         content: '';
         position: absolute;
