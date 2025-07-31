@@ -281,35 +281,38 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # Générer le texte surligné directement si pas de phrases en base
+        # Toujours utiliser le nouveau système de mise en page originale
         highlighted_text = ""
-        if plagiarism_sentences or ai_sentences:
-            from report_generator import report_generator
-            highlighted_text = report_generator._generate_highlighted_text(
-                document.extracted_text or "",
-                plagiarism_sentences,
-                ai_sentences
+        try:
+            from document_layout_processor import process_document_layout
+            from document_layout_renderer import render_document_with_original_layout
+            from flask import current_app
+            
+            # Traiter la mise en page du document original
+            file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
+            layout_data = process_document_layout(file_path, document.extracted_text or "")
+            
+            # Rendre avec mise en page originale et soulignement
+            highlighted_text = render_document_with_original_layout(
+                layout_data,
+                analysis_result.plagiarism_score,
+                analysis_result.ai_score
             )
-        else:
-            # Utiliser le nouveau système de mise en page originale
-            try:
-                from document_layout_processor import process_document_layout
-                from document_layout_renderer import render_document_with_original_layout
-                
-                # Traiter la mise en page du document original
-                file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
-                layout_data = process_document_layout(file_path, document.extracted_text or "")
-                
-                # Rendre avec mise en page originale et soulignement
-                highlighted_text = render_document_with_original_layout(
-                    layout_data,
-                    analysis_result.plagiarism_score,
-                    analysis_result.ai_score
+            
+            logging.info(f"✅ Affichage avec mise en page originale appliqué pour {document.original_filename}")
+            
+        except Exception as e:
+            logging.error(f"Erreur mise en page originale: {e}")
+            # Fallback vers le système existant avec phrases en base
+            if plagiarism_sentences or ai_sentences:
+                from report_generator import report_generator
+                highlighted_text = report_generator._generate_highlighted_text(
+                    document.extracted_text or "",
+                    plagiarism_sentences,
+                    ai_sentences
                 )
-                
-            except Exception as e:
-                logging.error(f"Erreur mise en page originale: {e}")
-                # Fallback vers le formateur professionnel
+            else:
+                # Fallback final vers le formateur professionnel
                 from professional_document_formatter import format_document_professionally
                 highlighted_text = format_document_professionally(
                     document.extracted_text or "",
