@@ -291,8 +291,9 @@ def view_report(document_id):
                 ai_sentences
             )
         else:
-            # Générer soulignement intelligent directement
-            highlighted_text = generate_smart_highlighting_inline(
+            # Utiliser le nouveau formateur professionnel
+            from professional_document_formatter import format_document_professionally
+            highlighted_text = format_document_professionally(
                 document.extracted_text or "",
                 analysis_result.plagiarism_score,
                 analysis_result.ai_score
