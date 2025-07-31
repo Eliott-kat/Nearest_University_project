@@ -51,28 +51,34 @@ class DocumentLayoutRenderer:
     
     def _render_page(self, page: Dict, page_number: int, plagiarism_score: float, ai_score: float) -> str:
         """Rend une page individuelle"""
-        page_class = f"document-page page-{page['type']}"
+        page_type = page.get('type', 'content')
+        page_class = f"document-page page-{page_type}"
         
         content_html = []
         
-        for content_item in page['content']:
-            if content_item['type'] == 'break':
+        for content_item in page.get('content', []):
+            content_type = content_item.get('type', 'paragraph')
+            content_text = content_item.get('content', '')
+            style = content_item.get('style', {})
+            alignment = content_item.get('alignment', 'left')
+            
+            if content_type == 'break':
                 content_html.append('<div class="page-break"></div>')
                 continue
             
             # Appliquer le soulignement intelligent
             highlighted_content = self._apply_intelligent_highlighting(
-                content_item['content'], 
-                content_item['type'],
+                content_text, 
+                content_type,
                 plagiarism_score, 
                 ai_score
             )
             
             # Générer le style CSS inline
-            style_css = self._generate_style_css(content_item['style'], content_item['alignment'])
+            style_css = self._generate_style_css(style, alignment)
             
             # Générer l'élément HTML
-            element_class = self.page_styles.get(content_item['type'], 'document-paragraph')
+            element_class = self.page_styles.get(content_type, 'document-paragraph')
             
             content_html.append(f'''
             <div class="{element_class}" style="{style_css}">
