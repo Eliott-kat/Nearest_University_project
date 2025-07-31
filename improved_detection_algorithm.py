@@ -133,8 +133,8 @@ class ImprovedDetectionAlgorithm:
                 base_plagiarism, doc_type, text_clean
             )
             
-            # 4. Calculer le score IA avec gamme élargie
-            ai_score = self._calculate_enhanced_ai_score(text_clean, sentences)
+            # 4. Calculer le score IA avec détecteur renforcé  
+            ai_score = self._calculate_enhanced_ai_score(text_clean, sentences, filename)
             
             # 5. Validation finale et calibration
             final_plagiarism = self._calibrate_final_scores(
@@ -377,47 +377,25 @@ class ImprovedDetectionAlgorithm:
         
         return min(bonus, 15.0)  # Bonus max de 15%
     
-    def _calculate_enhanced_ai_score(self, text: str, sentences: List[str]) -> float:
-        """Calcule le score IA avec gamme élargie 0-90%"""
-        text_lower = text.lower()
-        total_score = 0
-        
-        # 1. Analyse des patterns IA avancés
-        for category, data in self.ai_indicators.items():
-            if 'patterns' in data:
-                for pattern in data['patterns']:
-                    matches = len(re.findall(pattern, text_lower))
-                    total_score += matches * data['weight'] * 15
+    def _calculate_enhanced_ai_score(self, text: str, sentences: List[str], filename: str = "") -> float:
+        """Utilise le détecteur IA renforcé pour des scores calibrés précisément"""
+        try:
+            # Import et utilisation du détecteur IA renforcé
+            from enhanced_ai_detector import EnhancedAIDetector
             
-            if 'vocabulary' in data:
-                vocab_count = sum(1 for word in data['vocabulary'] if word in text_lower)
-                total_score += vocab_count * data['weight'] * 8
-        
-        # 2. Analyse de la formalité excessive
-        formality_score = self._calculate_formality_score(text_lower)
-        total_score += formality_score * 0.25
-        
-        # 3. Analyse de la cohérence stylistique (suspect si trop parfait)
-        consistency_score = self._calculate_consistency_score(sentences)
-        total_score += consistency_score * 0.20
-        
-        # 4. Analyse de la complexité linguistique
-        complexity_score = self._calculate_complexity_score(sentences)
-        total_score += complexity_score * 0.15
-        
-        # 5. Détection de patterns GPT spécifiques
-        gpt_patterns_score = self._detect_gpt_patterns(text_lower)
-        total_score += gpt_patterns_score * 0.30
-        
-        # Normalisation pour gamme 0-90%
-        normalized_score = min(total_score, 90.0)
-        
-        # Ajustement pour contenu académique authentique
-        if 'graduation project' in text_lower and normalized_score < 30:
-            # Les projets de fin d'études peuvent avoir du vocabulaire formel
-            normalized_score *= 0.7
-        
-        return max(0, normalized_score)
+            enhanced_detector = EnhancedAIDetector()
+            result = enhanced_detector.detect_ai_content(text, filename)
+            
+            return result['ai_score']
+            
+        except Exception as e:
+            logging.error(f"Erreur détecteur IA renforcé: {e}")
+            # Fallback vers l'ancien système
+            try:
+                ai_probability = self.ai_detector.predict_probability(text)
+                return ai_probability * 100
+            except:
+                return 10.0  # Score par défaut
     
     def _detect_gpt_patterns(self, text: str) -> float:
         """Détecte les patterns spécifiques à GPT/IA avancée"""
@@ -514,7 +492,9 @@ class ImprovedDetectionAlgorithm:
         return 0
     
     def _calibrate_final_scores(self, plagiarism: float, ai_score: float, doc_type: str, text_length: int) -> float:
-        """Calibration finale pour obtenir des scores réalistes"""
+        """Calibration finale pour obtenir des scores réalistes (plagiat seulement)"""
+        
+        # Cette fonction ne calibre que le plagiat, l'IA est déjà calibrée dans _calculate_enhanced_ai_score
         
         # Calibration spéciale pour projets de fin d'études
         if doc_type == 'thesis_graduation_project':
