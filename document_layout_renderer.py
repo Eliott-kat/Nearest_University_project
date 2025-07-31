@@ -92,32 +92,54 @@ class DocumentLayoutRenderer:
         '''
     
     def _generate_style_css(self, style: Dict, alignment: str) -> str:
-        """Génère le CSS inline pour un élément"""
+        """Génère le CSS inline exact pour reproduire le document original"""
         css_parts = []
         
+        # Taille de police exacte
         if style.get('font_size'):
             css_parts.append(f"font-size: {style['font_size']}pt")
         
+        # Police exacte avec fallbacks
         if style.get('font_name'):
-            css_parts.append(f"font-family: '{style['font_name']}', serif")
+            if style['font_name'] in ['Calibri', 'Arial']:
+                css_parts.append(f"font-family: '{style['font_name']}', sans-serif")
+            else:
+                css_parts.append(f"font-family: '{style['font_name']}', 'Times New Roman', serif")
         
+        # Styles de caractère
         if style.get('bold'):
             css_parts.append("font-weight: bold")
-        
         if style.get('italic'):
             css_parts.append("font-style: italic")
-        
         if style.get('underline'):
             css_parts.append("text-decoration: underline")
         
+        # Alignement exact
         if alignment:
             css_parts.append(f"text-align: {alignment}")
         
+        # Espacements exacts
         if style.get('space_before'):
             css_parts.append(f"margin-top: {style['space_before']}pt")
-        
         if style.get('space_after'):
             css_parts.append(f"margin-bottom: {style['space_after']}pt")
+        
+        # Indentations exactes
+        if style.get('left_indent'):
+            css_parts.append(f"margin-left: {style['left_indent']}pt")
+        if style.get('first_line_indent'):
+            css_parts.append(f"text-indent: {style['first_line_indent']}pt")
+        
+        # Interligne exact
+        if style.get('line_spacing'):
+            if style['line_spacing'] == 1.0:
+                css_parts.append("line-height: 1.0")
+            elif style['line_spacing'] == 1.5:
+                css_parts.append("line-height: 1.5")
+            elif style['line_spacing'] == 2.0:
+                css_parts.append("line-height: 2.0")
+            else:
+                css_parts.append(f"line-height: {style['line_spacing']}")
         
         return '; '.join(css_parts)
     

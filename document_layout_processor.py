@@ -89,7 +89,7 @@ class DocumentLayoutProcessor:
             return self._fallback_layout(text_content)
     
     def _extract_paragraph_style(self, para) -> Dict:
-        """Extrait les informations de style d'un paragraphe"""
+        """Extrait les informations de style d'un paragraphe avec précision maximale"""
         style = {}
         
         try:
@@ -97,7 +97,20 @@ class DocumentLayoutProcessor:
                 first_run = para.runs[0]
                 font = first_run.font
                 
-                style['font_size'] = font.size.pt if font.size else 12
+                # Taille de police exacte
+                if font.size:
+                    style['font_size'] = font.size.pt
+                else:
+                    # Détecter la taille selon le contenu
+                    text = para.text.strip()
+                    if any(word in text.upper() for word in ['UNIVERSITY', 'FACULTY', 'GRADUATION']):
+                        style['font_size'] = 16
+                    elif text.startswith('CHAPTER'):
+                        style['font_size'] = 14
+                    else:
+                        style['font_size'] = 12
+                
+                # Police exacte
                 style['font_name'] = font.name or 'Times New Roman'
                 style['bold'] = font.bold or False
                 style['italic'] = font.italic or False
@@ -106,11 +119,21 @@ class DocumentLayoutProcessor:
             # Alignement du paragraphe
             style['alignment'] = self._get_alignment(para)
             
-            # Espacement
+            # Espacement exact
             if para.paragraph_format.space_before:
                 style['space_before'] = para.paragraph_format.space_before.pt
             if para.paragraph_format.space_after:
                 style['space_after'] = para.paragraph_format.space_after.pt
+            
+            # Indentation
+            if para.paragraph_format.left_indent:
+                style['left_indent'] = para.paragraph_format.left_indent.pt
+            if para.paragraph_format.first_line_indent:
+                style['first_line_indent'] = para.paragraph_format.first_line_indent.pt
+            
+            # Interligne
+            if para.paragraph_format.line_spacing:
+                style['line_spacing'] = para.paragraph_format.line_spacing
             
         except Exception as e:
             logging.error(f"Erreur extraction style: {e}")
@@ -133,26 +156,43 @@ class DocumentLayoutProcessor:
             return 'left'
     
     def _detect_content_type(self, text: str, style: Dict) -> str:
-        """Détecte le type de contenu basé sur le texte et le style"""
+        """Détecte le type de contenu avec analyse avancée"""
         text_upper = text.upper()
+        text_clean = text.strip()
         
-        # Page de garde
-        if any(keyword in text_upper for keyword in ['GRADUATION PROJECT', 'UNIVERSITY', 'FACULTY', 'DEPARTMENT']):
-            if style.get('bold') or style.get('font_size', 0) > 14:
+        # Page de garde - détection avancée
+        university_keywords = ['NEAR EAST UNIVERSITY', 'UNIVERSITY', 'FACULTY', 'DEPARTMENT', 'GRADUATION PROJECT']
+        if any(keyword in text_upper for keyword in university_keywords):
+            if (style.get('bold') or style.get('font_size', 0) >= 14 or 
+                style.get('alignment') == 'center'):
                 return 'title_page'
         
+        # Informations étudiant sur page de garde
+        if (any(keyword in text_upper for keyword in ['PREPARED BY', 'STUDENT NUMBER', 'SUPERVISOR']) or
+            re.match(r'^\d{8}$', text_clean)):  # Numéro étudiant
+            return 'title_page'
+        
         # Titres de chapitres
-        if re.match(r'^CHAPTER\s+\d+', text_upper) or style.get('font_size', 0) > 16:
+        if (re.match(r'^CHAPTER\s+\d+', text_upper) or 
+            (style.get('font_size', 0) >= 16 and style.get('bold'))):
             return 'chapter_title'
         
-        # Titres de sections
-        if (re.match(r'^\d+\.\s+[A-Z]', text) or 
-            (style.get('bold') and style.get('font_size', 0) > 12)):
+        # Sections spéciales
+        special_sections = ['ACKNOWLEDGEMENTS', 'ABSTRACT', 'INTRODUCTION', 'CONCLUSION', 
+                          'REFERENCES', 'BIBLIOGRAPHY', 'TABLE OF CONTENTS', 'LIST OF FIGURES']
+        if text_upper in special_sections:
+            return 'special_section'
+        
+        # Titres de sections numérotées
+        if (re.match(r'^\d+\.?\s+[A-Z]', text) or 
+            re.match(r'^\d+\.\d+\.?\s+[A-Z]', text) or
+            (style.get('bold') and style.get('font_size', 0) >= 13)):
             return 'section_title'
         
-        # Remerciements, résumé, etc.
-        if text_upper in ['ACKNOWLEDGEMENTS', 'ABSTRACT', 'CONCLUSION', 'REFERENCES']:
-            return 'special_section'
+        # Sous-titres
+        if (re.match(r'^\d+\.\d+\.\d+\.?\s+[A-Z]', text) or
+            (style.get('bold') and len(text_clean) < 80)):
+            return 'sub_section'
         
         # Paragraphe normal
         return 'paragraph'

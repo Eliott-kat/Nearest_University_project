@@ -281,25 +281,28 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # Toujours utiliser le nouveau système de mise en page originale
+        # Utiliser le système avancé avec entraînement
         highlighted_text = ""
         try:
             from document_layout_processor import process_document_layout
             from document_layout_renderer import render_document_with_original_layout
+            from advanced_document_training import train_document_advanced
             from flask import current_app
             
-            # Traiter la mise en page du document original
+            # Traiter avec entraînement avancé
             file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
-            layout_data = process_document_layout(file_path, document.extracted_text or "")
             
-            # Rendre avec mise en page originale et soulignement
+            # Appliquer l'entraînement avancé pour reproduction exacte
+            layout_data = train_document_advanced(file_path, document.extracted_text or "")
+            
+            # Rendre avec mise en page originale et soulignement professionnel
             highlighted_text = render_document_with_original_layout(
                 layout_data,
                 analysis_result.plagiarism_score,
                 analysis_result.ai_score
             )
             
-            logging.info(f"✅ Affichage avec mise en page originale appliqué pour {document.original_filename}")
+            logging.info(f"🎓 Affichage avancé avec reproduction exacte appliqué pour {document.original_filename}")
             
         except Exception as e:
             logging.error(f"Erreur mise en page originale: {e}")
