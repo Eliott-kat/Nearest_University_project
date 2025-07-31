@@ -94,7 +94,7 @@ class SimpleAIDetector:
         }
     
     def detect_ai_content(self, text: str) -> Dict:
-        """Détection IA principale avec analyse multi-couches"""
+        """Détection IA principale avec analyse multi-couches et gamme élargie"""
         try:
             # Prétraitement du texte
             text_clean = self._preprocess_text(text)
@@ -103,30 +103,49 @@ class SimpleAIDetector:
             if len(sentences) == 0:
                 return {'ai_probability': 0.0, 'confidence': 'low', 'method_used': 'empty_text'}
             
-            # Analyses multiples
+            # Analyses multiples avec gamme élargie
             scores = {}
             
-            # 1. Analyse du vocabulaire (35% du score)
-            vocab_score = self._analyze_vocabulary(text_clean)
-            scores['vocabulary'] = vocab_score * 0.35
+            # 1. Analyse du vocabulaire étendue (30% du score)
+            vocab_score = self._analyze_vocabulary_extended(text_clean)
+            scores['vocabulary'] = vocab_score * 0.30
             
-            # 2. Analyse des patterns structurels (25% du score)
-            pattern_score = self.pattern_analyzer.analyze(text_clean, sentences)
+            # 2. Analyse des patterns avancés (25% du score)
+            pattern_score = self._analyze_advanced_patterns(text_clean, sentences)
             scores['patterns'] = pattern_score * 0.25
             
-            # 3. Analyse linguistique (25% du score)
-            linguistic_score = self.linguistic_analyzer.analyze(text_clean, sentences)
-            scores['linguistic'] = linguistic_score * 0.25
+            # 3. Analyse linguistique sophistiquée (20% du score)
+            linguistic_score = self._analyze_sophisticated_linguistics(text_clean, sentences)
+            scores['linguistic'] = linguistic_score * 0.20
             
-            # 4. Analyse de structure (15% du score)
-            structure_score = self.structure_analyzer.analyze(text_clean, sentences)
-            scores['structure'] = structure_score * 0.15
+            # 4. Analyse de formalité et cohérence (15% du score)
+            formality_score = self._analyze_formality_coherence(text_clean, sentences)
+            scores['formality'] = formality_score * 0.15
             
-            # Score final combiné
-            final_score = sum(scores.values())
+            # 5. Détection de patterns GPT spécifiques (10% du score)
+            gpt_score = self._detect_gpt_specific_patterns(text_clean)
+            scores['gpt_patterns'] = gpt_score * 0.10
             
-            # Ajustements intelligents
-            final_score = self._apply_intelligent_adjustments(final_score, text_clean, sentences)
+            # Score final combiné avec gamme élargie (0-90%)
+            total_score = sum(scores.values())
+            
+            # Normalisation pour gamme élargie 0-90%
+            normalized_score = min(max(total_score, 0), 90)
+            
+            # Ajustements spéciaux pour contenu académique authentique
+            if self._is_authentic_academic_content(text_clean):
+                normalized_score *= 0.7  # Réduction pour contenu académique légitime
+            
+            # Déterminer la confiance
+            confidence = self._determine_confidence(normalized_score, scores)
+            
+            return {
+                'ai_probability': round(normalized_score, 1),
+                'confidence': confidence,
+                'method_used': 'enhanced_multi_layer_analysis',
+                'score_breakdown': scores,
+                'is_academic_content': self._is_authentic_academic_content(text_clean)
+            }
             
             # Assurer les limites
             final_score = max(0, min(final_score, 100))

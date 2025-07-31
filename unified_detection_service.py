@@ -11,7 +11,8 @@ from typing import Dict, Optional, Tuple
 from copyleaks_service import CopyleaksService
 from plagiarismcheck_service import PlagiarismCheckService
 from turnitin_algorithm import TurnitinStyleDetector
-from simple_ai_detector import SimpleAIDetector
+from simple_ai_detector_clean import SimpleAIDetector
+from improved_detection_algorithm import ImprovedDetectionAlgorithm
 
 class UnifiedDetectionService:
     def __init__(self):
@@ -19,12 +20,13 @@ class UnifiedDetectionService:
         self.plagiarismcheck = PlagiarismCheckService()
         self.turnitin_local = TurnitinStyleDetector()
         self.ai_detector = SimpleAIDetector()
+        self.improved_algorithm = ImprovedDetectionAlgorithm()
         
-        # Configuration des priorités
+        # Configuration des priorités avec algorithme amélioré en priorité
         self.services = [
             ('copyleaks', self.copyleaks),
             ('plagiarismcheck', self.plagiarismcheck),
-            ('turnitin_local', self.turnitin_local)
+            ('improved_algorithm', self.improved_algorithm)  # Algorithme amélioré prioritaire
         ]
         
     def analyze_text(self, text: str, filename: str = "document.txt") -> Dict:
@@ -43,6 +45,8 @@ class UnifiedDetectionService:
                     result = self._try_copyleaks(text, filename)
                 elif service_name == 'plagiarismcheck':
                     result = self._try_plagiarismcheck(text, filename)
+                elif service_name == 'improved_algorithm':
+                    result = self._try_improved_algorithm(text, filename)
                 elif service_name == 'turnitin_local':
                     result = self._try_turnitin_local(text, filename)
                 
@@ -506,3 +510,50 @@ class UnifiedDetectionService:
         }
         
         return status
+    
+    def _try_improved_algorithm(self, text: str, filename: str) -> Optional[Dict]:
+        """Utilise l'algorithme amélioré avec scores calibrés"""
+        try:
+            logging.info("🚀 Utilisation de l'algorithme amélioré - scores précis")
+            
+            # Analyse avec l'algorithme amélioré
+            result = self.improved_algorithm.detect_plagiarism_and_ai(text, filename)
+            
+            if result and 'percent' in result:
+                plagiarism_percent = result.get('percent', 0)
+                ai_percent = result.get('ai_percent', 0)
+                doc_type = result.get('document_type', 'general')
+                
+                logging.info(f"🎯 Algorithme amélioré: {plagiarism_percent}% plagiat + {ai_percent}% IA ({doc_type})")
+                
+                # Format compatible avec l'application
+                response = {
+                    'plagiarism': {
+                        'percent': round(plagiarism_percent, 1),
+                        'sources_found': result.get('sources_found', 0),
+                        'details': result.get('details', []),
+                        'matched_length': result.get('matched_length', 0)
+                    },
+                    'ai_content': {
+                        'percent': round(ai_percent, 1),
+                        'detected': ai_percent > 15
+                    },
+                    'ai_score': round(ai_percent, 1),
+                    'plagiarism_score': round(plagiarism_percent, 1),
+                    'provider_used': 'improved_algorithm',
+                    'success': True,
+                    'document_type': doc_type,
+                    'confidence': result.get('confidence', 'medium'),
+                    'original_response': {
+                        'method': result.get('method', 'improved_calibrated_algorithm'),
+                        'analysis_details': result
+                    }
+                }
+                
+                return response
+            
+            return None
+            
+        except Exception as e:
+            logging.error(f"Erreur algorithme amélioré: {e}")
+            return None
