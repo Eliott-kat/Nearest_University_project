@@ -22,11 +22,11 @@ class UnifiedDetectionService:
         self.ai_detector = SimpleAIDetector()
         self.improved_algorithm = ImprovedDetectionAlgorithm()
         
-        # Configuration des priorités avec algorithme amélioré en priorité
+        # Configuration des priorités avec algorithme amélioré en PREMIÈRE position
         self.services = [
+            ('improved_algorithm', self.improved_algorithm),  # PRIORITÉ 1: Algorithme amélioré calibré
             ('copyleaks', self.copyleaks),
-            ('plagiarismcheck', self.plagiarismcheck),
-            ('improved_algorithm', self.improved_algorithm)  # Algorithme amélioré prioritaire
+            ('plagiarismcheck', self.plagiarismcheck)
         ]
         
     def analyze_text(self, text: str, filename: str = "document.txt") -> Dict:
