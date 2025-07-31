@@ -60,6 +60,19 @@ body {
     /* All formatting comes from inline styles to preserve original appearance */
 }
 
+.document-image {
+    margin: 1rem 0;
+    text-align: center;
+}
+
+.document-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    /* Préserve la qualité et l'apparence exacte de l'image originale */
+}
+
 /* Typography */
 .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
     font-weight: 700;

@@ -5,10 +5,15 @@ Processeur de mise en page pour afficher les documents exactement comme dans l'o
 
 import re
 import logging
+import os
+import base64
 from typing import Dict, List, Tuple
 import docx
 from docx.shared import Inches
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.document import Document
+from docx.oxml.ns import nsdecls, qn
+from docx.oxml import parse_xml
 
 class DocumentLayoutProcessor:
     """Traite et préserve la mise en page originale des documents"""
@@ -41,21 +46,28 @@ class DocumentLayoutProcessor:
             return self._fallback_layout(text_content)
     
     def _process_docx_layout(self, file_path: str, text_content: str) -> Dict:
-        """Traite spécifiquement les fichiers DOCX avec mise en page"""
+        """Traite spécifiquement les fichiers DOCX avec mise en page ET images"""
         try:
             doc = docx.Document(file_path)
             
             pages = []
             current_page = {'type': 'normal', 'content': [], 'style': {}}
             
+            # Extraire toutes les images du document
+            images_data = self._extract_images_from_docx(doc, file_path)
+            
             for para in doc.paragraphs:
                 para_text = para.text.strip()
-                if not para_text:
+                
+                # Vérifier s'il y a des images dans ce paragraphe
+                images_in_para = self._get_images_in_paragraph(para, images_data)
+                
+                if not para_text and not images_in_para:
                     current_page['content'].append({'type': 'break', 'content': '<br>'})
                     continue
                 
                 # Détecter les sauts de page
-                if self._is_page_break(para_text):
+                if para_text and self._is_page_break(para_text):
                     if current_page['content']:
                         pages.append(current_page)
                     current_page = {'type': 'section', 'content': [], 'style': {}}
@@ -66,12 +78,23 @@ class DocumentLayoutProcessor:
                 # Détecter le type de contenu
                 content_type = self._detect_content_type(para_text, style_info)
                 
-                current_page['content'].append({
-                    'type': content_type,
-                    'content': para_text,
-                    'style': style_info,
-                    'alignment': self._get_alignment(para)
-                })
+                # Ajouter le texte s'il existe
+                if para_text:
+                    current_page['content'].append({
+                        'type': content_type,
+                        'content': para_text,
+                        'style': style_info,
+                        'alignment': self._get_alignment(para)
+                    })
+                
+                # Ajouter les images s'il y en a
+                for image_data in images_in_para:
+                    current_page['content'].append({
+                        'type': 'image',
+                        'content': image_data,
+                        'style': {},
+                        'alignment': self._get_alignment(para)
+                    })
             
             # Ajouter la dernière page
             if current_page['content']:
@@ -81,7 +104,8 @@ class DocumentLayoutProcessor:
                 'type': 'document_with_layout',
                 'pages': pages,
                 'total_pages': len(pages),
-                'document_type': self._detect_document_type(text_content)
+                'document_type': self._detect_document_type(text_content),
+                'has_images': len(images_data) > 0
             }
             
         except Exception as e:
@@ -297,6 +321,71 @@ class DocumentLayoutProcessor:
         """Traite les fichiers texte simples"""
         return self._process_pdf_layout(text_content)
     
+    def _extract_images_from_docx(self, doc: Document, file_path: str) -> Dict:
+        """Extrait toutes les images du document DOCX"""
+        images_data = {}
+        
+        try:
+            # Parcourir tous les éléments du document pour trouver les images
+            for rel in doc.part.rels.values():
+                if "image" in rel.target_ref:
+                    try:
+                        # Lire les données de l'image
+                        image_data = rel.target_part.blob
+                        # Encoder en base64 pour l'affichage web
+                        image_base64 = base64.b64encode(image_data).decode('utf-8')
+                        
+                        # Déterminer le type MIME
+                        if rel.target_ref.endswith('.png'):
+                            mime_type = 'image/png'
+                        elif rel.target_ref.endswith('.jpg') or rel.target_ref.endswith('.jpeg'):
+                            mime_type = 'image/jpeg'
+                        elif rel.target_ref.endswith('.gif'):
+                            mime_type = 'image/gif'
+                        else:
+                            mime_type = 'image/png'  # Par défaut
+                        
+                        images_data[rel.target_ref] = {
+                            'data': image_base64,
+                            'mime_type': mime_type,
+                            'src': f"data:{mime_type};base64,{image_base64}"
+                        }
+                        
+                    except Exception as e:
+                        logging.warning(f"Erreur extraction image {rel.target_ref}: {e}")
+                        
+        except Exception as e:
+            logging.error(f"Erreur extraction images: {e}")
+            
+        return images_data
+
+    def _get_images_in_paragraph(self, para, images_data: Dict) -> List:
+        """Trouve les images dans un paragraphe donné"""
+        images_in_para = []
+        
+        try:
+            # Parcourir les runs du paragraphe pour trouver les images
+            for run in para.runs:
+                # Chercher les éléments drawing dans le run
+                for drawing in run._element.findall('.//w:drawing', {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}):
+                    try:
+                        # Extraire l'ID de l'image
+                        blip_elements = drawing.findall('.//a:blip', {'a': 'http://schemas.openxmlformats.org/drawingml/2006/main'})
+                        for blip in blip_elements:
+                            embed_id = blip.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
+                            if embed_id:
+                                # Trouver l'image correspondante
+                                rel = para._parent.part.rels[embed_id]
+                                if rel.target_ref in images_data:
+                                    images_in_para.append(images_data[rel.target_ref])
+                    except Exception as e:
+                        logging.warning(f"Erreur traitement image dans paragraphe: {e}")
+                        
+        except Exception as e:
+            logging.warning(f"Erreur recherche images dans paragraphe: {e}")
+            
+        return images_in_para
+
     def _fallback_layout(self, text_content: str) -> Dict:
         """Mise en page de base en cas d'erreur"""
         return {
@@ -305,7 +394,8 @@ class DocumentLayoutProcessor:
                 {'type': 'paragraph', 'content': text_content, 'style': {}, 'alignment': 'justify'}
             ], 'style': {}}],
             'total_pages': 1,
-            'document_type': 'document'
+            'document_type': 'document',
+            'has_images': False
         }
 
 # Instance globale

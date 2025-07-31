@@ -77,14 +77,24 @@ class DocumentLayoutRenderer:
             # Générer le style CSS inline
             style_css = self._generate_style_css(style, alignment)
             
-            # Générer l'élément HTML
-            element_class = self.page_styles.get(content_type, 'document-paragraph')
-            
-            content_html.append(f'''
-            <div class="{element_class}" style="{style_css}">
-                {highlighted_content}
-            </div>
-            ''')
+            # Générer l'élément HTML selon le type
+            if content_type == 'image':
+                # Afficher l'image exactement comme dans le document original
+                image_data = content_item.get('content', {})
+                if image_data and 'src' in image_data:
+                    content_html.append(f'''
+                    <div class="document-image" style="text-align: {alignment}; margin: 1rem 0;">
+                        <img src="{image_data['src']}" style="max-width: 100%; height: auto; border-radius: 4px;" alt="Image du document" />
+                    </div>
+                    ''')
+            else:
+                # Texte normal avec style exact
+                element_class = self.page_styles.get(content_type, 'document-paragraph')
+                content_html.append(f'''
+                <div class="{element_class}" style="{style_css}">
+                    {highlighted_content}
+                </div>
+                ''')
         
         return f'''
         <div class="{page_class}" data-page="{page_number}">
