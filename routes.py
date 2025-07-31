@@ -160,17 +160,24 @@ def upload_document():
                 logging.info(f"🔍 Résultat algorithme: {result}")
                 
                 if result and 'plagiarism' in result:
+                    # Calculer les statistiques de mots
+                    word_count = len(extracted_text.split()) if extracted_text else 0
+                    plagiarism_percent = result['plagiarism']['percent']
+                    ai_content = result.get('ai_content', {})
+                    ai_percent = ai_content.get('percent', 0) if isinstance(ai_content, dict) else 0
+                    
+                    # Calculer les mots affectés
+                    identical_words = int((plagiarism_percent / 100.0) * word_count) if plagiarism_percent > 0 else 0
+                    ai_words = int((ai_percent / 100.0) * word_count) if ai_percent > 0 else 0
+                    
                     # Save analysis results
                     analysis_result = AnalysisResult()
                     analysis_result.document_id = document.id
-                    analysis_result.plagiarism_score = result['plagiarism']['percent']
-                    # Utiliser le score IA réel de l'algorithme local
-                    # Utiliser le score IA réel de l'algorithme local avec vérification
-                    ai_content = result.get('ai_content', {})
-                    if isinstance(ai_content, dict):
-                        analysis_result.ai_score = ai_content.get('percent', 0)
-                    else:
-                        analysis_result.ai_score = 0
+                    analysis_result.plagiarism_score = plagiarism_percent
+                    analysis_result.ai_score = ai_percent
+                    analysis_result.total_words = word_count
+                    analysis_result.identical_words = identical_words
+                    analysis_result.ai_words = ai_words
                     analysis_result.sources_count = result['plagiarism']['sources_found']
                     analysis_result.analysis_provider = result.get('provider_used', 'unknown')
                     analysis_result.raw_response = str(result)

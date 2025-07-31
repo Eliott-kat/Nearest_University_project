@@ -407,15 +407,15 @@
                     
                     <div class="row g-3 text-center">
                         <div class="col-6">
-                            <div class="border rounded-3 p-2">
-                                <div class="fw-bold text-primary">{{ analysis_result.total_words or 0 }}</div>
-                                <small class="text-muted">Total Words</small>
+                            <div class="stats-card border-0 p-3">
+                                <div class="stats-number text-primary">{{ analysis_result.total_words or document.extracted_text.split()|length if document.extracted_text else 0 }}</div>
+                                <small class="stats-label">Total Words</small>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="border rounded-3 p-2">
-                                <div class="fw-bold text-danger">{{ analysis_result.identical_words or 0 }}</div>
-                                <small class="text-muted">Matched Words</small>
+                            <div class="stats-card border-0 p-3">
+                                <div class="stats-number text-danger">{{ analysis_result.identical_words or 0 }}</div>
+                                <small class="stats-label">Matched Words</small>
                             </div>
                         </div>
                     </div>
@@ -443,15 +443,15 @@
                     
                     <div class="row g-3 text-center">
                         <div class="col-6">
-                            <div class="border rounded-3 p-2">
-                                <div class="fw-bold text-primary">{{ analysis_result.total_words or 0 }}</div>
-                                <small class="text-muted">Total Words</small>
+                            <div class="stats-card border-0 p-3">
+                                <div class="stats-number text-primary">{{ analysis_result.total_words or document.extracted_text.split()|length if document.extracted_text else 0 }}</div>
+                                <small class="stats-label">Total Words</small>
                             </div>
                         </div>
                         <div class="col-6">
-                            <div class="border rounded-3 p-2">
-                                <div class="fw-bold text-info">{{ analysis_result.ai_words or 0 }}</div>
-                                <small class="text-muted">AI Words</small>
+                            <div class="stats-card border-0 p-3">
+                                <div class="stats-number text-info">{{ analysis_result.ai_words or 0 }}</div>
+                                <small class="stats-label">AI Words</small>
                             </div>
                         </div>
                     </div>
