@@ -5,98 +5,105 @@
 {% block head %}
 <style>
     .highlight-plagiarism {
-        background: linear-gradient(135deg, rgba(255, 235, 238, 0.15) 0%, rgba(255, 205, 210, 0.25) 100%) !important;
-        border-bottom: 2px solid #f44336 !important;
-        border-left: 3px solid #f44336 !important;
-        padding: 2px 4px !important;
-        margin: 0 1px !important;
-        border-radius: 3px !important;
-        box-shadow: 0 1px 3px rgba(244, 67, 54, 0.2) !important;
-        font-weight: 500 !important;
+        background: rgba(255, 235, 238, 0.08) !important;
+        border-bottom: 1px solid rgba(244, 67, 54, 0.6) !important;
+        border-radius: 2px !important;
+        padding: 1px 2px !important;
+        margin: 0 !important;
+        box-shadow: inset 0 -2px 0 rgba(244, 67, 54, 0.3) !important;
         position: relative !important;
         text-decoration: none !important;
         display: inline !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.2s ease !important;
     }
     
     .highlight-ai {
-        background: linear-gradient(135deg, rgba(227, 242, 253, 0.15) 0%, rgba(187, 222, 251, 0.25) 100%) !important;
-        border-bottom: 2px dotted #2196f3 !important;
-        border-left: 3px solid #2196f3 !important;
-        padding: 2px 4px !important;
-        margin: 0 1px !important;
-        border-radius: 3px !important;
-        box-shadow: 0 1px 3px rgba(33, 150, 243, 0.2) !important;
-        font-weight: 500 !important;
+        background: rgba(227, 242, 253, 0.08) !important;
+        border-bottom: 1px dotted rgba(33, 150, 243, 0.6) !important;
+        border-radius: 2px !important;
+        padding: 1px 2px !important;
+        margin: 0 !important;
+        box-shadow: inset 0 -2px 0 rgba(33, 150, 243, 0.3) !important;
         font-style: italic !important;
         position: relative !important;
         text-decoration: none !important;
         display: inline !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.2s ease !important;
     }
     
     .highlight-plagiarism:hover {
-        background: linear-gradient(135deg, rgba(255, 235, 238, 0.3) 0%, rgba(255, 205, 210, 0.4) 100%) !important;
-        box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3) !important;
+        background: rgba(255, 235, 238, 0.15) !important;
+        box-shadow: inset 0 -3px 0 rgba(244, 67, 54, 0.5) !important;
+        transform: translateY(-1px) !important;
     }
     
     .highlight-ai:hover {
-        background: linear-gradient(135deg, rgba(227, 242, 253, 0.3) 0%, rgba(187, 222, 251, 0.4) 100%) !important;
-        box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3) !important;
+        background: rgba(227, 242, 253, 0.15) !important;
+        box-shadow: inset 0 -3px 0 rgba(33, 150, 243, 0.5) !important;
+        transform: translateY(-1px) !important;
     }
     
     .highlight-both:hover {
-        background: linear-gradient(135deg, rgba(255, 243, 224, 0.4) 0%, rgba(255, 224, 178, 0.5) 100%) !important;
-        box-shadow: 0 3px 8px rgba(255, 152, 0, 0.35) !important;
+        background: rgba(255, 243, 224, 0.2) !important;
+        box-shadow: inset 0 -4px 0 rgba(255, 152, 0, 0.6) !important;
+        transform: translateY(-1px) !important;
     }
     
-    .highlight-plagiarism:before {
-        content: "🔍";
+    .highlight-plagiarism::after {
+        content: "P";
         position: absolute;
-        left: -8px;
-        top: 50%;
-        transform: translateY(-50%);
+        right: -12px;
+        top: -8px;
         background: #f44336;
         color: white;
         border-radius: 50%;
-        width: 16px;
-        height: 16px;
+        width: 12px;
+        height: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 8px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.2s ease;
     }
     
-    .highlight-ai:before {
-        content: "🤖";
+    .highlight-ai::after {
+        content: "AI";
         position: absolute;
-        left: -8px;
-        top: 50%;
-        transform: translateY(-50%);
+        right: -14px;
+        top: -8px;
         background: #2196f3;
         color: white;
         border-radius: 50%;
-        width: 16px;
-        height: 16px;
+        width: 14px;
+        height: 12px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 8px;
+        font-size: 7px;
+        font-weight: bold;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+    
+    .highlight-plagiarism:hover::after,
+    .highlight-ai:hover::after {
+        opacity: 1;
     }
     
     .highlight-both {
-        background: linear-gradient(135deg, rgba(255, 243, 224, 0.2) 0%, rgba(255, 224, 178, 0.3) 100%) !important;
-        border-bottom: 3px double #ff9800 !important;
-        border-left: 4px solid #ff9800 !important;
-        padding: 3px 6px !important;
-        margin: 0 2px !important;
-        border-radius: 4px !important;
-        box-shadow: 0 2px 6px rgba(255, 152, 0, 0.25) !important;
-        font-weight: 600 !important;
+        background: rgba(255, 243, 224, 0.12) !important;
+        border-bottom: 2px solid rgba(255, 152, 0, 0.7) !important;
+        border-radius: 2px !important;
+        padding: 1px 3px !important;
+        margin: 0 !important;
+        box-shadow: inset 0 -3px 0 rgba(255, 152, 0, 0.4) !important;
+        font-weight: 500 !important;
         position: relative !important;
         text-decoration: none !important;
         display: inline !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.2s ease !important;
     }
     
     @keyframes criticalHighlight {
@@ -112,29 +119,35 @@
     .score-low { color: #388e3c; }
     
     .document-text {
-        line-height: 1.8;
-        font-size: 1.1rem;
-        background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-        border-radius: 0.75rem;
-        padding: 3rem;
-        border: 2px solid #e0e0e0;
-        font-family: 'Georgia', 'Times New Roman', serif;
+        line-height: 2.0;
+        font-size: 12pt;
+        background: #ffffff;
+        border-radius: 0;
+        padding: 72pt 72pt 72pt 72pt;
+        border: none;
+        font-family: 'Times New Roman', serif;
         text-align: justify;
-        color: #2c3e50;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        color: #000000;
+        box-shadow: none;
         position: relative;
         overflow: visible;
         white-space: normal;
         word-wrap: break-word;
         max-height: none;
+        width: 8.5in;
+        min-height: 11in;
+        margin: 0 auto;
+        page-break-inside: avoid;
     }
     
     .document-text .paragraph {
-        margin-bottom: 2rem;
-        text-indent: 2.5rem;
-        line-height: 1.8;
+        margin-bottom: 12pt;
+        text-indent: 0.5in;
+        line-height: 2.0;
         text-align: justify;
-        font-size: 1.1rem;
+        font-size: 12pt;
+        font-family: 'Times New Roman', serif;
+        color: #000000;
     }
     
     .document-text .section-title h2,

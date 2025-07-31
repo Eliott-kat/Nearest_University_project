@@ -69,12 +69,19 @@ class AdvancedDocumentTraining:
             # Améliorer la structure détectée
             enhanced_layout = self._enhance_layout_structure(layout_data, training_config)
             
+            # Appliquer l'espacement professionnel ultra-précis
+            enhanced_layout = self.apply_professional_spacing(enhanced_layout)
+            
+            # Améliorer le formatage académique
+            enhanced_layout = self.enhance_academic_formatting(enhanced_layout)
+            
             # Ajouter les métadonnées d'entraînement
             enhanced_layout['training_applied'] = True
             enhanced_layout['document_type_detected'] = doc_type
             enhanced_layout['training_config'] = training_config
+            enhanced_layout['precision_level'] = 'ultra_high'
             
-            logging.info(f"🎓 Entraînement avancé appliqué: {doc_type}")
+            logging.info(f"🎓 Entraînement ultra-précis appliqué: {doc_type}")
             
             return enhanced_layout
             
@@ -170,7 +177,7 @@ class AdvancedDocumentTraining:
         return content_item
     
     def apply_professional_spacing(self, layout_data: Dict) -> Dict:
-        """Applique un espacement professionnel académique"""
+        """Applique un espacement professionnel académique ultra-précis"""
         if not layout_data.get('pages'):
             return layout_data
         
@@ -181,26 +188,141 @@ class AdvancedDocumentTraining:
             for i, content_item in enumerate(page['content']):
                 style = content_item.get('style', {})
                 content_type = content_item.get('type', 'paragraph')
+                text = content_item.get('content', '').strip()
                 
-                # Espacements académiques standards
+                # Espacements ultra-précis selon le type
                 if content_type == 'title_page':
-                    style['space_before'] = 24
-                    style['space_after'] = 18
+                    if 'UNIVERSITY' in text.upper():
+                        style['space_before'] = 48
+                        style['space_after'] = 24
+                        style['font_size'] = 18
+                        style['font_weight'] = 'bold'
+                    elif 'GRADUATION PROJECT' in text.upper():
+                        style['space_before'] = 36
+                        style['space_after'] = 36
+                        style['font_size'] = 16
+                    elif any(keyword in text.upper() for keyword in ['PREPARED BY', 'STUDENT NUMBER']):
+                        style['space_before'] = 24
+                        style['space_after'] = 12
+                        style['font_size'] = 12
+                    
                 elif content_type == 'chapter_title':
-                    style['space_before'] = 36
-                    style['space_after'] = 24
+                    style['space_before'] = 72  # 1 inch
+                    style['space_after'] = 36  # 0.5 inch
+                    style['font_size'] = 16
+                    style['font_weight'] = 'bold'
+                    
                 elif content_type == 'section_title':
-                    style['space_before'] = 18
+                    style['space_before'] = 24
                     style['space_after'] = 12
+                    style['font_size'] = 14
+                    style['font_weight'] = 'bold'
+                    
+                elif content_type == 'sub_section':
+                    style['space_before'] = 18
+                    style['space_after'] = 9
+                    style['font_size'] = 13
+                    style['font_weight'] = 'bold'
+                    
                 elif content_type == 'paragraph':
                     style['space_before'] = 0
-                    style['space_after'] = 6
+                    style['space_after'] = 12  # Double spacing
+                    style['line_height'] = 2.0  # Double interligne
                     style['first_line_indent'] = 36  # 0.5 inch
+                    style['text_align'] = 'justify'
+                
+                # Marges académiques standards
+                style['margin_left'] = 72   # 1 inch
+                style['margin_right'] = 72  # 1 inch
+                style['margin_top'] = 72    # 1 inch
+                style['margin_bottom'] = 72 # 1 inch
                 
                 content_item['style'] = style
         
-        layout_data['professional_spacing_applied'] = True
+        layout_data['ultra_professional_spacing_applied'] = True
         return layout_data
+    
+    def enhance_academic_formatting(self, layout_data: Dict) -> Dict:
+        """Améliore le formatage pour correspondre exactement aux standards académiques"""
+        if not layout_data.get('pages'):
+            return layout_data
+        
+        # Détecter et améliorer la page de garde
+        first_page = layout_data['pages'][0] if layout_data['pages'] else None
+        if first_page and first_page.get('content'):
+            self._enhance_title_page(first_page)
+        
+        # Améliorer toutes les pages
+        for page in layout_data['pages']:
+            if page.get('content'):
+                self._enhance_page_academic_style(page)
+        
+        layout_data['academic_formatting_enhanced'] = True
+        return layout_data
+    
+    def _enhance_title_page(self, page: Dict):
+        """Améliore spécifiquement la page de garde"""
+        content = page.get('content', [])
+        
+        for item in content:
+            text = item.get('content', '').strip()
+            style = item.get('style', {})
+            
+            # Centrer tous les éléments de la page de garde
+            item['alignment'] = 'center'
+            
+            # Ajustements spécifiques par contenu
+            if 'NEAR EAST UNIVERSITY' in text.upper():
+                style.update({
+                    'font_size': 20,
+                    'font_weight': 'bold',
+                    'space_after': 12,
+                    'text_transform': 'uppercase'
+                })
+            elif 'FACULTY' in text.upper() or 'DEPARTMENT' in text.upper():
+                style.update({
+                    'font_size': 16,
+                    'font_weight': 'bold',
+                    'space_after': 8
+                })
+            elif 'GRADUATION PROJECT' in text.upper():
+                style.update({
+                    'font_size': 18,
+                    'font_weight': 'bold',
+                    'space_before': 48,
+                    'space_after': 48,
+                    'text_transform': 'uppercase'
+                })
+            elif any(keyword in text for keyword in ['Prepared by:', 'Student Number:', 'Supervisor:']):
+                style.update({
+                    'font_size': 14,
+                    'space_before': 36,
+                    'space_after': 6
+                })
+            
+            item['style'] = style
+    
+    def _enhance_page_academic_style(self, page: Dict):
+        """Améliore le style académique d'une page"""
+        content = page.get('content', [])
+        
+        for item in content:
+            text = item.get('content', '').strip()
+            style = item.get('style', {})
+            content_type = item.get('type', 'paragraph')
+            
+            # Police académique standard
+            if not style.get('font_family'):
+                style['font_family'] = 'Times New Roman, serif'
+            
+            # Couleur de texte académique
+            style['color'] = '#000000'
+            
+            # Justification pour les paragraphes
+            if content_type == 'paragraph' and len(text) > 50:
+                item['alignment'] = 'justify'
+            
+            item['style'] = style
 
 # Instance globale
 advanced_trainer = AdvancedDocumentTraining()
