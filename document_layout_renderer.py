@@ -178,19 +178,117 @@ class DocumentLayoutRenderer:
             is_plagiarism = self._detect_plagiarism_in_sentence(sentence, plagiarism_score, i, len(sentences))
             is_ai = self._detect_ai_in_sentence(sentence, ai_score, i, len(sentences))
             
-            # Appliquer le soulignement
-            if is_plagiarism and is_ai:
-                highlighted = f'<span class="highlight-both" title="Plagiat et IA détectés">{sentence}</span>'
-            elif is_plagiarism:
-                highlighted = f'<span class="highlight-plagiarism" title="Plagiat détecté">{sentence}</span>'
+            # Appliquer le soulignement avec pourcentage et intensité
+            if is_plagiarism:
+                # Calculer le pourcentage de plagiat pour cette phrase
+                plagiarism_intensity = self._calculate_sentence_plagiarism_intensity(sentence, plagiarism_score, i, len(sentences))
+                percentage = min(100, max(5, plagiarism_intensity))
+                style = self._generate_plagiarism_style(percentage)
+                highlighted = f'<span class="highlight-plagiarism" data-percentage="{percentage:.0f}%" style="{style}" title="Plagiat détecté: {percentage:.0f}%">{sentence}</span>'
             elif is_ai:
-                highlighted = f'<span class="highlight-ai" title="Contenu IA détecté">{sentence}</span>'
+                # Calculer le pourcentage d'IA pour cette phrase
+                ai_intensity = self._calculate_sentence_ai_intensity(sentence, ai_score, i, len(sentences))
+                percentage = min(100, max(5, ai_intensity))
+                style = self._generate_ai_style(percentage)
+                highlighted = f'<span class="highlight-ai" data-percentage="{percentage:.0f}%" style="{style}" title="Contenu IA détecté: {percentage:.0f}%">{sentence}</span>'
             else:
                 highlighted = sentence
             
             highlighted_sentences.append(highlighted)
         
         return '. '.join(highlighted_sentences) + ('.' if sentences else '')
+    
+    def _calculate_sentence_plagiarism_intensity(self, sentence: str, base_score: float, index: int, total: int) -> float:
+        """Calcule l'intensité du plagiat pour une phrase spécifique"""
+        # Base score
+        intensity = base_score
+        
+        # Facteurs d'amplification
+        sentence_lower = sentence.lower()
+        
+        # Keywords spécifiques augmentent l'intensité
+        plagiarism_keywords = [
+            'brain tumor', 'cnn', 'deep learning', 'machine learning', 'neural network',
+            'research shows', 'studies indicate', 'data analysis', 'methodology',
+            'according to', 'previous research', 'it is known that'
+        ]
+        
+        keyword_count = sum(1 for keyword in plagiarism_keywords if keyword in sentence_lower)
+        intensity += keyword_count * 8
+        
+        # Position dans le document (début et fin plus suspects)
+        position_factor = 1.0
+        if index < total * 0.2:  # 20% du début
+            position_factor = 1.3
+        elif index > total * 0.8:  # 20% de la fin
+            position_factor = 1.2
+        
+        intensity *= position_factor
+        
+        # Longueur de phrase (phrases longues plus suspectes)
+        if len(sentence.split()) > 15:
+            intensity *= 1.2
+        
+        return min(95, max(5, intensity))
+    
+    def _calculate_sentence_ai_intensity(self, sentence: str, base_score: float, index: int, total: int) -> float:
+        """Calcule l'intensité de l'IA pour une phrase spécifique"""
+        # Base score
+        intensity = base_score
+        
+        sentence_lower = sentence.lower()
+        
+        # Keywords IA spécifiques
+        ai_keywords = [
+            'furthermore', 'moreover', 'however', 'therefore', 'consequently',
+            'thus', 'paradigm shift', 'comprehensive', 'significant',
+            'remarkable', 'optimization', 'methodology', 'leveraging',
+            'cutting-edge', 'state-of-the-art', 'robust', 'sophisticated'
+        ]
+        
+        formal_patterns = [
+            'in conclusion', 'it is important to note', 'it should be emphasized',
+            'in this context', 'from this perspective', 'it can be observed'
+        ]
+        
+        keyword_count = sum(1 for keyword in ai_keywords if keyword in sentence_lower)
+        pattern_count = sum(1 for pattern in formal_patterns if pattern in sentence_lower)
+        
+        intensity += (keyword_count * 6) + (pattern_count * 10)
+        
+        # Structure formelle (phrases très structurées)
+        if len(sentence.split()) > 20:
+            intensity *= 1.3
+        
+        # Position (IA souvent au milieu du texte)
+        if 0.3 < (index / total) < 0.7:
+            intensity *= 1.1
+        
+        return min(95, max(5, intensity))
+    
+    def _generate_plagiarism_style(self, percentage: float) -> str:
+        """Génère le style CSS pour le plagiat selon le pourcentage"""
+        # Intensité basée sur le pourcentage
+        alpha = min(0.8, percentage / 100 * 0.6)  # Transparence de 0.1 à 0.6
+        border_alpha = min(1.0, percentage / 100 * 0.8 + 0.2)  # Bordure de 0.2 à 1.0
+        
+        return f"""
+            background: rgba(255, 235, 238, {alpha}) !important;
+            border-bottom: 1px solid rgba(244, 67, 54, {border_alpha}) !important;
+            box-shadow: inset 0 -2px 0 rgba(244, 67, 54, {alpha}) !important;
+        """
+    
+    def _generate_ai_style(self, percentage: float) -> str:
+        """Génère le style CSS pour l'IA selon le pourcentage"""
+        # Intensité basée sur le pourcentage
+        alpha = min(0.8, percentage / 100 * 0.6)  # Transparence de 0.1 à 0.6
+        border_alpha = min(1.0, percentage / 100 * 0.8 + 0.2)  # Bordure de 0.2 à 1.0
+        
+        return f"""
+            background: rgba(227, 242, 253, {alpha}) !important;
+            border-bottom: 1px dotted rgba(33, 150, 243, {border_alpha}) !important;
+            box-shadow: inset 0 -2px 0 rgba(33, 150, 243, {alpha}) !important;
+        """
     
     def _detect_plagiarism_in_sentence(self, sentence: str, score: float, index: int, total: int) -> bool:
         """Détecte le plagiat dans une phrase"""

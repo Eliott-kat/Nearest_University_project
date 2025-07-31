@@ -5,12 +5,9 @@
 {% block head %}
 <style>
     .highlight-plagiarism {
-        background: rgba(255, 235, 238, 0.08) !important;
-        border-bottom: 1px solid rgba(244, 67, 54, 0.6) !important;
         border-radius: 2px !important;
         padding: 1px 2px !important;
         margin: 0 !important;
-        box-shadow: inset 0 -2px 0 rgba(244, 67, 54, 0.3) !important;
         position: relative !important;
         text-decoration: none !important;
         display: inline !important;
@@ -18,12 +15,9 @@
     }
     
     .highlight-ai {
-        background: rgba(227, 242, 253, 0.08) !important;
-        border-bottom: 1px dotted rgba(33, 150, 243, 0.6) !important;
         border-radius: 2px !important;
         padding: 1px 2px !important;
         margin: 0 !important;
-        box-shadow: inset 0 -2px 0 rgba(33, 150, 243, 0.3) !important;
         font-style: italic !important;
         position: relative !important;
         text-decoration: none !important;
@@ -32,59 +26,43 @@
     }
     
     .highlight-plagiarism:hover {
-        background: rgba(255, 235, 238, 0.15) !important;
-        box-shadow: inset 0 -3px 0 rgba(244, 67, 54, 0.5) !important;
         transform: translateY(-1px) !important;
     }
     
     .highlight-ai:hover {
-        background: rgba(227, 242, 253, 0.15) !important;
-        box-shadow: inset 0 -3px 0 rgba(33, 150, 243, 0.5) !important;
-        transform: translateY(-1px) !important;
-    }
-    
-    .highlight-both:hover {
-        background: rgba(255, 243, 224, 0.2) !important;
-        box-shadow: inset 0 -4px 0 rgba(255, 152, 0, 0.6) !important;
         transform: translateY(-1px) !important;
     }
     
     .highlight-plagiarism::after {
-        content: "P";
+        content: attr(data-percentage);
         position: absolute;
-        right: -12px;
+        right: -20px;
         top: -8px;
         background: #f44336;
         color: white;
-        border-radius: 50%;
-        width: 12px;
-        height: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        border-radius: 3px;
+        padding: 1px 4px;
         font-size: 8px;
         font-weight: bold;
         opacity: 0;
         transition: opacity 0.2s ease;
+        white-space: nowrap;
     }
     
     .highlight-ai::after {
-        content: "AI";
+        content: attr(data-percentage);
         position: absolute;
-        right: -14px;
+        right: -20px;
         top: -8px;
         background: #2196f3;
         color: white;
-        border-radius: 50%;
-        width: 14px;
-        height: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 7px;
+        border-radius: 3px;
+        padding: 1px 4px;
+        font-size: 8px;
         font-weight: bold;
         opacity: 0;
         transition: opacity 0.2s ease;
+        white-space: nowrap;
     }
     
     .highlight-plagiarism:hover::after,
@@ -92,19 +70,7 @@
         opacity: 1;
     }
     
-    .highlight-both {
-        background: rgba(255, 243, 224, 0.12) !important;
-        border-bottom: 2px solid rgba(255, 152, 0, 0.7) !important;
-        border-radius: 2px !important;
-        padding: 1px 3px !important;
-        margin: 0 !important;
-        box-shadow: inset 0 -3px 0 rgba(255, 152, 0, 0.4) !important;
-        font-weight: 500 !important;
-        position: relative !important;
-        text-decoration: none !important;
-        display: inline !important;
-        transition: all 0.2s ease !important;
-    }
+
     
     @keyframes criticalHighlight {
         0% { opacity: 0.6; transform: scale(1); box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4); }
