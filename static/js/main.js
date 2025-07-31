@@ -27,21 +27,18 @@ function initializeFileUpload() {
         dropZone.addEventListener('dragleave', handleDragLeave);
         dropZone.addEventListener('drop', handleDrop);
         
-        // Click to upload - only if clicking on the dropzone itself, not buttons
-        dropZone.addEventListener('click', function(e) {
-            if (e.target.type !== 'file' && !e.target.closest('button') && e.target === dropZone) {
-                fileInput.click();
-            }
-        });
-        
-        // Handle choose file button
+        // Handle choose file button ONLY - no dropzone click events
         const chooseFileBtn = document.getElementById('chooseFileBtn');
         if (chooseFileBtn) {
             chooseFileBtn.addEventListener('click', function(e) {
+                e.preventDefault();
                 e.stopPropagation();
                 fileInput.click();
             });
         }
+        
+        // REMOVE dropzone click event to prevent double selection
+        // Only drag & drop and button click work now
         
         // File input change
         fileInput.addEventListener('change', function() {
