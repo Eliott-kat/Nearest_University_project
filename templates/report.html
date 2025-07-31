@@ -408,13 +408,15 @@
                     <div class="row g-3 text-center">
                         <div class="col-6">
                             <div class="stats-card border-0 p-3">
-                                <div class="stats-number text-primary">{{ analysis_result.total_words or document.extracted_text.split()|length if document.extracted_text else 0 }}</div>
+                                {% set total_words = analysis_result.total_words or (document.extracted_text.split()|length if document.extracted_text else 0) %}
+                                <div class="stats-number text-primary">{{ total_words }}</div>
                                 <small class="stats-label">Total Words</small>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stats-card border-0 p-3">
-                                <div class="stats-number text-danger">{{ analysis_result.identical_words or 0 }}</div>
+                                {% set matched_words = analysis_result.identical_words or ((analysis_result.plagiarism_score or 0) / 100.0 * (analysis_result.total_words or (document.extracted_text.split()|length if document.extracted_text else 0)))|int %}
+                                <div class="stats-number text-danger">{{ matched_words }}</div>
                                 <small class="stats-label">Matched Words</small>
                             </div>
                         </div>
@@ -444,13 +446,15 @@
                     <div class="row g-3 text-center">
                         <div class="col-6">
                             <div class="stats-card border-0 p-3">
-                                <div class="stats-number text-primary">{{ analysis_result.total_words or document.extracted_text.split()|length if document.extracted_text else 0 }}</div>
+                                {% set total_words_ai = analysis_result.total_words or (document.extracted_text.split()|length if document.extracted_text else 0) %}
+                                <div class="stats-number text-primary">{{ total_words_ai }}</div>
                                 <small class="stats-label">Total Words</small>
                             </div>
                         </div>
                         <div class="col-6">
                             <div class="stats-card border-0 p-3">
-                                <div class="stats-number text-info">{{ analysis_result.ai_words or 0 }}</div>
+                                {% set ai_words = analysis_result.ai_words or ((analysis_result.ai_score or 0) / 100.0 * (analysis_result.total_words or (document.extracted_text.split()|length if document.extracted_text else 0)))|int %}
+                                <div class="stats-number text-info">{{ ai_words }}</div>
                                 <small class="stats-label">AI Words</small>
                             </div>
                         </div>
