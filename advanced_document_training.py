@@ -31,7 +31,7 @@ class AdvancedDocumentTraining:
                 ],
                 'chapter_pattern': r'^CHAPTER\s+\d+',
                 'section_pattern': r'^\d+\.\s+[A-Z]',
-                'default_font': 'Times New Roman',
+                'preserve_original_font': True,
                 'default_size': 12,
                 'line_spacing': 1.5
             },
@@ -48,7 +48,7 @@ class AdvancedDocumentTraining:
                     'acknowledgements', 'table_of_contents', 
                     'chapters', 'bibliography'
                 ],
-                'default_font': 'Times New Roman',
+                'preserve_original_font': True,
                 'default_size': 12,
                 'line_spacing': 2.0
             }

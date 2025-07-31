@@ -110,8 +110,10 @@ class DocumentLayoutProcessor:
                     else:
                         style['font_size'] = 12
                 
-                # Police exacte
-                style['font_name'] = font.name or 'Times New Roman'
+                # Police exacte du document original - NE PAS CHANGER
+                if font.name:
+                    style['font_name'] = font.name
+                # Si pas de police détectée, ne pas en imposer une
                 style['bold'] = font.bold or False
                 style['italic'] = font.italic or False
                 style['underline'] = font.underline or False
