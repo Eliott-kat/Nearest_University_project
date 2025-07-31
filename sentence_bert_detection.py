@@ -570,11 +570,41 @@ class SentenceBertDetectionService:
             return {'score': 0}
     
     def _detect_ai_content(self, text: str, sentences: List[str]) -> Dict:
-        """Détection de contenu IA ultra-avancée avec 7 couches d'analyse"""
+        """Détection IA améliorée avec le nouveau détecteur puissant"""
         try:
             if not sentences:
                 return {'ai_probability': 0, 'ai_sentences': 0}
             
+            # Utiliser le nouveau détecteur IA simple mais efficace
+            from simple_ai_detector import SimpleAIDetector
+            
+            enhanced_detector = SimpleAIDetector()
+            ai_result = enhanced_detector.detect_ai_content(text)
+            
+            # Extraire les résultats et les adapter au format existant
+            enhanced_score = ai_result.get('ai_probability', 0)
+            confidence = ai_result.get('confidence', 'low')
+            
+            # Calculer le nombre de phrases IA basé sur le score global
+            estimated_ai_sentences = int((enhanced_score / 100) * len(sentences))
+            
+            logging.info(f"🤖 Nouveau détecteur IA: {enhanced_score:.1f}% (confiance: {confidence})")
+            
+            return {
+                'ai_probability': enhanced_score,
+                'ai_sentences': estimated_ai_sentences,
+                'confidence': confidence,
+                'detection_method': 'enhanced_multi_layer'
+            }
+            
+        except Exception as e:
+            logging.error(f"Erreur détection IA améliorée: {e}")
+            # Fallback vers l'ancien système en cas d'erreur
+            return self._detect_ai_content_fallback(text, sentences)
+    
+    def _detect_ai_content_fallback(self, text: str, sentences: List[str]) -> Dict:
+        """Détection IA de fallback si le nouveau système échoue"""
+        try:
             ai_sentences = 0
             total_sentences = len(sentences)
             ai_scores = []

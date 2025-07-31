@@ -21,6 +21,8 @@ dependencies = [
     "sqlalchemy>=2.0.41",
     "pypdf2>=3.0.1",
     "python-dotenv>=1.1.1",
+    "numpy>=2.3.2",
+    "scikit-learn>=1.7.1",
 ]
 
 [[tool.uv.index]]

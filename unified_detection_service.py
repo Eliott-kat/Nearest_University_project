@@ -11,12 +11,14 @@ from typing import Dict, Optional, Tuple
 from copyleaks_service import CopyleaksService
 from plagiarismcheck_service import PlagiarismCheckService
 from turnitin_algorithm import TurnitinStyleDetector
+from simple_ai_detector import SimpleAIDetector
 
 class UnifiedDetectionService:
     def __init__(self):
         self.copyleaks = CopyleaksService()
         self.plagiarismcheck = PlagiarismCheckService()
         self.turnitin_local = TurnitinStyleDetector()
+        self.ai_detector = SimpleAIDetector()
         
         # Configuration des priorités
         self.services = [
@@ -431,7 +433,10 @@ class UnifiedDetectionService:
                     'percent': round(ai_percent, 1),
                     'detected': ai_percent > 15
                 },
+                'ai_score': round(ai_percent, 1),  # Ajouter pour compatibilité
+                'plagiarism_score': round(plagiarism_percent, 1),  # Ajouter pour compatibilité
                 'provider_used': 'turnitin_local',
+                'success': True,  # Indicateur de succès
                 'original_response': {
                     'method': result.get('method', 'advanced_sentence_bert_ai_detection'),
                     'analysis_details': result
