@@ -105,12 +105,12 @@ class DocumentLayoutRenderer:
         if style.get('font_size'):
             css_parts.append(f"font-size: {style['font_size']}pt")
         
-        # Police exacte avec fallbacks
+        # Police exacte du document original - SANS MODIFICATION
         if style.get('font_name'):
-            if style['font_name'] in ['Calibri', 'Arial']:
-                css_parts.append(f"font-family: '{style['font_name']}', sans-serif")
-            else:
-                css_parts.append(f"font-family: '{style['font_name']}', 'Times New Roman', serif")
+            css_parts.append(f"font-family: '{style['font_name']}'")
+        else:
+            # Si pas de police spécifiée, utiliser la police par défaut du navigateur
+            pass
         
         # Styles de caractère
         if style.get('bold'):

@@ -189,7 +189,7 @@
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         min-height: 800px;
         position: relative;
-        font-family: 'Times New Roman', Times, serif;
+        /* NO font-family override - preserves document's original font */
     }
     
     .page-content {
@@ -293,7 +293,7 @@
     .page-professional {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         min-height: 100vh;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        /* Interface uses system font, but document preserves original font */
     }
     
     .analysis-summary {

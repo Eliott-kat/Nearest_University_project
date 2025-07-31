@@ -39,6 +39,27 @@ body {
     background-color: #fafbfc;
 }
 
+/* Document Styles - Preserve Original Formatting */
+.document-container {
+    background: white;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--border-radius);
+    margin: 1rem 0;
+    /* NO font-family override - use document's original font */
+}
+
+.document-page {
+    padding: 2rem;
+    border-bottom: 1px solid #e9ecef;
+    /* NO font-family override - use document's original font */
+}
+
+.document-paragraph {
+    margin-bottom: 1rem;
+    /* NO font-family override - use document's original font */
+    /* All formatting comes from inline styles to preserve original appearance */
+}
+
 /* Typography */
 .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
     font-weight: 700;
