@@ -1,84 +1,63 @@
-/* Design Ultra-Moderne et Professionnel 2025 */
+/* Design Professionnel et Épuré */
 
-/* Variables CSS modernes */
+/* Variables CSS professionnelles */
 :root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --glassmorphism: rgba(255, 255, 255, 0.1);
-    --shadow-modern: 0 8px 32px rgba(0, 0, 0, 0.1);
-    --shadow-hover: 0 16px 64px rgba(0, 0, 0, 0.15);
-    --border-radius-modern: 16px;
-    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    --primary-color: #3b82f6;
+    --primary-dark: #1e40af;
+    --success-color: #10b981;
+    --success-dark: #059669;
+    --warning-color: #f59e0b;
+    --warning-dark: #d97706;
+    --shadow-subtle: 0 4px 16px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+    --border-radius: 12px;
+    --transition-smooth: all 0.3s ease;
 }
 
-/* Tableaux ultra-modernes avec glassmorphism */
+/* Tableaux professionnels épurés */
 .table {
-    border-radius: var(--border-radius-modern);
+    border-radius: var(--border-radius);
     overflow: hidden;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: var(--shadow-modern);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    box-shadow: var(--shadow-subtle);
 }
 
 .table thead th {
-    background: var(--primary-gradient);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
     border: none;
     font-weight: 600;
-    font-size: 14px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    padding: 20px 24px;
-    position: relative;
-    overflow: hidden;
-}
-
-.table thead th::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.8s;
-}
-
-.table thead th:hover::before {
-    left: 100%;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    padding: 18px 20px;
 }
 
 .table tbody tr {
     transition: var(--transition-smooth);
     border: none;
-    background: rgba(255, 255, 255, 0.7);
+    background: #ffffff;
 }
 
 .table tbody tr:hover {
-    background: var(--glassmorphism);
-    backdrop-filter: blur(20px);
-    transform: translateY(-2px) scale(1.01);
+    background: #f8fafc;
+    transform: translateY(-1px);
     box-shadow: var(--shadow-hover);
 }
 
 .table tbody td {
     border: none;
-    padding: 20px 24px;
+    padding: 16px 20px;
     vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
 }
 
-/* Cartes avec design néomorphique moderne */
+/* Cartes professionnelles élégantes */
 .card {
-    border-radius: 24px;
-    border: none;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(20px);
-    box-shadow: 
-        20px 20px 60px rgba(0, 0, 0, 0.1),
-        -20px -20px 60px rgba(255, 255, 255, 0.8),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius);
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: var(--shadow-subtle);
     transition: var(--transition-smooth);
     overflow: hidden;
     position: relative;
@@ -90,29 +69,24 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 4px;
-    background: var(--primary-gradient);
-    z-index: 1;
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
 }
 
 .card:hover {
-    transform: translateY(-8px) rotateX(5deg);
-    box-shadow: 
-        25px 25px 80px rgba(0, 0, 0, 0.15),
-        -25px -25px 80px rgba(255, 255, 255, 0.9),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-hover);
+    border-color: #d1d5db;
 }
 
 .card-header {
-    background: transparent;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    padding: 24px 28px;
-    position: relative;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 20px 24px;
 }
 
 .card-body {
-    padding: 28px;
-    background: rgba(255, 255, 255, 0.02);
+    padding: 24px;
 }
 
 /* Amélioration des badges */
@@ -125,19 +99,16 @@
     text-transform: uppercase;
 }
 
-/* Boutons futuristes avec effets 3D */
+/* Boutons professionnels raffinés */
 .btn {
     font-weight: 600;
-    letter-spacing: 0.5px;
-    border-radius: 14px;
+    letter-spacing: 0.3px;
+    border-radius: 8px;
     transition: var(--transition-smooth);
     border: none;
     position: relative;
     overflow: hidden;
-    text-transform: uppercase;
-    font-size: 12px;
-    padding: 12px 24px;
-    backdrop-filter: blur(10px);
+    padding: 10px 20px;
 }
 
 .btn::before {
@@ -147,118 +118,69 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    transition: left 0.6s;
-    z-index: 1;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
 }
 
 .btn:hover::before {
     left: 100%;
 }
 
-.btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 14px;
-    padding: 2px;
-    background: var(--primary-gradient);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
-    z-index: -1;
-}
-
 .btn-primary {
-    background: var(--primary-gradient);
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
-    box-shadow: 
-        0 8px 24px rgba(102, 126, 234, 0.3),
-        0 4px 12px rgba(118, 75, 162, 0.2);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
 }
 
 .btn-primary:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 
-        0 12px 36px rgba(102, 126, 234, 0.4),
-        0 6px 18px rgba(118, 75, 162, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35);
     color: white;
 }
 
 .btn-success {
-    background: var(--success-gradient);
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--success-dark) 100%);
     color: white;
-    box-shadow: 
-        0 8px 24px rgba(79, 172, 254, 0.3),
-        0 4px 12px rgba(0, 242, 254, 0.2);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
 .btn-success:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 
-        0 12px 36px rgba(79, 172, 254, 0.4),
-        0 6px 18px rgba(0, 242, 254, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
     color: white;
 }
 
-/* Icônes de fichiers avec design holographique */
+/* Icônes de fichiers professionnelles */
 .file-icon {
-    width: 56px;
-    height: 56px;
-    background: var(--glassmorphism);
-    backdrop-filter: blur(20px);
-    border-radius: 16px;
+    width: 48px;
+    height: 48px;
+    background: #f8fafc;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid #e5e7eb;
     transition: var(--transition-smooth);
-    position: relative;
-    overflow: hidden;
-}
-
-.file-icon::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #f5576c, #667eea);
-    border-radius: 16px;
-    opacity: 0;
-    transition: opacity 0.4s;
-    z-index: -1;
 }
 
 .file-icon:hover {
-    transform: scale(1.1) rotateY(10deg);
+    transform: scale(1.05);
     box-shadow: var(--shadow-hover);
+    background: #f1f5f9;
 }
 
-.file-icon:hover::before {
-    opacity: 0.8;
-}
-
-/* Barres de progression holographiques */
+/* Barres de progression élégantes */
 .progress {
-    height: 12px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    height: 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    border: 1px solid #e5e7eb;
     overflow: hidden;
-    position: relative;
-}
-
-.progress::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #f5576c, #667eea);
-    border-radius: 20px;
-    opacity: 0.1;
 }
 
 .progress-bar {
-    border-radius: 20px;
-    background: var(--primary-gradient);
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     transition: var(--transition-smooth);
     position: relative;
     overflow: hidden;
@@ -271,22 +193,21 @@
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
-    animation: progress-glow 2s infinite;
+    background: linear-gradient(45deg, transparent 40%, rgba(255, 255, 255, 0.3) 50%, transparent 60%);
+    animation: progress-shine 2s infinite;
 }
 
-@keyframes progress-glow {
-    0% { transform: translateX(-100%) skewX(-45deg); }
-    100% { transform: translateX(200%) skewX(-45deg); }
+@keyframes progress-shine {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
 }
 
-/* Alertes avec design futuriste */
+/* Alertes professionnelles */
 .alert {
-    border-radius: 20px;
-    border: none;
-    background: var(--glassmorphism);
-    backdrop-filter: blur(20px);
-    box-shadow: var(--shadow-modern);
+    border-radius: var(--border-radius);
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    box-shadow: var(--shadow-subtle);
     position: relative;
     overflow: hidden;
 }
@@ -297,39 +218,37 @@
     top: 0;
     left: 0;
     right: 0;
-    height: 2px;
-    background: var(--primary-gradient);
+    height: 3px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
 }
 
 .alert-info {
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
-    color: #4c1d95;
+    background: #f0f9ff;
+    color: #1e40af;
+    border-color: #bfdbfe;
 }
 
-/* Badges modernes */
+/* Badges professionnels */
 .badge {
-    border-radius: 12px;
-    padding: 8px 16px;
+    border-radius: 6px;
+    padding: 6px 12px;
     font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    font-size: 10px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.3px;
+    font-size: 11px;
 }
 
 .bg-success {
-    background: var(--success-gradient) !important;
+    background: linear-gradient(135deg, var(--success-color) 0%, var(--success-dark) 100%) !important;
     color: white !important;
 }
 
 .bg-warning {
-    background: var(--secondary-gradient) !important;
+    background: linear-gradient(135deg, var(--warning-color) 0%, var(--warning-dark) 100%) !important;
     color: white !important;
 }
 
 .bg-primary {
-    background: var(--primary-gradient) !important;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%) !important;
     color: white !important;
 }
 
