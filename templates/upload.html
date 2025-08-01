@@ -64,7 +64,7 @@
                                 
                                 <input type="file" name="file" id="fileInput" class="d-none" accept=".pdf,.docx,.txt" required>
                                 
-                                <button type="button" class="btn btn-primary" id="chooseFileBtn">
+                                <button type="button" class="btn btn-primary" id="chooseFileBtn" onclick="document.getElementById('fileInput').click();">
                                     <i class="fas fa-folder-open me-2"></i>Choose File
                                 </button>
                                 
@@ -194,4 +194,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/simple-upload.js') }}"></script>
 {% endblock %}
