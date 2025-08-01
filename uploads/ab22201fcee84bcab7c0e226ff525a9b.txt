@@ -1,0 +1,16 @@
+Ceci est un document de test pour vérifier le système d'upload.
+    
+Ce document contient du texte normal qui devrait être analysé par les algorithmes de détection.
+L'objectif est de s'assurer que le processus d'upload et d'analyse fonctionne correctement.
+
+Ce texte est écrit de manière authentique et ne contient pas de plagiat.
+Il s'agit d'un contenu original créé spécifiquement pour tester la plateforme AcadCheck.
+
+Les fonctionnalités testées incluent:
+- Upload de fichier
+- Extraction de texte
+- Analyse de plagiat
+- Détection de contenu IA
+- Génération de rapport
+
+Ce test permet de valider que tous les composants de l'application fonctionnent ensemble harmonieusement.

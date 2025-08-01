@@ -17,6 +17,16 @@ from report_generator import report_generator
 # Import authentication routes
 import auth_routes
 
+# Import security and monitoring
+from security_hardening import security_hardening, security_headers
+from system_monitor import system_monitor
+
+# Apply security headers
+security_headers(app)
+
+# Start system monitoring
+system_monitor.start_monitoring()
+
 # Make session permanent
 @app.before_request
 def make_session_permanent():

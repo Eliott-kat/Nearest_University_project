@@ -51,6 +51,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 handleFileSelect(e.target.files[0]);
             }
         });
+
+        // Choose file button handler
+        const chooseFileBtn = document.getElementById('chooseFileBtn');
+        if (chooseFileBtn) {
+            chooseFileBtn.addEventListener('click', function() {
+                fileInput.click();
+            });
+        }
     }
 
     // Handle file selection
@@ -107,7 +115,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // Hide drop zone text
-        const dropText = dropZone.querySelector('.text-muted');
+        const dropText = dropZone ? dropZone.querySelector('.text-muted') : null;
         if (dropText) {
             dropText.style.display = 'none';
         }
@@ -119,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (fileInfo) fileInfo.style.display = 'none';
         if (submitBtn) submitBtn.disabled = true;
         
-        const dropText = dropZone.querySelector('.text-muted');
+        const dropText = dropZone ? dropZone.querySelector('.text-muted') : null;
         if (dropText) {
             dropText.style.display = 'block';
         }
