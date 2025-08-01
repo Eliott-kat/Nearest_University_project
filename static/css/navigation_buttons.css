@@ -1,61 +1,46 @@
-/* Navigation Buttons Styles */
+/* Professional Navigation Styles */
 
-/* Enhanced Robot Icon for AI Detection */
-.robot-ai-icon {
+/* Professional AI Detection Icon */
+.professional-ai-icon {
     position: relative;
     display: inline-block;
-    animation: robot-pulse 2s infinite;
+    width: 32px;
+    height: 32px;
 }
 
-.robot-ai-icon::before {
-    content: "🤖";
-    font-size: 2rem;
+.professional-ai-icon::before {
+    content: "\f544"; /* Font Awesome robot icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 1.8rem;
     display: block;
-    filter: drop-shadow(0 0 10px rgba(67, 233, 123, 0.6));
+    color: currentColor;
 }
 
-.robot-ai-icon::after {
-    content: "";
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    width: 8px;
-    height: 8px;
-    background: #10b981;
-    border-radius: 50%;
-    animation: blink 1s infinite;
-}
-
-/* Tools Icon Enhancement */
-.tools-enhanced-icon {
+/* Professional Tools Icon */
+.professional-tools-icon {
     position: relative;
     display: inline-block;
+    width: 32px;
+    height: 32px;
 }
 
-.tools-enhanced-icon::before {
-    content: "🔧";
-    font-size: 2rem;
+.professional-tools-icon::before {
+    content: "\f7d9"; /* Font Awesome tools icon */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    font-size: 1.8rem;
     display: block;
-    filter: drop-shadow(0 0 8px rgba(251, 191, 36, 0.5));
+    color: currentColor;
 }
 
-/* Animation for Robot */
-@keyframes robot-pulse {
+/* Subtle Professional Animations */
+@keyframes subtle-glow {
     0%, 100% {
-        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     50% {
-        transform: scale(1.1);
-    }
-}
-
-/* Blinking LED indicator */
-@keyframes blink {
-    0%, 50% {
-        opacity: 1;
-    }
-    51%, 100% {
-        opacity: 0;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
 }
 
@@ -86,45 +71,38 @@
     box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
-/* Special effects for AI detection button */
-.ai-detection-button {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none;
+/* Professional AI Detection Button */
+.professional-ai-button {
+    background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
+    border: 1px solid rgba(30, 64, 175, 0.3);
     color: white;
     position: relative;
-    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(30, 64, 175, 0.2);
+    transition: all 0.3s ease;
 }
 
-.ai-detection-button::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
-    animation: shimmer 3s infinite;
+.professional-ai-button:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+    color: white;
 }
 
-@keyframes shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-/* Tools button enhancement */
-.tools-button {
-    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-    border: none;
+/* Professional Tools Button */
+.professional-tools-button {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: 1px solid rgba(220, 38, 38, 0.3);
     color: white;
     position: relative;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.2);
+    transition: all 0.3s ease;
 }
 
-.tools-button:hover {
-    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+.professional-tools-button:hover {
+    background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    color: white;
 }
 
 /* Responsive adjustments */

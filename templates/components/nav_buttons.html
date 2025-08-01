@@ -3,59 +3,79 @@
     <style>
     .floating-nav-buttons {
         position: fixed;
-        right: 30px;
+        right: 25px;
         top: 50%;
         transform: translateY(-50%);
         z-index: 1050;
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 12px;
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
     }
 
     .nav-btn {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        border: none;
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
         display: flex;
         align-items: center;
         justify-content: center;
-        color: white;
+        color: #374151;
         text-decoration: none;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s ease;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
         position: relative;
-        overflow: hidden;
     }
 
     .nav-btn:hover {
-        transform: scale(1.1);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
-        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+        color: #111827;
         text-decoration: none;
+        border-color: rgba(0, 0, 0, 0.2);
     }
 
-    /* Icônes thématiques */
-    .nav-btn-dashboard {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    /* Professional Button Variants */
+    .nav-btn-dashboard:hover {
+        background: #3b82f6;
+        color: white;
     }
     
-    .nav-btn-upload {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    .nav-btn-upload:hover {
+        background: #10b981;
+        color: white;
     }
     
-    .nav-btn-history {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    .nav-btn-history:hover {
+        background: #8b5cf6;
+        color: white;
     }
     
     .nav-btn-ai {
-        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        animation: pulse-ai 2s infinite;
+        background: #1e40af;
+        color: white;
+    }
+    
+    .nav-btn-ai:hover {
+        background: #1d4ed8;
+        color: white;
     }
     
     .nav-btn-tools {
-        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        background: #dc2626;
+        color: white;
+    }
+    
+    .nav-btn-tools:hover {
+        background: #b91c1c;
+        color: white;
     }
 
     /* Animation pour le bouton IA */
@@ -68,29 +88,30 @@
         }
     }
 
-    /* Tooltip */
+    /* Professional Tooltip */
     .nav-btn::before {
         content: attr(data-tooltip);
         position: absolute;
-        right: 70px;
+        right: 60px;
         top: 50%;
         transform: translateY(-50%);
-        background: rgba(0, 0, 0, 0.8);
+        background: #111827;
         color: white;
-        padding: 8px 12px;
-        border-radius: 6px;
-        font-size: 14px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
         white-space: nowrap;
         opacity: 0;
         visibility: hidden;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
+        transition: all 0.2s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     .nav-btn:hover::before {
         opacity: 1;
         visibility: visible;
-        right: 75px;
+        right: 64px;
     }
 
     /* Icône robot spéciale pour l'IA */
@@ -155,18 +176,18 @@
         <i class="fas fa-history" style="font-size: 20px;"></i>
     </a>
 
-    <!-- Bouton Détection IA (avec icône robot) -->
+    <!-- Bouton Détection IA -->
     <a href="{{ url_for('document_history') }}#ai-detection" 
        class="nav-btn nav-btn-ai" 
-       data-tooltip="Détection IA">
-        <span class="robot-icon"></span>
+       data-tooltip="AI Detection">
+        <i class="fas fa-robot" style="font-size: 18px;"></i>
     </a>
 
     <!-- Bouton Outils -->
     <a href="{{ url_for('document_history') }}#tools" 
        class="nav-btn nav-btn-tools" 
-       data-tooltip="Outils d'analyse">
-        <span class="tools-icon"></span>
+       data-tooltip="Analysis Tools">
+        <i class="fas fa-tools" style="font-size: 18px;"></i>
     </a>
 </div>
 
