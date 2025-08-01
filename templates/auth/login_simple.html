@@ -16,46 +16,50 @@
                     </div>
                     
                     <div class="card-body p-4">
-                        <form method="POST" novalidate>
-                            {{ form.hidden_tag() }}
-                            
+                        <!-- Messages flash -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' if category == 'success' else 'warning' if category == 'warning' else 'info' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        
+                        <form method="POST">
                             <!-- Email -->
                             <div class="form-floating mb-3">
-                                {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                                {{ form.email.label(class="form-label") }}
-                                {% if form.email.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.email.errors[0] }}
-                                    </div>
-                                {% endif %}
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       placeholder="Email" value="{{ email or '' }}" required>
+                                <label for="email">Adresse email</label>
                             </div>
                             
-                            <!-- Password -->
+                            <!-- Mot de passe -->
                             <div class="form-floating mb-3">
-                                {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-                                {{ form.password.label(class="form-label") }}
-                                {% if form.password.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.password.errors[0] }}
-                                    </div>
-                                {% endif %}
+                                <input type="password" class="form-control" id="password" name="password" 
+                                       placeholder="Mot de passe" required>
+                                <label for="password">Mot de passe</label>
                             </div>
                             
-                            <!-- Remember Me -->
+                            <!-- Se souvenir de moi -->
                             <div class="form-check mb-4">
-                                {{ form.remember_me(class="form-check-input") }}
-                                <label class="form-check-label" for="{{ form.remember_me.id }}">
-                                    {{ form.remember_me.label.text }}
+                                <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me">
+                                <label class="form-check-label" for="remember_me">
+                                    Se souvenir de moi
                                 </label>
                             </div>
                             
-                            <!-- Submit Button -->
+                            <!-- Bouton de connexion -->
                             <div class="d-grid">
-                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                                </button>
                             </div>
                         </form>
                         
-                        <!-- Registration Link -->
+                        <!-- Lien vers inscription -->
                         <div class="text-center mt-4">
                             <p class="text-muted mb-0">
                                 Pas encore de compte ? 
@@ -65,7 +69,7 @@
                             </p>
                         </div>
                         
-                        <!-- Demo Mode Link -->
+                        <!-- Mode démo -->
                         <div class="text-center mt-3">
                             <a href="{{ url_for('demo_mode') }}" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-play me-2"></i>Essayer en mode démo
@@ -93,19 +97,22 @@
     background: var(--gradient-primary);
     border: none;
     font-weight: 600;
-    padding: 0.75rem 1.5rem;
-    border-radius: var(--border-radius-lg);
     transition: all 0.3s ease;
 }
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
 }
 
 .card {
-    border-radius: var(--border-radius-2xl);
+    border-radius: 20px;
     overflow: hidden;
+}
+
+.alert {
+    border-radius: 10px;
+    border: none;
 }
 </style>
 {% endblock %}

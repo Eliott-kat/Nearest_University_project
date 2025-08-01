@@ -4,7 +4,7 @@ Routes for AcadCheck with authentication system
 import os
 import logging
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
-from flask_login import login_required, current_user
+from auth_simple import is_logged_in, get_current_user, require_auth
 from language_utils import LanguageManager
 from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
@@ -14,9 +14,9 @@ from unified_detection_service import UnifiedDetectionService
 from detection_status_display import get_provider_display_name, get_provider_status_badge
 from report_generator import report_generator
 
-# Import authentication routes
-import auth_routes
-app.register_blueprint(auth_routes.auth_bp)
+# Import authentication routes (système simplifié)
+from auth_simple import auth_bp
+app.register_blueprint(auth_bp)
 
 # Import security and monitoring
 from security_hardening import security_hardening, security_headers
@@ -36,12 +36,12 @@ def make_session_permanent():
 @app.context_processor
 def inject_user():
     """Inject current_user for all templates"""
-    return dict(user=current_user if current_user.is_authenticated else None)
+    return dict(user=get_current_user(), is_logged_in=is_logged_in())
 
 @app.route('/')
 def index():
     """Main landing page - shows landing for non-authenticated users"""
-    if current_user.is_authenticated:
+    if is_logged_in():
         return redirect(url_for('dashboard'))
     return landing()
 
@@ -72,20 +72,22 @@ def demo_mode():
             db.session.rollback()
             logging.warning(f"Demo user already exists: {e}")
     
-    # Login demo user
-    from flask_login import login_user
-    login_user(demo_user)
+    # Login demo user in session
+    session['user_id'] = demo_user.id
+    session['user_email'] = demo_user.email
+    session['user_name'] = f"{demo_user.first_name} {demo_user.last_name}"
+    session['user_role'] = demo_user.role.value
     
     flash('Mode démo activé ! Vous pouvez tester l\'application.', 'info')
     return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
-@login_required
+@require_auth
 def dashboard():
     """User dashboard with document statistics"""
     try:
         # Get current user ID
-        user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id')
+        user_id = session.get('user_id') or session.get('demo_user', {}).get('id')
         
         recent_documents = Document.query.filter_by(user_id=user_id)\
             .order_by(Document.created_at.desc())\
@@ -143,7 +145,7 @@ def dashboard():
                          stats=stats)
 
 @app.route('/upload', methods=['GET', 'POST'])
-@login_required
+@require_auth
 def upload_document():
     """Upload and submit document for analysis"""
     if request.method == 'POST':
@@ -182,7 +184,7 @@ def upload_document():
             document.content_type = content_type
             document.extracted_text = extracted_text
             # Get current user ID
-            user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id', 'demo-user')
+            user_id = session.get('user_id') or session.get('demo_user', {}).get('id', 'demo-user')
             document.user_id = user_id
             document.status = DocumentStatus.UPLOADED
             
@@ -282,14 +284,14 @@ def upload_document():
     return render_template('upload.html')
 
 @app.route('/history')
-@login_required
+@require_auth
 def document_history():
     """View document submission history"""
     page = request.args.get('page', 1, type=int)
     per_page = 10  # Number of documents per page
     
     try:
-        user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id')
+        user_id = session.get('user_id') or session.get('demo_user', {}).get('id')
         
         documents = Document.query.filter_by(user_id=user_id)\
             .order_by(Document.created_at.desc())\
@@ -302,11 +304,11 @@ def document_history():
         return render_template('history.html', documents=None)
 
 @app.route('/report/<int:document_id>')
-@login_required  
+@require_auth
 def view_report(document_id):
     """View detailed analysis report"""
     try:
-        user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id')
+        user_id = session.get('user_id') or session.get('demo_user', {}).get('id')
         
         document = Document.query.filter_by(
             id=document_id, 
