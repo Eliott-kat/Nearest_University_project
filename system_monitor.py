@@ -59,7 +59,7 @@ class SystemMonitor:
                 # Vérifie les seuils critiques
                 self._check_critical_thresholds()
                 
-                time.sleep(1)  # Collecte toutes les secondes
+                time.sleep(5)  # Collecte toutes les secondes
                 
             except Exception as e:
                 logging.error(f"Erreur surveillance: {e}")
@@ -71,9 +71,15 @@ class SystemMonitor:
         if self.metrics['memory_usage'] and self.metrics['memory_usage'][-1] > 90:
             logging.warning(f"⚠️ MÉMOIRE CRITIQUE: {self.metrics['memory_usage'][-1]:.1f}%")
         
-        # CPU critique (>85%)
+        # CPU critique (>85%) avec limitation d'alertes
         if self.metrics['cpu_usage'] and self.metrics['cpu_usage'][-1] > 85:
-            logging.warning(f"⚠️ CPU ÉLEVÉ: {self.metrics['cpu_usage'][-1]:.1f}%")
+            current_time = time.time()
+            if not hasattr(self, '_last_cpu_warning'):
+                self._last_cpu_warning = 0
+            
+            if current_time - self._last_cpu_warning > 30:  # Max 1 alerte par 30s
+                logging.warning(f"⚠️ CPU ÉLEVÉ: {self.metrics['cpu_usage'][-1]:.1f}%")
+                self._last_cpu_warning = current_time
         
         # Disque critique (>95%)
         if self.metrics['disk_usage'] > 95:
