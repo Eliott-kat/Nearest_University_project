@@ -20,6 +20,7 @@
     
     <!-- Custom CSS -->
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/navigation_buttons.css') }}" rel="stylesheet">
     
     {% block head %}{% endblock %}
 </head>
@@ -136,6 +137,11 @@
     <main class="py-4">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Navigation Buttons (only for authenticated users) -->
+    {% if is_logged_in %}
+        {% include 'components/nav_buttons.html' %}
+    {% endif %}
 
     <!-- Footer -->
     <footer class="bg-light py-4 mt-5">

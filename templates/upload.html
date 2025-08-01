@@ -49,6 +49,40 @@
 
 {% block content %}
 <div class="container">
+    <!-- Quick Navigation Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 p-3" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+                <div class="row g-2">
+                    <div class="col-md-3 col-6">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 70px;">
+                            <i class="fas fa-tachometer-alt fa-lg mb-1"></i>
+                            <span class="fw-bold small">Dashboard</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="{{ url_for('document_history') }}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 70px;">
+                            <i class="fas fa-history fa-lg mb-1"></i>
+                            <span class="fw-bold small">Historique</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="#ai-detection" class="btn ai-detection-button w-100 d-flex flex-column align-items-center justify-content-center nav-button-enhanced nav-tooltip" style="min-height: 70px;" data-tooltip="Détection IA en temps réel">
+                            <span class="robot-ai-icon"></span>
+                            <span class="fw-bold small">Détection IA</span>
+                        </a>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <a href="#tools" class="btn tools-button w-100 d-flex flex-column align-items-center justify-content-center nav-button-enhanced nav-tooltip" style="min-height: 70px;" data-tooltip="Suite d'outils avancés">
+                            <span class="tools-enhanced-icon"></span>
+                            <span class="fw-bold small">Outils</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row justify-content-center">
         <div class="col-lg-8">
             <!-- Header -->

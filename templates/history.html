@@ -4,6 +4,52 @@
 
 {% block content %}
 <div class="container">
+    <!-- Quick Navigation Bar -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 p-3" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+                <div class="row g-2">
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline-primary w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 70px;">
+                            <i class="fas fa-tachometer-alt fa-lg mb-1"></i>
+                            <span class="fw-bold small">Dashboard</span>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <a href="{{ url_for('upload_document') }}" class="btn btn-outline-danger w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 70px;">
+                            <i class="fas fa-cloud-upload-alt fa-lg mb-1"></i>
+                            <span class="fw-bold small">Upload</span>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6" id="ai-detection">
+                        <div class="btn ai-detection-button w-100 d-flex flex-column align-items-center justify-content-center nav-button-enhanced nav-tooltip" style="min-height: 70px;" data-tooltip="Zone de détection IA">
+                            <span class="robot-ai-icon"></span>
+                            <span class="fw-bold small">Détection IA</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6" id="tools">
+                        <div class="btn tools-button w-100 d-flex flex-column align-items-center justify-content-center nav-button-enhanced nav-tooltip" style="min-height: 70px;" data-tooltip="Boîte à outils">
+                            <span class="tools-enhanced-icon"></span>
+                            <span class="fw-bold small">Outils</span>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <a href="#filter" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 70px;">
+                            <i class="fas fa-filter fa-lg mb-1"></i>
+                            <span class="fw-bold small">Filtrer</span>
+                        </a>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <a href="#export" class="btn btn-outline-dark w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 70px;">
+                            <i class="fas fa-download fa-lg mb-1"></i>
+                            <span class="fw-bold small">Export</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="row mb-4">
         <div class="col-12">
