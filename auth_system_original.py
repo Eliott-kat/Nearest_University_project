@@ -21,8 +21,8 @@ from models import OAuth, User
 
 login_manager = LoginManager(app)
 
-# Global variables
-issuer_url = os.environ.get('ISSUER_URL', "https://acadcheck.local/oidc")
+# Global variables - Configuration Replit OAuth
+issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -61,18 +61,18 @@ class UserSessionStorage(BaseStorage):
             provider=blueprint.name).delete()
         db.session.commit()
 
-def make_auth_blueprint():
+def make_replit_blueprint():
     try:
-        client_id = os.environ['CLIENT_ID']
+        repl_id = os.environ['REPL_ID']
     except KeyError:
-        raise SystemExit("the CLIENT_ID environment variable must be set")
+        raise SystemExit("the REPL_ID environment variable must be set")
 
-    issuer_url = os.environ.get('ISSUER_URL', "https://acadcheck.local/oidc")
+    issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")
 
-    auth_bp = OAuth2ConsumerBlueprint(
-        "auth_system",
+    replit_bp = OAuth2ConsumerBlueprint(
+        "replit_auth",
         __name__,
-        client_id=client_id,
+        client_id=repl_id,
         client_secret=None,
         base_url=issuer_url,
         authorization_url_params={
@@ -85,7 +85,7 @@ def make_auth_blueprint():
         },
         auto_refresh_url=issuer_url + "/token",
         auto_refresh_kwargs={
-            "client_id": client_id,
+            "client_id": repl_id,
         },
         authorization_url=issuer_url + "/auth",
         use_pkce=True,
@@ -94,33 +94,33 @@ def make_auth_blueprint():
         storage=UserSessionStorage(),
     )
 
-    @auth_bp.before_app_request
+    @replit_bp.before_app_request
     def set_applocal_session():
         if '_browser_session_key' not in session:
             session['_browser_session_key'] = uuid.uuid4().hex
         session.modified = True
         g.browser_session_key = session['_browser_session_key']
-        g.flask_dance_auth = auth_bp.session
+        g.flask_dance_replit = replit_bp.session
 
-    @auth_bp.route("/logout")
+    @replit_bp.route("/logout")
     def logout():
-        del auth_bp.token
+        del replit_bp.token
         logout_user()
 
         end_session_endpoint = issuer_url + "/session/end"
         encoded_params = urlencode({
-            "client_id": client_id,
+            "client_id": repl_id,
             "post_logout_redirect_uri": request.url_root,
         })
         logout_url = f"{end_session_endpoint}?{encoded_params}"
 
         return redirect(logout_url)
 
-    @auth_bp.route("/error")
+    @replit_bp.route("/error")
     def error():
         return render_template("403.html"), 403
 
-    return auth_bp
+    return replit_bp
 
 def save_user(user_claims):
     user = User()

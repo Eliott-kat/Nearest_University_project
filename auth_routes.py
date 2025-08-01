@@ -13,7 +13,7 @@ from auth_forms import RegistrationForm, LoginForm
 # Initialize Flask-Login
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'auth.login'
+login_manager.login_view = 'auth_local.login'
 login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
 login_manager.login_message_category = 'info'
 
@@ -21,8 +21,8 @@ login_manager.login_message_category = 'info'
 def load_user(user_id):
     return User.query.get(user_id)
 
-# Create blueprint for auth routes
-auth_bp = Blueprint('auth', __name__, url_prefix='/auth')
+# Create blueprint for auth routes  
+auth_bp = Blueprint('auth_local', __name__, url_prefix='/auth')
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
 def register():
@@ -101,5 +101,4 @@ def logout():
     flash('Vous avez été déconnecté avec succès.', 'info')
     return redirect(url_for('landing'))
 
-# Register blueprint
-app.register_blueprint(auth_bp)
+# Blueprint registered in routes.py

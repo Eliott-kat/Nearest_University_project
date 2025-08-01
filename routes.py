@@ -16,6 +16,7 @@ from report_generator import report_generator
 
 # Import authentication routes
 import auth_routes
+app.register_blueprint(auth_routes.auth_bp)
 
 # Import security and monitoring
 from security_hardening import security_hardening, security_headers
