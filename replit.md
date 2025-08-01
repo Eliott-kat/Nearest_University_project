@@ -5,9 +5,9 @@ AcadCheck is a Flask-based web application designed to uphold academic integrity
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-Interface preference: Clean, simple professional design without fancy animations or gradients.
-Navigation preference: Simple arrow-based navigation between pages.
-Button preference: Clean view buttons with eye icon and text labels.
+Interface preference: Professional, corporate-style design with elegant gradients and smooth animations.
+Navigation preference: Simple arrow-based navigation between pages with advanced hover effects.
+Button preference: Enhanced view buttons with eye icon and text labels with gradient styling.
 
 ## System Architecture
 
