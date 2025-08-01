@@ -10,7 +10,8 @@ except ImportError:
         pass  # No configuration file found, use environment variables
 
 from app import app
-import routes  # noqa: F401
+import routes  # Import routes to register them
+import auth_routes  # Import auth routes
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
