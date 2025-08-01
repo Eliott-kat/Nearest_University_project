@@ -2,6 +2,7 @@
 console.log('Upload simple chargé');
 
 let isFileSelected = false;
+let fileInputBound = false;
 
 // Attendre que le DOM soit prêt
 if (document.readyState === 'loading') {
@@ -15,28 +16,35 @@ function initUpload() {
     const fileInput = document.getElementById('fileInput');
     const dropZone = document.getElementById('dropZone');
     
-    if (chooseBtn && fileInput) {
-        // Supprimer les anciens événements
-        chooseBtn.onclick = null;
-        fileInput.onchange = null;
+    if (chooseBtn && fileInput && !fileInputBound) {
+        // Marquer comme lié pour éviter les duplications
+        fileInputBound = true;
         
-        // Nouveau gestionnaire optimisé
-        chooseBtn.addEventListener('click', function(e) {
+        // Supprimer TOUS les anciens événements
+        chooseBtn.replaceWith(chooseBtn.cloneNode(true));
+        const newChooseBtn = document.getElementById('chooseFileBtn');
+        
+        // Event listener unique pour le bouton
+        newChooseBtn.addEventListener('click', function(e) {
             e.preventDefault();
             e.stopPropagation();
-            fileInput.click();
+            if (!isFileSelected) {
+                fileInput.click();
+            }
         });
         
+        // Event listener unique pour le file input
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file && !isFileSelected) {
                 isFileSelected = true;
                 showFileInfo(file);
-                setTimeout(() => { isFileSelected = false; }, 100);
+                // Reset après traitement
+                setTimeout(() => { isFileSelected = false; }, 500);
             }
         });
         
-        console.log('Bouton Choose File configuré (optimisé)');
+        console.log('Bouton Choose File configuré (unique)');
     }
     
     // Drag & Drop amélioré
