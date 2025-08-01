@@ -1,4 +1,4 @@
-# AcadCheck - Academic Integrity Platform
+# AcadCheck - Independent Academic Integrity Platform
 
 ## Overview
 AcadCheck is a Flask-based web application designed to uphold academic integrity. It offers comprehensive analysis of uploaded documents (PDF, DOCX, TXT) for both plagiarism and AI-generated content. The platform's core purpose is to provide detailed reports, enabling users to identify and address potential academic integrity issues. It aims to offer a robust, multi-faceted detection system, combining external API strengths with sophisticated local algorithms to ensure high accuracy and reliability.
