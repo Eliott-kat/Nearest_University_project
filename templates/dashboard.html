@@ -126,52 +126,15 @@
 {% endblock %}
 
 {% block content %}
+<!-- Navigation avec flèches -->
+<div class="page-navigation">
+    <a href="{{ url_for('upload_document') }}" class="nav-arrow nav-arrow-right" data-tooltip="Upload Document">
+        <i class="fas fa-arrow-right"></i>
+    </a>
+</div>
+
 <div class="container">
-    <!-- Quick Navigation Bar -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card dashboard-card border-0 p-3">
-                <div class="row g-2">
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <a href="{{ url_for('upload_document') }}" class="btn btn-primary w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
-                            <i class="fas fa-cloud-upload-alt fa-2x mb-1"></i>
-                            <span class="fw-bold small">Télécharger</span>
-                        </a>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <a href="{{ url_for('document_history') }}" class="btn btn-outline-info w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
-                            <i class="fas fa-history fa-2x mb-1"></i>
-                            <span class="fw-bold small">Historique</span>
-                        </a>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <a href="{{ url_for('document_history') }}#ai-detection" class="btn professional-ai-button w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
-                            <i class="fas fa-robot fa-lg mb-1"></i>
-                            <span class="fw-bold small">AI Detection</span>
-                        </a>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <a href="{{ url_for('document_history') }}#tools" class="btn professional-tools-button w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
-                            <i class="fas fa-tools fa-lg mb-1"></i>
-                            <span class="fw-bold small">Analysis Tools</span>
-                        </a>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <a href="#statistics" class="btn btn-outline-secondary w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
-                            <i class="fas fa-chart-bar fa-2x mb-1"></i>
-                            <span class="fw-bold small">Statistiques</span>
-                        </a>
-                    </div>
-                    <div class="col-lg-2 col-md-4 col-6">
-                        <a href="#recent" class="btn btn-outline-dark w-100 d-flex flex-column align-items-center justify-content-center" style="min-height: 80px;">
-                            <i class="fas fa-clock fa-2x mb-1"></i>
-                            <span class="fw-bold small">Récents</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Welcome Section -->
     <div class="row mb-4">
