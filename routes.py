@@ -170,6 +170,8 @@ def upload_document():
             document.file_size = get_file_size(file_path)
             document.content_type = content_type
             document.extracted_text = extracted_text
+            # Get current user ID
+            user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id', 'demo-user')
             document.user_id = user_id
             document.status = DocumentStatus.UPLOADED
             
