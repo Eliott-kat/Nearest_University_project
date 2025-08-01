@@ -1,62 +1,118 @@
-/* Améliorations professionnelles pour l'interface */
+/* Design Ultra-Moderne et Professionnel 2025 */
 
-/* Amélioration des tableaux */
+/* Variables CSS modernes */
+:root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    --glassmorphism: rgba(255, 255, 255, 0.1);
+    --shadow-modern: 0 8px 32px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 16px 64px rgba(0, 0, 0, 0.15);
+    --border-radius-modern: 16px;
+    --transition-smooth: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tableaux ultra-modernes avec glassmorphism */
 .table {
-    border-radius: 12px;
+    border-radius: var(--border-radius-modern);
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: var(--shadow-modern);
 }
 
 .table thead th {
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    background: var(--primary-gradient);
+    color: white;
     border: none;
     font-weight: 600;
     font-size: 14px;
-    letter-spacing: 0.5px;
-    color: #334155;
-    padding: 16px 20px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+.table thead th::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.8s;
+}
+
+.table thead th:hover::before {
+    left: 100%;
 }
 
 .table tbody tr {
-    transition: all 0.2s ease;
+    transition: var(--transition-smooth);
     border: none;
+    background: rgba(255, 255, 255, 0.7);
 }
 
 .table tbody tr:hover {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    background: var(--glassmorphism);
+    backdrop-filter: blur(20px);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: var(--shadow-hover);
 }
 
 .table tbody td {
     border: none;
-    padding: 16px 20px;
+    padding: 20px 24px;
     vertical-align: middle;
 }
 
-/* Amélioration des cartes */
+/* Cartes avec design néomorphique moderne */
 .card {
-    border-radius: 16px;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    border-radius: 24px;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    box-shadow: 
+        20px 20px 60px rgba(0, 0, 0, 0.1),
+        -20px -20px 60px rgba(255, 255, 255, 0.8),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+    transition: var(--transition-smooth);
     overflow: hidden;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--primary-gradient);
+    z-index: 1;
 }
 
 .card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px) rotateX(5deg);
+    box-shadow: 
+        25px 25px 80px rgba(0, 0, 0, 0.15),
+        -25px -25px 80px rgba(255, 255, 255, 0.9),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.4);
 }
 
 .card-header {
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    padding: 20px 24px;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 24px 28px;
+    position: relative;
 }
 
 .card-body {
-    padding: 24px;
+    padding: 28px;
+    background: rgba(255, 255, 255, 0.02);
 }
 
 /* Amélioration des badges */
@@ -69,15 +125,19 @@
     text-transform: uppercase;
 }
 
-/* Amélioration des boutons */
+/* Boutons futuristes avec effets 3D */
 .btn {
-    font-weight: 500;
-    letter-spacing: 0.3px;
-    border-radius: 10px;
-    transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border: 2px solid transparent;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    border-radius: 14px;
+    transition: var(--transition-smooth);
+    border: none;
     position: relative;
     overflow: hidden;
+    text-transform: uppercase;
+    font-size: 12px;
+    padding: 12px 24px;
+    backdrop-filter: blur(10px);
 }
 
 .btn::before {
@@ -87,67 +147,119 @@
     left: -100%;
     width: 100%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    transition: left 0.6s;
+    z-index: 1;
 }
 
 .btn:hover::before {
     left: 100%;
 }
 
+.btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    padding: 2px;
+    background: var(--primary-gradient);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    z-index: -1;
+}
+
 .btn-primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-    border-color: #3b82f6;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: 
+        0 8px 24px rgba(102, 126, 234, 0.3),
+        0 4px 12px rgba(118, 75, 162, 0.2);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 12px 36px rgba(102, 126, 234, 0.4),
+        0 6px 18px rgba(118, 75, 162, 0.3);
+    color: white;
 }
 
 .btn-success {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border-color: #10b981;
-    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+    background: var(--success-gradient);
+    color: white;
+    box-shadow: 
+        0 8px 24px rgba(79, 172, 254, 0.3),
+        0 4px 12px rgba(0, 242, 254, 0.2);
 }
 
 .btn-success:hover {
-    background: linear-gradient(135deg, #059669 0%, #047857 100%);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 
+        0 12px 36px rgba(79, 172, 254, 0.4),
+        0 6px 18px rgba(0, 242, 254, 0.3);
+    color: white;
 }
 
-/* Amélioration des icônes de fichiers */
+/* Icônes de fichiers avec design holographique */
 .file-icon {
-    width: 48px;
-    height: 48px;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    border-radius: 12px;
+    width: 56px;
+    height: 56px;
+    background: var(--glassmorphism);
+    backdrop-filter: blur(20px);
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: var(--transition-smooth);
+    position: relative;
+    overflow: hidden;
+}
+
+.file-icon::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #f5576c, #667eea);
+    border-radius: 16px;
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: -1;
 }
 
 .file-icon:hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: scale(1.1) rotateY(10deg);
+    box-shadow: var(--shadow-hover);
 }
 
-/* Amélioration des barres de progression */
+.file-icon:hover::before {
+    opacity: 0.8;
+}
+
+/* Barres de progression holographiques */
 .progress {
-    height: 10px;
-    border-radius: 8px;
-    background: rgba(0, 0, 0, 0.05);
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    height: 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    overflow: hidden;
+    position: relative;
+}
+
+.progress::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #f5576c, #667eea);
+    border-radius: 20px;
+    opacity: 0.1;
 }
 
 .progress-bar {
-    border-radius: 8px;
-    transition: all 0.6s ease;
+    border-radius: 20px;
+    background: var(--primary-gradient);
+    transition: var(--transition-smooth);
     position: relative;
     overflow: hidden;
 }
@@ -159,27 +271,66 @@
     left: 0;
     bottom: 0;
     right: 0;
-    background: linear-gradient(45deg, transparent 35%, rgba(255, 255, 255, 0.3) 50%, transparent 65%);
-    animation: progress-shine 2s infinite;
+    background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.5) 50%, transparent 70%);
+    animation: progress-glow 2s infinite;
 }
 
-@keyframes progress-shine {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
+@keyframes progress-glow {
+    0% { transform: translateX(-100%) skewX(-45deg); }
+    100% { transform: translateX(200%) skewX(-45deg); }
 }
 
-/* Amélioration de la section d'alerte */
+/* Alertes avec design futuriste */
 .alert {
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: none;
+    background: var(--glassmorphism);
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-modern);
+    position: relative;
+    overflow: hidden;
+}
+
+.alert::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--primary-gradient);
 }
 
 .alert-info {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(147, 197, 253, 0.1) 100%);
-    border-color: rgba(59, 130, 246, 0.2);
-    color: #1e40af;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    color: #4c1d95;
+}
+
+/* Badges modernes */
+.badge {
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-size: 10px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.bg-success {
+    background: var(--success-gradient) !important;
+    color: white !important;
+}
+
+.bg-warning {
+    background: var(--secondary-gradient) !important;
+    color: white !important;
+}
+
+.bg-primary {
+    background: var(--primary-gradient) !important;
+    color: white !important;
 }
 
 /* Responsive improvements */
