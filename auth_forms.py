@@ -49,9 +49,8 @@ class RegistrationForm(FlaskForm):
             raise ValidationError('Cette adresse email est déjà utilisée. Veuillez en choisir une autre.')
 
 class LoginForm(FlaskForm):
-    email = EmailField('Email', validators=[
-        DataRequired(message='L\'email est requis'), 
-        Email(message='Veuillez entrer une adresse email valide')
+    email = StringField('Email', validators=[
+        DataRequired(message='L\'email est requis')
     ])
     
     password = PasswordField('Mot de passe', validators=[
