@@ -29,6 +29,99 @@
     background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(20px);
 }
+
+/* Assurer que les icônes Font Awesome s'affichent - Solution robuste */
+.feature-icon {
+    position: relative;
+    z-index: 10;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+    background-size: 24px 24px !important;
+}
+
+/* Force l'affichage des icônes avec plusieurs approches */
+.feature-icon i, 
+.feature-icon::before {
+    font-family: "Font Awesome 6 Free", "FontAwesome", "fa-solid-900" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    line-height: 1 !important;
+    display: inline-block !important;
+    font-size: 1.5rem !important;
+    speak: none !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Fallback avec caractères Unicode si Font Awesome ne se charge pas */
+.bg-primary .feature-icon::after {
+    content: "📄" !important;
+    font-size: 1.5rem !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: -1 !important;
+}
+
+.bg-success .feature-icon::after {
+    content: "✅" !important;
+    font-size: 1.5rem !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: -1 !important;
+}
+
+.bg-warning .feature-icon::after {
+    content: "⏰" !important;
+    font-size: 1.5rem !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: -1 !important;
+}
+
+.bg-info .feature-icon::after {
+    content: "📊" !important;
+    font-size: 1.5rem !important;
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: -1 !important;
+}
+
+/* Style des cercles d'icônes amélioré */
+.card .feature-icon {
+    width: 60px !important;
+    height: 60px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto 1rem auto !important;
+    font-size: 1.5rem !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.feature-icon::before {
+    content: '' !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: inherit !important;
+    border-radius: 50% !important;
+    z-index: -1 !important;
+}
 </style>
 {% endblock %}
 
