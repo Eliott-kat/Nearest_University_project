@@ -155,3 +155,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 });
+
+// Fix parentheses balance
+console.log('Main.js loaded correctly');
