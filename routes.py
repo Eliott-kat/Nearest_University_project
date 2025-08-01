@@ -1,9 +1,10 @@
 """
-Simplified routes for local installation without authentication
+Routes for AcadCheck with authentication system
 """
 import os
 import logging
 from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
+from flask_login import login_required, current_user
 from language_utils import LanguageManager
 from werkzeug.exceptions import RequestEntityTooLarge
 from app import app, db
@@ -13,56 +14,86 @@ from unified_detection_service import UnifiedDetectionService
 from detection_status_display import get_provider_display_name, get_provider_status_badge
 from report_generator import report_generator
 
-# Create a fake user for local development
-class FakeUser:
-    def __init__(self):
-        self.id = "local-user"
-        self.email = "user@acadcheck.local"
-        self.first_name = "Student"
-        self.last_name = ""
-        self.role = UserRole.STUDENT
-        self.is_authenticated = True
-        self.profile_image_url = None
+# Import authentication routes
+import auth_routes
 
-fake_user = FakeUser()
-
-# Make session permanent and inject current_user for templates
+# Make session permanent
 @app.before_request
 def make_session_permanent():
     session.permanent = True
 
 @app.context_processor
 def inject_user():
-    """Inject current_user and user into all templates"""
-    return dict(current_user=fake_user, user=fake_user)
+    """Inject current_user for all templates"""
+    return dict(user=current_user if current_user.is_authenticated else None)
 
 @app.route('/')
 def index():
-    """Main landing page - shows dashboard directly for local version"""
-    return dashboard()
+    """Main landing page - shows landing for non-authenticated users"""
+    if current_user.is_authenticated:
+        return redirect(url_for('dashboard'))
+    return landing()
+
+@app.route('/landing')
+def landing():
+    """Landing page for non-authenticated users"""
+    return render_template('landing.html')
+
+@app.route('/demo')
+def demo_mode():
+    """Demo mode for users to try without registration"""
+    from models import User, UserRole
+    
+    # Create or get demo user
+    demo_user = User.query.filter_by(email='demo@acadcheck.local').first()
+    if not demo_user:
+        demo_user = User()
+        demo_user.id = 'demo-user'
+        demo_user.email = 'demo@acadcheck.local'
+        demo_user.first_name = 'Demo'
+        demo_user.last_name = 'User'
+        demo_user.role = UserRole.STUDENT
+        demo_user.active = True
+        try:
+            db.session.add(demo_user)
+            db.session.commit()
+        except Exception as e:
+            db.session.rollback()
+            logging.warning(f"Demo user already exists: {e}")
+    
+    # Login demo user
+    from flask_login import login_user
+    login_user(demo_user)
+    
+    flash('Mode démo activé ! Vous pouvez tester l\'application.', 'info')
+    return redirect(url_for('dashboard'))
 
 @app.route('/dashboard')
+@login_required
 def dashboard():
     """User dashboard with document statistics"""
     try:
-        recent_documents = Document.query.filter_by(user_id=fake_user.id)\
+        # Get current user ID
+        user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id')
+        
+        recent_documents = Document.query.filter_by(user_id=user_id)\
             .order_by(Document.created_at.desc())\
             .limit(5).all()
         
         # Calculate statistics
-        total_documents = Document.query.filter_by(user_id=fake_user.id).count()
+        total_documents = Document.query.filter_by(user_id=user_id).count()
         completed_analyses = Document.query.filter_by(
-            user_id=fake_user.id, 
+            user_id=user_id, 
             status=DocumentStatus.COMPLETED
         ).count()
         processing_documents = Document.query.filter_by(
-            user_id=fake_user.id,
+            user_id=user_id,
             status=DocumentStatus.PROCESSING
         ).count()
         
         # Calculate average scores
         completed_docs = Document.query.filter_by(
-            user_id=fake_user.id,
+            user_id=user_id,
             status=DocumentStatus.COMPLETED
         ).all()
         
@@ -98,10 +129,10 @@ def dashboard():
     
     return render_template('dashboard.html', 
                          recent_documents=recent_documents, 
-                         stats=stats,
-                         user=fake_user)
+                         stats=stats)
 
 @app.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload_document():
     """Upload and submit document for analysis"""
     if request.method == 'POST':
@@ -139,7 +170,7 @@ def upload_document():
             document.file_size = get_file_size(file_path)
             document.content_type = content_type
             document.extracted_text = extracted_text
-            document.user_id = fake_user.id
+            document.user_id = user_id
             document.status = DocumentStatus.UPLOADED
             
             try:
@@ -235,36 +266,38 @@ def upload_document():
             flash('An error occurred while uploading the document.', 'danger')
             return redirect(request.url)
     
-    return render_template('upload.html', user=fake_user)
+    return render_template('upload.html')
 
 @app.route('/history')
+@login_required
 def document_history():
     """View document submission history"""
     page = request.args.get('page', 1, type=int)
     per_page = 10  # Number of documents per page
     
     try:
-        documents = Document.query.filter_by(user_id=fake_user.id)\
+        user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id')
+        
+        documents = Document.query.filter_by(user_id=user_id)\
             .order_by(Document.created_at.desc())\
             .paginate(page=page, per_page=per_page, error_out=False)
             
-        return render_template('history.html', 
-                             documents=documents,
-                             user=fake_user)
+        return render_template('history.html', documents=documents)
     except Exception as e:
         logging.error(f"Error loading document history: {e}")
         flash('Error loading document history.', 'danger')
-        return render_template('history.html', 
-                             documents=None,
-                             user=fake_user)
+        return render_template('history.html', documents=None)
 
 @app.route('/report/<int:document_id>')
+@login_required  
 def view_report(document_id):
     """View detailed analysis report"""
     try:
+        user_id = current_user.id if current_user.is_authenticated else session.get('demo_user', {}).get('id')
+        
         document = Document.query.filter_by(
             id=document_id, 
-            user_id=fake_user.id
+            user_id=user_id
         ).first_or_404()
         
         if document.status != DocumentStatus.COMPLETED:
@@ -335,8 +368,7 @@ def view_report(document_id):
                              analysis_result=analysis_result,
                              highlighted_text=highlighted_text,
                              plagiarism_sentences=plagiarism_sentences,
-                             ai_sentences=ai_sentences,
-                             user=fake_user)
+                             ai_sentences=ai_sentences)
                              
     except Exception as e:
         logging.error(f"Error loading report for document {document_id}: {e}")
