@@ -307,12 +307,19 @@ class DocumentLayoutRenderer:
         """
     
     def _detect_plagiarism_in_sentence(self, sentence: str, plagiarism_score: float, index: int, total: int) -> bool:
-        """Détecte le plagiat dans une phrase - CALCUL PRÉCIS"""
+        """Détecte le plagiat dans une phrase - CALCUL PRÉCIS CORRIGÉ POUR DOCUMENTS COURTS"""
         if plagiarism_score < 5:
             return False
         
-        # CALCUL EXACT : Pour 8.1% plagiat, seulement 8-9 phrases sur 100 doivent être soulignées
-        sentences_to_highlight = max(1, round(total * plagiarism_score / 100))
+        # CORRECTION POUR DOCUMENTS COURTS
+        if total <= 10:  # Document très court (≤10 phrases)
+            # Seuil plus élevé pour documents courts
+            if plagiarism_score < 15:
+                return False
+            max_sentences = min(1, max(0, round(total * plagiarism_score / 100)))
+        else:
+            # Documents normaux
+            max_sentences = max(1, round(total * plagiarism_score / 100))
         
         # Sélectionner seulement les phrases les plus suspectes
         sentence_lower = sentence.lower()
@@ -355,12 +362,20 @@ class DocumentLayoutRenderer:
         return priority_score >= 1 and deterministic_priority < (plagiarism_score / 100 * 2.0)
     
     def _detect_ai_in_sentence(self, sentence: str, ai_score: float, index: int, total: int) -> bool:
-        """Détecte le contenu IA dans une phrase - CALCUL PRÉCIS"""
+        """Détecte le contenu IA dans une phrase - CALCUL PRÉCIS CORRIGÉ POUR DOCUMENTS COURTS"""
         if ai_score < 3:
             return False
         
-        # CALCUL EXACT : Pour 22% IA, seulement 22 phrases sur 100 doivent être soulignées  
-        sentences_to_highlight = max(1, round(total * ai_score / 100))
+        # CORRECTION POUR DOCUMENTS COURTS : Seuil adaptatif
+        if total <= 10:  # Document très court (≤10 phrases)
+            # Seulement souligner si score IA > 25% pour éviter faux positifs
+            if ai_score < 25:
+                return False
+            # Maximum 1-2 phrases pour documents courts
+            max_sentences = min(2, max(1, round(total * ai_score / 100)))
+        else:
+            # Documents normaux : calcul standard
+            max_sentences = max(1, round(total * ai_score / 100))
         
         sentence_lower = sentence.lower()
         
@@ -399,8 +414,18 @@ class DocumentLayoutRenderer:
         sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
         deterministic_priority = (sentence_hash % 100) / 100.0
         
-        # Seuil ajusté : priorité basée sur le contenu ET proportion exacte
-        return ai_priority_score >= 1 and deterministic_priority < (ai_score / 100 * 1.5)
+        # SEUIL ADAPTATIF selon longueur document
+        if total <= 10:
+            # Documents courts : seuil plus élevé, priorité au contenu
+            min_priority_score = 3  # Score minimum plus élevé
+            proportion_factor = 0.8  # Facteur réduit
+        else:
+            # Documents longs : seuil normal  
+            min_priority_score = 1
+            proportion_factor = 1.5
+        
+        # Condition finale adaptée
+        return ai_priority_score >= min_priority_score and deterministic_priority < (ai_score / 100 * proportion_factor)
     
     def _render_simple_document(self, layout_data: Dict, plagiarism_score: float, ai_score: float) -> str:
         """Rend un document simple sans mise en page complexe"""
