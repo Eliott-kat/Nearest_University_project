@@ -306,13 +306,13 @@ class DocumentLayoutRenderer:
             box-shadow: inset 0 -2px 0 rgba(33, 150, 243, {alpha}) !important;
         """
     
-    def _detect_plagiarism_in_sentence(self, sentence: str, score: float, index: int, total: int) -> bool:
+    def _detect_plagiarism_in_sentence(self, sentence: str, plagiarism_score: float, index: int, total: int) -> bool:
         """Détecte le plagiat dans une phrase - CALCUL PRÉCIS"""
-        if score < 5:
+        if plagiarism_score < 5:
             return False
         
         # CALCUL EXACT : Pour 8.1% plagiat, seulement 8-9 phrases sur 100 doivent être soulignées
-        sentences_to_highlight = max(1, round(total * score / 100))
+        sentences_to_highlight = max(1, round(total * plagiarism_score / 100))
         
         # Sélectionner seulement les phrases les plus suspectes
         sentence_lower = sentence.lower()
@@ -352,15 +352,15 @@ class DocumentLayoutRenderer:
         deterministic_priority = (sentence_hash % 100) / 100.0
         
         # Seuil ajusté : priorité basée sur le contenu ET proportion exacte
-        return priority_score >= 1 and deterministic_priority < (score / 100 * 2.0)
+        return priority_score >= 1 and deterministic_priority < (plagiarism_score / 100 * 2.0)
     
-    def _detect_ai_in_sentence(self, sentence: str, score: float, index: int, total: int) -> bool:
+    def _detect_ai_in_sentence(self, sentence: str, ai_score: float, index: int, total: int) -> bool:
         """Détecte le contenu IA dans une phrase - CALCUL PRÉCIS"""
-        if score < 3:
+        if ai_score < 3:
             return False
         
         # CALCUL EXACT : Pour 22% IA, seulement 22 phrases sur 100 doivent être soulignées  
-        sentences_to_highlight = max(1, round(total * score / 100))
+        sentences_to_highlight = max(1, round(total * ai_score / 100))
         
         sentence_lower = sentence.lower()
         
@@ -400,7 +400,7 @@ class DocumentLayoutRenderer:
         deterministic_priority = (sentence_hash % 100) / 100.0
         
         # Seuil ajusté : priorité basée sur le contenu ET proportion exacte
-        return ai_priority_score >= 1 and deterministic_priority < (score / 100 * 1.5)
+        return ai_priority_score >= 1 and deterministic_priority < (ai_score / 100 * 1.5)
     
     def _render_simple_document(self, layout_data: Dict, plagiarism_score: float, ai_score: float) -> str:
         """Rend un document simple sans mise en page complexe"""
