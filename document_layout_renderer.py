@@ -311,12 +311,13 @@ class DocumentLayoutRenderer:
         if plagiarism_score < 5:
             return False
         
-        # CORRECTION POUR DOCUMENTS COURTS
+        # CORRECTION POUR DOCUMENTS COURTS : Seuil adaptatif ÉQUILIBRÉ
         if total <= 10:  # Document très court (≤10 phrases)
-            # Seuil plus élevé pour documents courts
-            if plagiarism_score < 15:
+            # Seuil réduit pour documents courts
+            if plagiarism_score < 10:  # Abaissé de 15% à 10%
                 return False
-            max_sentences = min(1, max(0, round(total * plagiarism_score / 100)))
+            # Au moins 1 phrase si score > 10%
+            max_sentences = max(1, round(total * plagiarism_score / 100))
         else:
             # Documents normaux
             max_sentences = max(1, round(total * plagiarism_score / 100))
@@ -358,21 +359,29 @@ class DocumentLayoutRenderer:
         sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
         deterministic_priority = (sentence_hash % 100) / 100.0
         
-        # Seuil ajusté : priorité basée sur le contenu ET proportion exacte
-        return priority_score >= 1 and deterministic_priority < (plagiarism_score / 100 * 2.0)
+        # DISTRIBUTION EXACTE : Seulement le nombre exact de phrases nécessaires
+        target_sentences = max(1, round(total * plagiarism_score / 100))
+        
+        # Hash déterministe pour classement des phrases
+        sentence_rank = sentence_hash % total
+        
+        # Seulement les N meilleures phrases (hash + priorité contenu)
+        adjusted_rank = sentence_rank - priority_score  # Priorité réduit le rang
+        
+        return adjusted_rank < target_sentences
     
     def _detect_ai_in_sentence(self, sentence: str, ai_score: float, index: int, total: int) -> bool:
         """Détecte le contenu IA dans une phrase - CALCUL PRÉCIS CORRIGÉ POUR DOCUMENTS COURTS"""
         if ai_score < 3:
             return False
         
-        # CORRECTION POUR DOCUMENTS COURTS : Seuil adaptatif
+        # CORRECTION POUR DOCUMENTS COURTS : Seuil adaptatif ÉQUILIBRÉ
         if total <= 10:  # Document très court (≤10 phrases)
-            # Seulement souligner si score IA > 25% pour éviter faux positifs
-            if ai_score < 25:
+            # Seuil réduit pour documents courts mais pas trop restrictif
+            if ai_score < 15:  # Abaissé de 25% à 15%
                 return False
-            # Maximum 1-2 phrases pour documents courts
-            max_sentences = min(2, max(1, round(total * ai_score / 100)))
+            # Au moins 1 phrase si score > 15%
+            max_sentences = max(1, round(total * ai_score / 100))
         else:
             # Documents normaux : calcul standard
             max_sentences = max(1, round(total * ai_score / 100))
@@ -414,18 +423,17 @@ class DocumentLayoutRenderer:
         sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
         deterministic_priority = (sentence_hash % 100) / 100.0
         
-        # SEUIL ADAPTATIF selon longueur document
-        if total <= 10:
-            # Documents courts : seuil plus élevé, priorité au contenu
-            min_priority_score = 3  # Score minimum plus élevé
-            proportion_factor = 0.8  # Facteur réduit
-        else:
-            # Documents longs : seuil normal  
-            min_priority_score = 1
-            proportion_factor = 1.5
+        # DISTRIBUTION EXACTE IA : Seulement le nombre exact de phrases
+        target_sentences = max(1, round(total * ai_score / 100))
         
-        # Condition finale adaptée
-        return ai_priority_score >= min_priority_score and deterministic_priority < (ai_score / 100 * proportion_factor)
+        # Hash déterministe pour classement
+        sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
+        sentence_rank = sentence_hash % total
+        
+        # Priorité contenu réduit le rang (meilleures chances d'être sélectionné)
+        adjusted_rank = sentence_rank - ai_priority_score
+        
+        return adjusted_rank < target_sentences
     
     def _render_simple_document(self, layout_data: Dict, plagiarism_score: float, ai_score: float) -> str:
         """Rend un document simple sans mise en page complexe"""
