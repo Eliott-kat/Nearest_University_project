@@ -283,27 +283,31 @@ class DocumentLayoutRenderer:
         return min(95, max(5, intensity))
     
     def _generate_plagiarism_style(self, percentage: float) -> str:
-        """Génère le style CSS pour le plagiat selon le pourcentage"""
-        # Intensité basée sur le pourcentage
-        alpha = min(0.8, percentage / 100 * 0.6)  # Transparence de 0.1 à 0.6
-        border_alpha = min(1.0, percentage / 100 * 0.8 + 0.2)  # Bordure de 0.2 à 1.0
+        """Génère le style CSS pour le plagiat selon le pourcentage - VISIBILITÉ AMÉLIORÉE"""
+        # Intensité basée sur le pourcentage - PLUS VISIBLE
+        alpha = min(0.9, percentage / 100 * 0.7 + 0.2)  # Transparence de 0.2 à 0.9
+        border_alpha = 1.0  # Bordure toujours visible
         
         return f"""
             background: rgba(255, 235, 238, {alpha}) !important;
-            border-bottom: 1px solid rgba(244, 67, 54, {border_alpha}) !important;
-            box-shadow: inset 0 -2px 0 rgba(244, 67, 54, {alpha}) !important;
+            border-bottom: 2px solid rgba(244, 67, 54, {border_alpha}) !important;
+            box-shadow: inset 0 -3px 0 rgba(244, 67, 54, {alpha}) !important;
+            padding: 2px 4px !important;
+            border-radius: 3px !important;
         """
     
     def _generate_ai_style(self, percentage: float) -> str:
-        """Génère le style CSS pour l'IA selon le pourcentage"""
-        # Intensité basée sur le pourcentage
-        alpha = min(0.8, percentage / 100 * 0.6)  # Transparence de 0.1 à 0.6
-        border_alpha = min(1.0, percentage / 100 * 0.8 + 0.2)  # Bordure de 0.2 à 1.0
+        """Génère le style CSS pour l'IA selon le pourcentage - VISIBILITÉ AMÉLIORÉE"""
+        # Intensité basée sur le pourcentage - PLUS VISIBLE
+        alpha = min(0.9, percentage / 100 * 0.7 + 0.2)  # Transparence de 0.2 à 0.9
+        border_alpha = 1.0  # Bordure toujours visible
         
         return f"""
             background: rgba(227, 242, 253, {alpha}) !important;
-            border-bottom: 1px dotted rgba(33, 150, 243, {border_alpha}) !important;
-            box-shadow: inset 0 -2px 0 rgba(33, 150, 243, {alpha}) !important;
+            border-bottom: 2px dotted rgba(33, 150, 243, {border_alpha}) !important;
+            box-shadow: inset 0 -3px 0 rgba(33, 150, 243, {alpha}) !important;
+            padding: 2px 4px !important;
+            border-radius: 3px !important;
         """
     
     def _detect_plagiarism_in_sentence(self, sentence: str, plagiarism_score: float, index: int, total: int) -> bool:
