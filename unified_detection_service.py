@@ -22,10 +22,10 @@ class UnifiedDetectionService:
         self.ai_detector = SimpleAIDetector()
         self.improved_algorithm = ImprovedDetectionAlgorithm()
         
-        # Configuration des priorités - COPYLEAKS EN PREMIER pour tester
+        # Configuration des priorités - ALGORITHME LOCAL EN PRIORITÉ
         self.services = [
-            ('copyleaks', self.copyleaks),                    # PRIORITÉ 1: Test Copyleaks
-            ('improved_algorithm', self.improved_algorithm),  # PRIORITÉ 2: Algorithme amélioré calibré
+            ('improved_algorithm', self.improved_algorithm),  # PRIORITÉ 1: Algorithme local calibré
+            ('copyleaks', self.copyleaks),                    # PRIORITÉ 2: Copyleaks (si disponible)
             ('plagiarismcheck', self.plagiarismcheck)         # PRIORITÉ 3: PlagiarismCheck
         ]
         
