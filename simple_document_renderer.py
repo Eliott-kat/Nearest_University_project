@@ -36,18 +36,20 @@ def render_docx_with_original_layout_and_simple_highlighting(file_path: str, ext
         doc = Document(file_path)
         html_content = []
         
-        # Style pour préserver l'apparence originale
+        # Style pour préserver l'apparence originale avec affichage complet
         html_content.append('''
-        <div style="
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 12pt;
-            line-height: 1.5;
-            color: #000000;
+        <div class="document-original" style="
+            font-family: 'Times New Roman', Times, serif !important;
+            font-size: 12pt !important;
+            line-height: 1.5 !important;
+            color: #000000 !important;
             background: white;
-            margin: 20px;
-            padding: 20px;
-            max-width: 210mm;
-            min-height: 297mm;
+            margin: 0;
+            padding: 30px;
+            width: 100%;
+            max-width: none;
+            overflow: visible;
+            word-wrap: break-word;
         ">
         ''')
         
@@ -108,12 +110,18 @@ def render_docx_with_original_layout_and_simple_highlighting(file_path: str, ext
                         1
                     )
             
-            html_content.append(f'<p style="margin: 6pt 0; {para_style}">{highlighted_text}</p>')
+            # S'assurer que chaque paragraphe est affiché complètement
+            html_content.append(f'<p style="margin: 6pt 0; {para_style} word-wrap: break-word; overflow: visible; width: 100%;">{highlighted_text}</p>')
         
         html_content.append('</div>')
         
         result = ''.join(html_content)
-        logging.info(f"✅ DOCX rendu avec layout original + soulignement simple")
+        
+        # Log détaillé pour diagnostic
+        paragraph_count = result.count('<p style=')
+        total_length = len(result)
+        logging.info(f"✅ DOCX rendu COMPLET: {paragraph_count} paragraphes, {total_length} caractères")
+        
         return result
         
     except Exception as e:
