@@ -59,7 +59,7 @@ class SystemMonitor:
                 # Vérifie les seuils critiques
                 self._check_critical_thresholds()
                 
-                time.sleep(5)  # Collecte toutes les secondes
+                time.sleep(10)  # Collecte toutes les 10 secondes (moins fréquent)
                 
             except Exception as e:
                 logging.error(f"Erreur surveillance: {e}")
@@ -67,9 +67,14 @@ class SystemMonitor:
     
     def _check_critical_thresholds(self):
         """Vérifie les seuils critiques"""
-        # Mémoire critique (>90%)
-        if self.metrics['memory_usage'] and self.metrics['memory_usage'][-1] > 90:
-            logging.warning(f"⚠️ MÉMOIRE CRITIQUE: {self.metrics['memory_usage'][-1]:.1f}%")
+        # Mémoire critique (>85%) avec nettoyage automatique
+        if self.metrics['memory_usage'] and self.metrics['memory_usage'][-1] > 85:
+            try:
+                import gc
+                collected = gc.collect()
+                logging.warning(f"⚠️ MÉMOIRE: {self.metrics['memory_usage'][-1]:.1f}% - Nettoyé {collected} objets")
+            except Exception:
+                logging.warning(f"⚠️ MÉMOIRE CRITIQUE: {self.metrics['memory_usage'][-1]:.1f}%")
         
         # CPU critique (>85%) avec limitation d'alertes
         if self.metrics['cpu_usage'] and self.metrics['cpu_usage'][-1] > 85:
