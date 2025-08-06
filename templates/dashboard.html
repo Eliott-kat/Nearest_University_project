@@ -136,12 +136,12 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h1 class="h2 mb-1">Welcome back, {{ user.first_name or 'User' }}!</h1>
-                    <p class="text-muted">{{ user.role.value.title() }} Dashboard</p>
+                    <h1 class="h2 mb-1">{{ _('welcome_title') }}, {{ user.first_name or _('username') }}!</h1>
+                    <p class="text-muted">{{ user.role.value.title() }} {{ _('dashboard') }}</p>
                 </div>
                 <div>
                     <a href="{{ url_for('upload_document') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Upload Document
+                        <i class="fas fa-plus me-2"></i>{{ _('upload_new_document') }}
                     </a>
                 </div>
             </div>
@@ -155,10 +155,16 @@
                 <div class="d-flex align-items-center">
                     <i class="fas fa-info-circle me-3"></i>
                     <div>
-                        <strong>Status API:</strong> 
+                        <strong>{{ _('api_status') }}:</strong> 
+                        {% if current_language == 'fr' %}
                         L'API Copyleaks rencontre actuellement des problèmes techniques (erreur serveur 500). 
                         L'application fonctionne en mode démonstration avec des analyses réalistes basées sur votre contenu.
                         <br><small class="text-muted">Vos identifiants sont corrects - le problème vient du serveur Copyleaks.</small>
+                        {% else %}
+                        Copyleaks API is currently experiencing technical issues (server error 500).
+                        The application is running in demonstration mode with realistic analyses based on your content.
+                        <br><small class="text-muted">Your credentials are correct - the issue is from the Copyleaks server.</small>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -174,7 +180,7 @@
                         <i class="fas fa-file-alt fa-lg text-white"></i>
                     </div>
                     <h3 class="h4 fw-bold text-primary">{{ stats.total_documents }}</h3>
-                    <p class="text-muted mb-0">Total Documents</p>
+                    <p class="text-muted mb-0">{{ _('total_documents') }}</p>
                 </div>
             </div>
         </div>
@@ -186,7 +192,7 @@
                         <i class="fas fa-check-circle fa-lg text-white"></i>
                     </div>
                     <h3 class="h4 fw-bold text-success">{{ stats.completed_analyses }}</h3>
-                    <p class="text-muted mb-0">Completed Analyses</p>
+                    <p class="text-muted mb-0">{{ _('documents_analyzed') }}</p>
                 </div>
             </div>
         </div>
@@ -198,7 +204,7 @@
                         <i class="fas fa-clock fa-lg text-white"></i>
                     </div>
                     <h3 class="h4 fw-bold text-warning">{{ stats.processing_documents }}</h3>
-                    <p class="text-muted mb-0">Processing</p>
+                    <p class="text-muted mb-0">{{ _('processing') }}</p>
                 </div>
             </div>
         </div>
@@ -210,7 +216,7 @@
                         <i class="fas fa-chart-line fa-lg"></i>
                     </div>
                     <h3 class="h4 fw-bold text-info">{{ "%.1f"|format(stats.avg_plagiarism_score) }}%</h3>
-                    <p class="text-muted mb-0">Avg. Plagiarism Score</p>
+                    <p class="text-muted mb-0">{{ _('average_plagiarism') }}</p>
                 </div>
             </div>
         </div>

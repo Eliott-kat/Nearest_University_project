@@ -69,23 +69,16 @@
                 <ul class="navbar-nav">
                     <!-- Language Switcher -->
                     <li class="nav-item dropdown me-3">
-                        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="languageDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-globe me-1"></i>
                             {{ language_switcher.current_name }}
                         </a>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu" aria-labelledby="languageDropdown">
                             {% for lang_code, lang_name in language_switcher.available.items() %}
-                                {% if lang_code != language_switcher.current %}
-                                <li>
-                                    <a class="dropdown-item" href="{{ url_for('set_language', language=lang_code) }}">
-                                        {% if lang_code == 'fr' %}
-                                            <i class="fas fa-flag me-2" style="color: #0055A4;"></i>
-                                        {% elif lang_code == 'en' %}
-                                            <i class="fas fa-flag me-2" style="color: #012169;"></i>
-                                        {% endif %}
-                                        {{ lang_name }}
-                                    </a>
-                                </li>
+                                {% if lang_code != current_language %}
+                                    <li><a class="dropdown-item" href="{{ url_for('set_language', language=lang_code) }}">
+                                        <i class="fas fa-globe me-2"></i>{{ lang_name }}
+                                    </a></li>
                                 {% endif %}
                             {% endfor %}
                         </ul>
@@ -100,19 +93,19 @@
                             </a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                                    <i class="fas fa-sign-out-alt me-2"></i>{{ _('logout') }}
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item me-2">
                             <a class="nav-link" href="{{ url_for('auth.login') }}">
-                                <i class="fas fa-sign-in-alt me-1"></i>Connexion
+                                <i class="fas fa-sign-in-alt me-1"></i>{{ _('login') }}
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link btn btn-outline-primary btn-sm" href="{{ url_for('auth.register') }}">
-                                <i class="fas fa-user-plus me-1"></i>S'inscrire
+                                <i class="fas fa-user-plus me-1"></i>{{ _('register') }}
                             </a>
                         </li>
                     {% endif %}
@@ -170,6 +163,7 @@
     
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/main-minimal.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/language_switcher.js') }}"></script>
     
     {% block scripts %}{% endblock %}
 </body>

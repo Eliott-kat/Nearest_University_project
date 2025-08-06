@@ -2,7 +2,17 @@
 Utilitaires pour la gestion des langues dans AcadCheck
 """
 from flask import session, request
-from translations import Translations
+try:
+    from translations import Translations
+except ImportError:
+    # Fallback si translations.py n'est pas disponible
+    class Translations:
+        @classmethod
+        def get(cls, key, language='fr'):
+            return key
+        @classmethod
+        def get_available_languages(cls):
+            return {'fr': 'Français', 'en': 'English'}
 
 class LanguageManager:
     """Gestionnaire de langue pour l'application"""
@@ -43,7 +53,7 @@ class LanguageManager:
         """Traduire une clé selon la langue actuelle"""
         if language is None:
             language = cls.get_current_language()
-        return Translations.get(key, language)
+        return Translations.get(key, language or 'fr')
     
     @classmethod
     def get_language_switcher_data(cls) -> dict:
