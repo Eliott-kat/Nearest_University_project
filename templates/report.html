@@ -579,10 +579,19 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('🎯 SOULIGNEMENT SUPER VISIBLE APPLIQUÉ:', aiSentences.length, 'phrases IA et', plagiarismSentences.length, 'phrases plagiat');
     
-    // Diagnostic pour debug
+    // Diagnostic complet pour debug
     if (aiSentences.length === 0 && plagiarismSentences.length === 0) {
         console.error('❌ AUCUNE PHRASE TROUVÉE POUR SOULIGNEMENT');
-        console.log('Document HTML:', document.querySelector('.document-text-turnitin')?.innerHTML?.substring(0, 500));
+        const documentContainer = document.querySelector('.document-text-turnitin');
+        if (documentContainer) {
+            console.log('HTML présent:', documentContainer.innerHTML.substring(0, 200));
+            console.log('Classes trouvées:', [...documentContainer.querySelectorAll('*')].map(el => el.className).filter(c => c));
+        } else {
+            console.error('❌ Container .document-text-turnitin non trouvé');
+            console.log('Containers disponibles:', [...document.querySelectorAll('[class*=\"document\"]')].map(el => el.className));
+        }
+    } else {
+        console.log('✅ Soulignement réussi - phrases trouvées et stylées');
     }
 });
 </script>

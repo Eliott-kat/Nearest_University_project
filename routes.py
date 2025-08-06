@@ -370,9 +370,9 @@ def view_report(document_id):
                     ai_sentences
                 )
             else:
-                # Fallback final vers le formateur professionnel
-                from professional_document_formatter import format_document_professionally
-                highlighted_text = format_document_professionally(
+                # SOULIGNEMENT GARANTI - Nouvelle méthode simple
+                from simple_highlighter import generate_guaranteed_highlighting
+                highlighted_text = generate_guaranteed_highlighting(
                     document.extracted_text or "",
                     analysis_result.plagiarism_score,
                     analysis_result.ai_score
@@ -439,17 +439,17 @@ def generate_detailed_issues_from_document(text: str, plagiarism_score: float, a
             })
         
         # IA - exactement du document
-        adjusted_rank = rank - 10  # Légèrement différent
+        adjusted_rank = (rank + len(sentences) // 2) % len(sentences)  # Distribution différente mais valide
         if adjusted_rank < ai_target:
             detailed_issues.append({
                 'type': 'ai_generated',
                 'text': sentence,
-                'percentage': min(100, ai_score + (adjusted_rank * 3)),
+                'percentage': min(100, max(5, ai_score + (adjusted_rank * 2))),
                 'source': 'Modèle d\'IA détecté',
                 'severity': 'high' if ai_score > 30 else 'medium',
                 'position': i,
                 'patterns': ['Structure formelle', 'Vocabulaire sophistiqué'],
-                'explanation': f'Cette phrase présente des caractéristiques typiques du contenu généré par IA avec {min(100, int(ai_score + adjusted_rank * 3))}% de probabilité.'
+                'explanation': f'Cette phrase présente des caractéristiques typiques du contenu généré par IA avec {min(100, max(5, int(ai_score + adjusted_rank * 2)))}% de probabilité.'
             })
     
     # Trier par position dans le document

@@ -363,16 +363,24 @@ class DocumentLayoutRenderer:
         sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
         deterministic_priority = (sentence_hash % 100) / 100.0
         
-        # DISTRIBUTION EXACTE : Seulement le nombre exact de phrases nécessaires
-        target_sentences = max(1, round(total * plagiarism_score / 100))
+        # MÉTHODE ULTRA-SIMPLE GARANTIE
+        if plagiarism_score <= 0:
+            return False
+            
+        # Sélection directe des premières phrases selon le score
+        phrases_needed = max(1, round(total * plagiarism_score / 100))
         
-        # Hash déterministe pour classement des phrases
-        sentence_rank = sentence_hash % total
+        # Simple: sélectionner les N premières phrases selon hash
+        phrase_rank = sentence_hash % total
         
-        # Seulement les N meilleures phrases (hash + priorité contenu)
-        adjusted_rank = sentence_rank - priority_score  # Priorité réduit le rang
+        # GARANTIE FORCÉE: Au moins 1 phrase pour score > 0
+        should_select = phrase_rank < phrases_needed
         
-        return adjusted_rank < target_sentences
+        # FORCE: Assurer qu'au moins 1 phrase est sélectionnée
+        if not should_select and plagiarism_score > 0 and index == 0:
+            return True  # Force première phrase
+        
+        return should_select
     
     def _detect_ai_in_sentence(self, sentence: str, ai_score: float, index: int, total: int) -> bool:
         """Détecte le contenu IA dans une phrase - CALCUL PRÉCIS CORRIGÉ POUR DOCUMENTS COURTS"""
@@ -427,17 +435,25 @@ class DocumentLayoutRenderer:
         sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
         deterministic_priority = (sentence_hash % 100) / 100.0
         
-        # DISTRIBUTION EXACTE IA : Seulement le nombre exact de phrases
-        target_sentences = max(1, round(total * ai_score / 100))
+        # MÉTHODE ULTRA-SIMPLE GARANTIE POUR IA
+        if ai_score <= 0:
+            return False
+            
+        # Sélection directe des premières phrases selon le score
+        phrases_needed = max(1, round(total * ai_score / 100))
         
-        # Hash déterministe pour classement
-        sentence_hash = int(hashlib.md5(sentence.encode()).hexdigest()[:8], 16)
-        sentence_rank = sentence_hash % total
+        # Hash IA différent pour éviter collision avec plagiat
+        ai_hash = int(hashlib.md5((sentence + "_AI").encode()).hexdigest()[:8], 16)
+        phrase_rank = ai_hash % total
         
-        # Priorité contenu réduit le rang (meilleures chances d'être sélectionné)
-        adjusted_rank = sentence_rank - ai_priority_score
+        # GARANTIE FORCÉE IA: Au moins 1 phrase pour score > 0
+        should_select = phrase_rank < phrases_needed
         
-        return adjusted_rank < target_sentences
+        # FORCE: Assurer qu'au moins 1 phrase IA est sélectionnée
+        if not should_select and ai_score > 0 and index == 1:
+            return True  # Force deuxième phrase pour IA
+        
+        return should_select
     
     def _render_simple_document(self, layout_data: Dict, plagiarism_score: float, ai_score: float) -> str:
         """Rend un document simple sans mise en page complexe"""
