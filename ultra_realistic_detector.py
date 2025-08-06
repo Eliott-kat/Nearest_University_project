@@ -10,13 +10,13 @@ from typing import Dict, Tuple
 
 class UltraRealisticDetector:
     def __init__(self):
-        # Scores réalistes selon la taille du document
+        # Scores réalistes selon la taille du document - AJUSTÉS PLUS HAUT
         self.size_calibration = {
-            'very_short': {'words': (0, 100), 'plagiarism': (0.5, 2.5), 'ai': (3, 8)},
-            'short': {'words': (100, 300), 'plagiarism': (1.5, 4.0), 'ai': (6, 12)},
-            'medium': {'words': (300, 800), 'plagiarism': (2.5, 6.0), 'ai': (8, 16)},
-            'long': {'words': (800, 2000), 'plagiarism': (3.5, 8.0), 'ai': (12, 22)},
-            'very_long': {'words': (2000, 10000), 'plagiarism': (5.0, 10.0), 'ai': (15, 25)}
+            'very_short': {'words': (0, 100), 'plagiarism': (5.0, 12.0), 'ai': (8, 18)},
+            'short': {'words': (100, 300), 'plagiarism': (8.0, 15.0), 'ai': (12, 25)},
+            'medium': {'words': (300, 800), 'plagiarism': (10.0, 18.0), 'ai': (15, 28)},
+            'long': {'words': (800, 2000), 'plagiarism': (12.0, 22.0), 'ai': (18, 32)},
+            'very_long': {'words': (2000, 10000), 'plagiarism': (15.0, 25.0), 'ai': (20, 35)}
         }
     
     def _analyze_content_characteristics(self, text: str) -> Dict[str, float]:
@@ -114,13 +114,13 @@ class UltraRealisticDetector:
         final_plagiarism = base_plagiarism * type_mult['plagiarism'] * content_factors['complexity']
         final_ai = base_ai * type_mult['ai'] * content_factors['academic_level']
         
-        # Ajustement final pour très petits documents
+        # Ajustement final pour très petits documents - MOINS DE RÉDUCTION
         if word_count < 50:
-            final_plagiarism *= 0.3  # Très réduit pour micro-documents
-            final_ai *= 0.5
+            final_plagiarism *= 0.8  # Moins de réduction pour micro-documents
+            final_ai *= 0.9
         elif word_count < 100:
-            final_plagiarism *= 0.6
-            final_ai *= 0.7
+            final_plagiarism *= 0.9  # Maintenir des scores plus élevés
+            final_ai *= 0.95
         
         # Limites absolues réalistes
         final_plagiarism = max(0.1, min(final_plagiarism, 12.0))

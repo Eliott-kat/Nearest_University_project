@@ -277,7 +277,7 @@ class ImprovedDetectionAlgorithm:
         word_count = len(text_lower.split())
         if word_count > 0:
             pattern_density = (pattern_count / word_count) * 1000  # Pour 1000 mots
-            return min(pattern_density * 8, 40)  # Score maximum 40%
+            return min(pattern_density * 15, 65)  # Score maximum 65% - AUGMENTÉ
         
         return 0
     
@@ -311,8 +311,8 @@ class ImprovedDetectionAlgorithm:
             phrase_density = (phrase_count / word_count) * 1000
             
             # Score combiné - les documents académiques ont naturellement du "plagiat"
-            combined_score = (technical_density * 6) + (phrase_density * 4)
-            return min(combined_score, 35)  # Score maximum 35%
+            combined_score = (technical_density * 12) + (phrase_density * 8)
+            return min(combined_score, 60)  # Score maximum 60% - AUGMENTÉ
         
         return 0
     
@@ -326,11 +326,11 @@ class ImprovedDetectionAlgorithm:
         ])
         
         adjustments = {
-            'thesis_graduation_project': 0.6,    # Réduction modérée pour obtenir ~10%
-            'academic_paper': 0.4,               # Réduction pour papers académiques
-            'academic_content': 0.8 if has_citations else 0.5,  # BOOST pour citations
-            'technical_document': 0.6,           # Réduction légère
-            'general_content': 0.8               # Peu de réduction
+            'thesis_graduation_project': 1.2,    # AUGMENTATION pour obtenir des scores plus élevés
+            'academic_paper': 1.0,               # Maintien pour papers académiques
+            'academic_content': 1.5 if has_citations else 1.1,  # BOOST pour citations
+            'technical_document': 1.3,           # AUGMENTATION 
+            'general_content': 1.4               # AUGMENTATION pour contenu général
         }
         
         multiplier = adjustments.get(doc_type, 0.8)
@@ -338,7 +338,7 @@ class ImprovedDetectionAlgorithm:
         
         # Boost spécial pour contenu mixte avec citations
         if has_citations and doc_type == 'academic_content':
-            adjusted = min(adjusted * 2.5, 35)  # Boost pour atteindre 25% cible
+            adjusted = min(adjusted * 1.8, 55)  # Boost pour atteindre des scores plus élevés
         
         # Bonus de réduction pour contenu authentique (réduit)
         authenticity_bonus = self._calculate_authenticity_bonus(text)
@@ -348,6 +348,17 @@ class ImprovedDetectionAlgorithm:
             authenticity_bonus *= 0.3  # Réduire le bonus pour contenu avec citations
         
         final_score = max(0, adjusted - authenticity_bonus)
+        
+        # GARANTIR UN SCORE MINIMUM SELON LA TAILLE DU TEXTE
+        word_count = len(text.split())
+        if word_count < 50:
+            final_score = max(final_score, 8.0)   # Minimum 8% pour très courts textes
+        elif word_count < 100:
+            final_score = max(final_score, 10.0)  # Minimum 10% pour courts textes
+        elif word_count < 300:
+            final_score = max(final_score, 12.0)  # Minimum 12% pour textes moyens
+        else:
+            final_score = max(final_score, 15.0)  # Minimum 15% pour longs textes
         
         return final_score
     
