@@ -336,21 +336,36 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # UTILISER DIRECTEMENT LA FONCTION GARANTIE
+        # NOUVEAU SYSTÈME HYBRIDE : Layout original + Soulignement garanti
         highlighted_text = ""
         try:
-            from simple_highlighter import generate_guaranteed_highlighting
-            highlighted_text = generate_guaranteed_highlighting(
+            from guaranteed_layout_renderer import render_document_with_guaranteed_highlighting
+            from flask import current_app
+            
+            file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
+            
+            highlighted_text = render_document_with_guaranteed_highlighting(
+                file_path,
                 document.extracted_text or "",
                 analysis_result.plagiarism_score,
                 analysis_result.ai_score
             )
-            logging.info(f"✅ Soulignement GARANTI appliqué pour {document.original_filename}")
+            logging.info(f"🎯 HYBRIDE GARANTI: Layout original + Soulignement pour {document.original_filename}")
             
         except Exception as e:
-            logging.error(f"Erreur fonction garantie: {e}")
-            # Fallback simple
-            highlighted_text = document.extracted_text or "Erreur d'affichage"
+            logging.error(f"Erreur système hybride: {e}")
+            # Fallback vers fonction garantie simple
+            try:
+                from simple_highlighter import generate_guaranteed_highlighting
+                highlighted_text = generate_guaranteed_highlighting(
+                    document.extracted_text or "",
+                    analysis_result.plagiarism_score,
+                    analysis_result.ai_score
+                )
+                logging.info(f"✅ Fallback soulignement garanti pour {document.original_filename}")
+            except Exception as e2:
+                logging.error(f"Erreur fallback: {e2}")
+                highlighted_text = document.extracted_text or "Erreur d'affichage"
         
         # Générer les detailed issues correspondant EXACTEMENT au document
         detailed_issues = generate_detailed_issues_from_document(
