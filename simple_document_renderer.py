@@ -28,13 +28,19 @@ def render_document_with_simple_highlighting(file_path: str, extracted_text: str
         return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
 
 def render_docx_with_original_layout_and_simple_highlighting(file_path: str, extracted_text: str, plagiarism_score: float, ai_score: float) -> str:
-    """Rend un DOCX avec mise en page originale + soulignement simple"""
+    """Rend un DOCX avec mise en page originale + soulignement simple + images"""
     try:
         from docx import Document
         import re
+        import os
+        import base64
+        from io import BytesIO
         
         doc = Document(file_path)
         html_content = []
+        
+        # Extraire les images du document
+        document_images = extract_images_from_docx(doc)
         
         # Style pour préserver l'apparence originale avec affichage complet
         html_content.append('''
@@ -73,10 +79,31 @@ def render_docx_with_original_layout_and_simple_highlighting(file_path: str, ext
             if sentence_index < len(sentences):
                 ai_sentences.append(sentences[sentence_index])
         
-        # Traiter chaque paragraphe du document original
+        # Traiter chaque paragraphe du document original + images
+        paragraph_index = 0
         for paragraph in doc.paragraphs:
             text = paragraph.text.strip()
-            if not text:
+            
+            # Vérifier s'il y a des images dans ce paragraphe
+            paragraph_images = []
+            for run in paragraph.runs:
+                if hasattr(run, '_element') and run._element.xpath('.//a:blip'):
+                    for blip in run._element.xpath('.//a:blip'):
+                        embed = blip.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
+                        if embed and embed in document_images:
+                            paragraph_images.append(document_images[embed])
+            
+            # Ajouter les images avant le texte si elles existent
+            for img_data in paragraph_images:
+                html_content.append(f'''
+                <div style="text-align: center; margin: 20px 0;">
+                    <img src="data:image/png;base64,{img_data}" 
+                         style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
+                         alt="Image du document" />
+                </div>
+                ''')
+            
+            if not text and not paragraph_images:
                 html_content.append('<br>')
                 continue
             
@@ -168,6 +195,27 @@ def render_pdf_with_original_layout_and_simple_highlighting(file_path: str, extr
     except Exception as e:
         logging.error(f"Erreur rendu PDF: {e}")
         return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
+
+def extract_images_from_docx(doc) -> dict:
+    """Extrait les images du document DOCX"""
+    images = {}
+    try:
+        from docx.opc.constants import RELATIONSHIP_TYPE
+        import base64
+        
+        # Parcourir les relations pour trouver les images
+        for rel in doc.part.rels.values():
+            if rel.reltype == RELATIONSHIP_TYPE.IMAGE:
+                image_data = rel.target_part.blob
+                # Encoder en base64 pour l'affichage HTML
+                image_base64 = base64.b64encode(image_data).decode('utf-8')
+                images[rel.rId] = image_base64
+                
+        logging.info(f"📸 {len(images)} images extraites du document DOCX")
+        return images
+    except Exception as e:
+        logging.error(f"Erreur extraction images: {e}")
+        return {}
 
 def apply_simple_highlighting_to_text(text: str, plagiarism_score: float, ai_score: float) -> str:
     """Applique un soulignement simple au texte brut"""
