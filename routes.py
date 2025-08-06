@@ -336,36 +336,28 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # NOUVEAU SYSTÈME HYBRIDE : Layout original + Soulignement garanti
+        # SOULIGNEMENT SIMPLE ET PROPRE
         highlighted_text = ""
         try:
-            from guaranteed_layout_renderer import render_document_with_guaranteed_highlighting
-            from flask import current_app
-            
-            file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
-            
-            highlighted_text = render_document_with_guaranteed_highlighting(
-                file_path,
+            from simple_clean_highlighter import generate_simple_highlighting
+            highlighted_text = generate_simple_highlighting(
                 document.extracted_text or "",
                 analysis_result.plagiarism_score,
                 analysis_result.ai_score
             )
-            logging.info(f"🎯 HYBRIDE GARANTI: Layout original + Soulignement pour {document.original_filename}")
+            logging.info(f"✅ Soulignement SIMPLE appliqué pour {document.original_filename}")
             
         except Exception as e:
-            logging.error(f"Erreur système hybride: {e}")
-            # Fallback vers fonction garantie simple
-            try:
-                from simple_highlighter import generate_guaranteed_highlighting
-                highlighted_text = generate_guaranteed_highlighting(
-                    document.extracted_text or "",
-                    analysis_result.plagiarism_score,
-                    analysis_result.ai_score
-                )
-                logging.info(f"✅ Fallback soulignement garanti pour {document.original_filename}")
-            except Exception as e2:
-                logging.error(f"Erreur fallback: {e2}")
-                highlighted_text = document.extracted_text or "Erreur d'affichage"
+            logging.error(f"Erreur soulignement simple: {e}")
+            highlighted_text = document.extracted_text or "Erreur d'affichage"
+        
+        # Récupérer les informations de source
+        try:
+            from simple_clean_highlighter import get_source_info
+            source_info = get_source_info(analysis_result.plagiarism_score, analysis_result.ai_score)
+        except Exception as e:
+            logging.error(f"Erreur récupération sources: {e}")
+            source_info = {'plagiarism_sources': [], 'ai_detection_info': {}}
         
         # Générer les detailed issues correspondant EXACTEMENT au document
         detailed_issues = generate_detailed_issues_from_document(
@@ -380,7 +372,8 @@ def view_report(document_id):
                              highlighted_text=highlighted_text,
                              plagiarism_sentences=plagiarism_sentences,
                              ai_sentences=ai_sentences,
-                             detailed_issues=detailed_issues)
+                             detailed_issues=detailed_issues,
+                             source_info=source_info)
                              
     except Exception as e:
         logging.error(f"Error loading report for document {document_id}: {e}")
