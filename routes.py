@@ -336,47 +336,21 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # Utiliser le système avancé avec entraînement
+        # UTILISER DIRECTEMENT LA FONCTION GARANTIE
         highlighted_text = ""
         try:
-            from document_layout_processor import process_document_layout
-            from document_layout_renderer import render_document_with_original_layout
-            from advanced_document_training import train_document_advanced
-            from flask import current_app
-            
-            # Traiter avec entraînement avancé
-            file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
-            
-            # Appliquer l'entraînement avancé pour reproduction exacte
-            layout_data = train_document_advanced(file_path, document.extracted_text or "")
-            
-            # Rendre avec mise en page originale et soulignement professionnel
-            highlighted_text = render_document_with_original_layout(
-                layout_data,
+            from simple_highlighter import generate_guaranteed_highlighting
+            highlighted_text = generate_guaranteed_highlighting(
+                document.extracted_text or "",
                 analysis_result.plagiarism_score,
                 analysis_result.ai_score
             )
-            
-            logging.info(f"🎓 Affichage avancé avec reproduction exacte appliqué pour {document.original_filename}")
+            logging.info(f"✅ Soulignement GARANTI appliqué pour {document.original_filename}")
             
         except Exception as e:
-            logging.error(f"Erreur mise en page originale: {e}")
-            # Fallback vers le système existant avec phrases en base
-            if plagiarism_sentences or ai_sentences:
-                from report_generator import report_generator
-                highlighted_text = report_generator._generate_highlighted_text(
-                    document.extracted_text or "",
-                    plagiarism_sentences,
-                    ai_sentences
-                )
-            else:
-                # SOULIGNEMENT GARANTI - Nouvelle méthode simple
-                from simple_highlighter import generate_guaranteed_highlighting
-                highlighted_text = generate_guaranteed_highlighting(
-                    document.extracted_text or "",
-                    analysis_result.plagiarism_score,
-                    analysis_result.ai_score
-                )
+            logging.error(f"Erreur fonction garantie: {e}")
+            # Fallback simple
+            highlighted_text = document.extracted_text or "Erreur d'affichage"
         
         # Générer les detailed issues correspondant EXACTEMENT au document
         detailed_issues = generate_detailed_issues_from_document(
