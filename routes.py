@@ -336,20 +336,32 @@ def view_report(document_id):
             is_ai_generated=True
         ).order_by(HighlightedSentence.start_position).all()
         
-        # SOULIGNEMENT SIMPLE ET PROPRE
+        # DOCUMENT ORIGINAL + SOULIGNEMENT SIMPLE
         highlighted_text = ""
         try:
+            from simple_document_renderer import render_document_with_simple_highlighting
+            from flask import current_app
+            
+            file_path = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'uploads'), document.filename)
+            
+            highlighted_text = render_document_with_simple_highlighting(
+                file_path,
+                document.extracted_text or "",
+                analysis_result.plagiarism_score,
+                analysis_result.ai_score
+            )
+            logging.info(f"✅ Document original + soulignement simple pour {document.original_filename}")
+            
+        except Exception as e:
+            logging.error(f"Erreur rendu document: {e}")
+            # Fallback simple
             from simple_clean_highlighter import generate_simple_highlighting
             highlighted_text = generate_simple_highlighting(
                 document.extracted_text or "",
                 analysis_result.plagiarism_score,
                 analysis_result.ai_score
             )
-            logging.info(f"✅ Soulignement SIMPLE appliqué pour {document.original_filename}")
-            
-        except Exception as e:
-            logging.error(f"Erreur soulignement simple: {e}")
-            highlighted_text = document.extracted_text or "Erreur d'affichage"
+            logging.info(f"✅ Fallback soulignement simple pour {document.original_filename}")
         
         # Récupérer les informations de source
         try:
