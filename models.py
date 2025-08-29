@@ -6,9 +6,7 @@ from flask_login import UserMixin
 from sqlalchemy import UniqueConstraint
 
 class UserRole(Enum):
-    STUDENT = "student"
-    PROFESSOR = "professor"
-    ADMIN = "admin"
+    USER = "user"
 
 class DocumentStatus(Enum):
     UPLOADED = "uploaded"
@@ -24,7 +22,7 @@ class User(UserMixin, db.Model):
     last_name = db.Column(db.String, nullable=False)
     password_hash = db.Column(db.String(256))  # For classic authentication
     profile_image_url = db.Column(db.String, nullable=True)
-    role = db.Column(db.Enum(UserRole), default=UserRole.STUDENT, nullable=False)
+    role = db.Column(db.Enum(UserRole), default=UserRole.USER, nullable=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
     
     created_at = db.Column(db.DateTime, default=datetime.now)

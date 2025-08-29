@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Connexion - AcadCheck{% endblock %}
+{% block title %}Login - AcadCheck{% endblock %}
 
 {% block content %}
 <div class="min-vh-100 d-flex align-items-center py-5" style="background: var(--gradient-primary);">
@@ -10,9 +10,9 @@
                 <div class="card shadow-xl border-0" style="backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.95);">
                     <div class="card-header border-0 text-center py-4" style="background: linear-gradient(135deg, var(--academic-primary), var(--academic-secondary));">
                         <h2 class="h3 text-white mb-0">
-                            <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                            <i class="fas fa-sign-in-alt me-2"></i>Login
                         </h2>
-                        <p class="text-white-50 mb-0 mt-2">Accédez à votre espace AcadCheck</p>
+                        <p class="text-white-50 mb-0 mt-2">Access your AcadCheck account</p>
                     </div>
                     
                     <div class="card-body p-4">
@@ -31,50 +31,44 @@
                         <form method="POST">
                             <!-- Email -->
                             <div class="form-floating mb-3">
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       placeholder="Email" value="{{ email or '' }}" required>
-                                <label for="email">Adresse email</label>
+                    <input type="email" class="form-control" id="email" name="email" 
+                        placeholder="Email address" value="{{ email or '' }}" required>
+                    <label for="email">Email address</label>
                             </div>
                             
-                            <!-- Mot de passe -->
+                            <!-- Password -->
                             <div class="form-floating mb-3">
-                                <input type="password" class="form-control" id="password" name="password" 
-                                       placeholder="Mot de passe" required>
-                                <label for="password">Mot de passe</label>
+                    <input type="password" class="form-control" id="password" name="password" 
+                        placeholder="Password" required>
+                    <label for="password">Password</label>
                             </div>
                             
-                            <!-- Se souvenir de moi -->
+                            <!-- Remember me -->
                             <div class="form-check mb-4">
                                 <input class="form-check-input" type="checkbox" id="remember_me" name="remember_me">
                                 <label class="form-check-label" for="remember_me">
-                                    Se souvenir de moi
+                                    Remember me
                                 </label>
                             </div>
                             
-                            <!-- Bouton de connexion -->
+                            <!-- Login Button -->
                             <div class="d-grid">
                                 <button type="submit" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt me-2"></i>Se connecter
+                                    <i class="fas fa-sign-in-alt me-2"></i>Login
                                 </button>
                             </div>
                         </form>
                         
-                        <!-- Lien vers inscription -->
+                        <!-- Register Link -->
                         <div class="text-center mt-4">
                             <p class="text-muted mb-0">
-                                Pas encore de compte ? 
+                                Don't have an account?
                                 <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-semibold">
-                                    Créer un compte
+                                    Create an account
                                 </a>
                             </p>
                         </div>
                         
-                        <!-- Mode démo -->
-                        <div class="text-center mt-3">
-                            <a href="{{ url_for('demo_mode') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-play me-2"></i>Essayer en mode démo
-                            </a>
-                        </div>
                     </div>
                 </div>
             </div>

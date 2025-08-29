@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Créer un compte - AcadCheck{% endblock %}
+{% block title %}{{ _('register_title') }} - AcadCheck{% endblock %}
 
 {% block content %}
 <div class="min-vh-100 d-flex align-items-center py-5" style="background: var(--gradient-primary);">
@@ -10,9 +10,9 @@
                 <div class="card shadow-xl border-0" style="backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.95);">
                     <div class="card-header border-0 text-center py-4" style="background: linear-gradient(135deg, var(--academic-primary), var(--academic-secondary));">
                         <h2 class="h3 text-white mb-0">
-                            <i class="fas fa-user-plus me-2"></i>Créer votre compte
+                            <i class="fas fa-user-plus me-2"></i>Create your account
                         </h2>
-                        <p class="text-white-50 mb-0 mt-2">Rejoignez AcadCheck pour analyser vos documents</p>
+                        <p class="text-white-50 mb-0 mt-2">Join AcadCheck to analyze your documents</p>
                     </div>
                     
                     <div class="card-body p-4">
@@ -24,7 +24,7 @@
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         {{ form.first_name(class="form-control" + (" is-invalid" if form.first_name.errors else "")) }}
-                                        {{ form.first_name.label(class="form-label") }}
+                                        First name *
                                         {% if form.first_name.errors %}
                                             <div class="invalid-feedback">
                                                 {{ form.first_name.errors[0] }}
@@ -35,7 +35,7 @@
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         {{ form.last_name(class="form-control" + (" is-invalid" if form.last_name.errors else "")) }}
-                                        {{ form.last_name.label(class="form-label") }}
+                                        Last name *
                                         {% if form.last_name.errors %}
                                             <div class="invalid-feedback">
                                                 {{ form.last_name.errors[0] }}
@@ -48,7 +48,7 @@
                             <!-- Email -->
                             <div class="form-floating mb-3">
                                 {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                                {{ form.email.label(class="form-label") }}
+                                Email address *
                                 {% if form.email.errors %}
                                     <div class="invalid-feedback">
                                         {{ form.email.errors[0] }}
@@ -56,25 +56,14 @@
                                 {% endif %}
                             </div>
                             
-                            <!-- Role Selection -->
-                            <div class="mb-3">
-                                <label class="form-label fw-semibold">
-                                    <i class="fas fa-user-tag me-2"></i>{{ form.role.label.text }}
-                                </label>
-                                {{ form.role(class="form-select" + (" is-invalid" if form.role.errors else "")) }}
-                                {% if form.role.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ form.role.errors[0] }}
-                                    </div>
-                                {% endif %}
-                            </div>
+                            <!-- No role selection: all users are 'user' -->
                             
                             <!-- Password Fields -->
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-                                        {{ form.password.label(class="form-label") }}
+                                        Password *
                                         {% if form.password.errors %}
                                             <div class="invalid-feedback">
                                                 {{ form.password.errors[0] }}
@@ -85,7 +74,7 @@
                                 <div class="col-md-6">
                                     <div class="form-floating">
                                         {{ form.password_confirm(class="form-control" + (" is-invalid" if form.password_confirm.errors else "")) }}
-                                        {{ form.password_confirm.label(class="form-label") }}
+                                        Confirm password *
                                         {% if form.password_confirm.errors %}
                                             <div class="invalid-feedback">
                                                 {{ form.password_confirm.errors[0] }}
@@ -99,7 +88,7 @@
                             <div class="form-check mb-4">
                                 {{ form.terms_accepted(class="form-check-input" + (" is-invalid" if form.terms_accepted.errors else "")) }}
                                 <label class="form-check-label" for="{{ form.terms_accepted.id }}">
-                                    {{ form.terms_accepted.label.text }}
+                                    I accept the terms of use and privacy policy *
                                 </label>
                                 {% if form.terms_accepted.errors %}
                                     <div class="invalid-feedback">
@@ -117,17 +106,17 @@
                         <!-- Login Link -->
                         <div class="text-center mt-4">
                             <p class="text-muted mb-0">
-                                Vous avez déjà un compte ? 
-                                <a href="{{ url_for('auth.login') }}" class="text-decoration-none fw-semibold">
-                                    Se connecter
+                                Already have an account?
+                                <a href="{{ url_for('auth.login', language=current_language) }}" class="text-decoration-none fw-semibold">
+                                    Login
                                 </a>
                             </p>
                         </div>
                         
                         <!-- Demo Mode Link -->
                         <div class="text-center mt-3">
-                            <a href="{{ url_for('demo_mode') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-play me-2"></i>Essayer en mode démo
+                               <a href="{{ url_for('demo_mode', language=current_language) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-play me-2"></i>{{ _('register_demo_mode') }}
                             </a>
                         </div>
                     </div>

@@ -34,11 +34,21 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['COPYLEAKS_EMAIL'] = os.environ.get('COPYLEAKS_EMAIL', 'your-email@example.com')
 app.config['COPYLEAKS_API_KEY'] = os.environ.get('COPYLEAKS_API_KEY', 'your-api-key')
 
+
 # initialize the app with the extension
 db.init_app(app)
 
+# Register authentication blueprint
+from auth_simple import auth_bp
+app.register_blueprint(auth_bp)
+
 # Create upload directory
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+# Create reports directory
+reports_dir = os.path.join(app.config['UPLOAD_FOLDER'], 'reports')
+os.makedirs(reports_dir, exist_ok=True)
+logging.info(f"Created upload directory: {app.config['UPLOAD_FOLDER']}")
+logging.info(f"Created reports directory: {reports_dir}")
 
 with app.app_context():
     # Make sure to import the models here or their tables won't be created

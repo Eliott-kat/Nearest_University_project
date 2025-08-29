@@ -1,5 +1,0 @@
-Wikipedia est une encyclopédie libre, écrite collectivement et publiée sur Internet. L'encyclopédie est multilingue, universelle, librement diffusable, et librement modifiable par tous. Elle compte plus de 55 millions d'articles dans 300 langues, rédigés et entretenus par des contributeurs bénévoles du monde entier. La version anglophone dépasse les 6,7 millions d'articles et la version francophone compte plus de 2,4 millions d'articles.
-
-Wikipedia est une encyclopédie libre en ligne multilingue rédigée et maintenue par une communauté de bénévoles, connus sous le nom de Wikipédiens, grâce à une collaboration ouverte et en utilisant un système d'édition basé sur un wiki appelé MediaWiki. Wikipedia est l'ouvrage de référence le plus important et le plus lu de l'histoire. Il figure constamment parmi les 15 sites Web les plus populaires classés par Alexa.
-
-Cette encyclopédie collaborative est fondée sur l'utilisation du wiki pour permettre la rédaction collective et l'amélioration continue du contenu. Le modèle de Wikipedia a inspiré de nombreux autres projets collaboratifs et a révolutionné la façon dont l'information est créée et partagée sur Internet.

@@ -1,0 +1,99 @@
+/* PDF Viewer Styles */
+.view-toggle-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.view-toggle-btn {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #dee2e6;
+    background: white;
+    color: #495057;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.view-toggle-btn:hover {
+    border-color: #007bff;
+    color: #007bff;
+}
+
+.view-toggle-btn.active {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.view-toggle-btn i {
+    font-size: 1.1rem;
+}
+
+.pdf-view-container {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+    min-height: 600px;
+    position: relative;
+}
+
+#text-view {
+    padding: 2rem;
+    background: white;
+}
+
+#pdf-view {
+    padding: 2rem;
+    background: #f8f9fa;
+    min-height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.pdf-viewer-placeholder {
+    text-align: center;
+    color: #6c757d;
+}
+
+.pdf-viewer-placeholder a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.pdf-viewer-placeholder a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .view-toggle-buttons {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .view-toggle-btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .pdf-view-container {
+        min-height: 400px;
+    }
+    
+    #text-view,
+    #pdf-view {
+        padding: 1rem;
+    }
+}

@@ -21,32 +21,57 @@ class ReportGenerator:
             self._initialized = True
     
     def generate_html_report(self, document: Document) -> Optional[str]:
-        """Generate HTML report for document analysis"""
+        """Generate HTML report for document analysis with original layout and real highlighting"""
         self._ensure_initialized()
         try:
             analysis_result = document.analysis_result
             if not analysis_result:
                 logging.error(f"No analysis result found for document {document.id}")
                 return None
-            
+
             # Get highlighted sentences
             plagiarism_sentences = HighlightedSentence.query.filter_by(
                 document_id=document.id,
                 is_plagiarism=True
             ).all()
-            
             ai_sentences = HighlightedSentence.query.filter_by(
                 document_id=document.id,
                 is_ai_generated=True
             ).all()
-            
-            # Generate highlighted text
-            highlighted_text = self._generate_highlighted_text(
-                document.extracted_text or "",
-                plagiarism_sentences,
-                ai_sentences
-            )
-            
+
+            # Rendu fidèle du document (mise en page, images, surlignement réel)
+            from simple_document_renderer import render_docx_with_original_layout_and_simple_highlighting, render_pdf_with_original_layout_and_simple_highlighting
+            import os
+            file_path = document.file_path if hasattr(document, 'file_path') else None
+            original_filename = document.original_filename.lower() if hasattr(document, 'original_filename') else ''
+            if file_path and os.path.exists(file_path):
+                if original_filename.endswith('.docx'):
+                    highlighted_text = render_docx_with_original_layout_and_simple_highlighting(
+                        file_path,
+                        document.extracted_text or "",
+                        float(getattr(analysis_result, 'plagiarism_score', 0)),
+                        float(getattr(analysis_result, 'ai_score', 0))
+                    )
+                elif original_filename.endswith('.pdf'):
+                    highlighted_text = render_pdf_with_original_layout_and_simple_highlighting(
+                        file_path,
+                        document.extracted_text or "",
+                        float(getattr(analysis_result, 'plagiarism_score', 0)),
+                        float(getattr(analysis_result, 'ai_score', 0))
+                    )
+                else:
+                    highlighted_text = self._generate_highlighted_text(
+                        document.extracted_text or "",
+                        plagiarism_sentences,
+                        ai_sentences
+                    )
+            else:
+                highlighted_text = self._generate_highlighted_text(
+                    document.extracted_text or "",
+                    plagiarism_sentences,
+                    ai_sentences
+                )
+
             # Prepare report data
             report_data = {
                 'document': document,
@@ -57,11 +82,11 @@ class ReportGenerator:
                 'generated_at': datetime.now(),
                 'total_issues': len(plagiarism_sentences) + len(ai_sentences)
             }
-            
+
             # Render HTML template
             html_content = render_template('report_pdf.html', **report_data)
             return html_content
-            
+
         except Exception as e:
             logging.error(f"Failed to generate HTML report for document {document.id}: {e}")
             return None

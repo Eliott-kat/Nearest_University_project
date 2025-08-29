@@ -1,223 +1,209 @@
-#!/usr/bin/env python3
 """
-Affichage du document EXACTEMENT comme sur l'ordinateur + soulignement simple
+Document renderer that preserves original layout and formatting
+with highlighting for plagiarism and AI detection
 """
-
 import os
 import logging
-from pathlib import Path
+import tempfile
+from typing import Optional
+import mammoth
+from PyPDF2 import PdfReader
+from docx import Document as DocxDocument
+from docx.shared import Inches, Pt
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.oxml.ns import qn
+from docx.oxml import parse_xml
+from docx.shared import RGBColor
 
-def render_document_with_simple_highlighting(file_path: str, extracted_text: str, plagiarism_score: float, ai_score: float) -> str:
-    """Affiche le document avec sa mise en page originale + soulignement simple"""
+def render_docx_with_original_layout_and_simple_highlighting(docx_path: str, 
+                                                           extracted_text: str,
+                                                           plagiarism_score: float,
+                                                           ai_score: float) -> str:
+    """
+    Render DOCX document with original layout and simple highlighting
+    """
     try:
-        if not os.path.exists(file_path):
-            logging.warning(f"Fichier non trouvé: {file_path}")
-            return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
-        
-        file_ext = Path(file_path).suffix.lower()
-        
-        if file_ext == '.docx':
-            return render_docx_with_original_layout_and_simple_highlighting(file_path, extracted_text, plagiarism_score, ai_score)
-        elif file_ext == '.pdf':
-            return render_pdf_with_original_layout_and_simple_highlighting(file_path, extracted_text, plagiarism_score, ai_score)
-        else:
-            return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
+        # Use mammoth to convert DOCX to HTML with basic styling
+        with open(docx_path, "rb") as docx_file:
+            result = mammoth.convert_to_html(docx_file)
+            html_content = result.value
             
-    except Exception as e:
-        logging.error(f"Erreur rendu document: {e}")
-        return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
-
-def render_docx_with_original_layout_and_simple_highlighting(file_path: str, extracted_text: str, plagiarism_score: float, ai_score: float) -> str:
-    """Rend un DOCX avec mise en page originale + soulignement simple + images"""
-    try:
-        from docx import Document
-        import re
-        import os
-        import base64
-        from io import BytesIO
-        
-        doc = Document(file_path)
-        html_content = []
-        
-        # Extraire les images du document
-        document_images = extract_images_from_docx(doc)
-        
-        # Style pour préserver l'apparence originale avec affichage complet
-        html_content.append('''
-        <div class="document-original" style="
-            font-family: 'Times New Roman', Times, serif !important;
-            font-size: 12pt !important;
-            line-height: 1.5 !important;
-            color: #000000 !important;
-            background: white;
-            margin: 0;
-            padding: 30px;
-            width: 100%;
-            max-width: none;
-            overflow: visible;
-            word-wrap: break-word;
-        ">
+        # Add basic styling for highlights
+        html_content = html_content.replace('</head>', '''
+            <style>
+                .highlight-plagiarism {
+                    background-color: #ffebee;
+                    border-left: 4px solid #f44336;
+                    padding: 2px 4px;
+                    margin: 1px 0;
+                }
+                .highlight-ai {
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #2196f3;
+                    padding: 2px 4px;
+                    margin: 1px 0;
+                }
+            </style>
+            </head>
         ''')
         
-        # Calculer les phrases à surligner (simple)
-        sentences = [s.strip() for s in re.split(r'[.!?]+', extracted_text) if s.strip() and len(s.strip()) > 10]
-        total_sentences = len(sentences)
-        plagiarism_count = max(1, int((plagiarism_score / 100) * total_sentences))
-        ai_count = max(1, int((ai_score / 100) * total_sentences))
-        
-        # Marquer les phrases problématiques
-        plagiarism_sentences = []
-        ai_sentences = []
-        
-        for i in range(min(plagiarism_count, total_sentences)):
-            sentence_index = i * 3
-            if sentence_index < len(sentences):
-                plagiarism_sentences.append(sentences[sentence_index])
-        
-        for i in range(min(ai_count, total_sentences)):
-            sentence_index = (i * 4) + 1
-            if sentence_index < len(sentences):
-                ai_sentences.append(sentences[sentence_index])
-        
-        # Traiter chaque paragraphe du document original + images
-        paragraph_index = 0
-        for paragraph in doc.paragraphs:
-            text = paragraph.text.strip()
-            
-            # Vérifier s'il y a des images dans ce paragraphe
-            paragraph_images = []
-            for run in paragraph.runs:
-                if hasattr(run, '_element') and run._element.xpath('.//a:blip'):
-                    for blip in run._element.xpath('.//a:blip'):
-                        embed = blip.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
-                        if embed and embed in document_images:
-                            paragraph_images.append(document_images[embed])
-            
-            # Ajouter les images avant le texte si elles existent
-            for img_data in paragraph_images:
-                html_content.append(f'''
-                <div style="text-align: center; margin: 20px 0;">
-                    <img src="data:image/png;base64,{img_data}" 
-                         style="max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" 
-                         alt="Image du document" />
-                </div>
-                ''')
-            
-            if not text and not paragraph_images:
-                html_content.append('<br>')
-                continue
-            
-            # Déterminer le style du paragraphe
-            para_style = ""
-            if paragraph.alignment is not None:
-                if paragraph.alignment == 1:  # Center
-                    para_style += "text-align: center; "
-                elif paragraph.alignment == 2:  # Right
-                    para_style += "text-align: right; "
-                elif paragraph.alignment == 3:  # Justify
-                    para_style += "text-align: justify; "
-            
-            # Appliquer le soulignement simple si nécessaire
-            highlighted_text = text
-            
-            # Vérifier si ce paragraphe contient des phrases problématiques
-            for plag_sentence in plagiarism_sentences:
-                if plag_sentence in highlighted_text:
-                    highlighted_text = highlighted_text.replace(
-                        plag_sentence,
-                        f'<span style="background-color: #ffdddd; border-left: 3px solid #cc0000; padding-left: 3px;">{plag_sentence}</span>',
-                        1
-                    )
-            
-            for ai_sentence in ai_sentences:
-                if ai_sentence in highlighted_text and 'background-color: #ffdddd' not in highlighted_text[highlighted_text.find(ai_sentence):]:
-                    highlighted_text = highlighted_text.replace(
-                        ai_sentence,
-                        f'<span style="background-color: #ddeeff; border-left: 3px solid #0066cc; padding-left: 3px; font-style: italic;">{ai_sentence}</span>',
-                        1
-                    )
-            
-            # S'assurer que chaque paragraphe est affiché complètement
-            html_content.append(f'<p style="margin: 6pt 0; {para_style} word-wrap: break-word; overflow: visible; width: 100%;">{highlighted_text}</p>')
-        
-        html_content.append('</div>')
-        
-        result = ''.join(html_content)
-        
-        # Log détaillé pour diagnostic
-        paragraph_count = result.count('<p style=')
-        total_length = len(result)
-        logging.info(f"✅ DOCX rendu COMPLET: {paragraph_count} paragraphes, {total_length} caractères")
-        
-        return result
+        return html_content
         
     except Exception as e:
-        logging.error(f"Erreur rendu DOCX: {e}")
-        return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
+        logging.error(f"Error rendering DOCX with layout: {e}")
+        # Fallback to simple text with highlighting
+        return _generate_simple_highlighted_text(extracted_text, plagiarism_score, ai_score)
 
-def render_pdf_with_original_layout_and_simple_highlighting(file_path: str, extracted_text: str, plagiarism_score: float, ai_score: float) -> str:
-    """Rend un PDF avec mise en page originale + soulignement simple"""
+def render_pdf_with_original_layout_and_simple_highlighting(pdf_path: str,
+                                                          extracted_text: str,
+                                                          plagiarism_score: float,
+                                                          ai_score: float) -> str:
+    """
+    Render PDF document with original layout information and simple highlighting
+    """
     try:
-        # Pour les PDFs, utiliser le texte extrait avec style académique
-        html_content = []
+        # Extract text with basic layout info from PDF
+        reader = PdfReader(pdf_path)
+        html_content = "<div style='font-family: Arial, sans-serif; line-height: 1.6;'>"
         
-        html_content.append('''
-        <div style="
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 11pt;
-            line-height: 1.4;
-            color: #000000;
-            background: white;
-            margin: 20px;
-            padding: 25px;
-            max-width: 210mm;
-        ">
+        for page_num, page in enumerate(reader.pages, 1):
+            text = page.extract_text()
+            if text:
+                html_content += f"<div style='page-break-before: always;'>"
+                html_content += f"<h4 style='color: #666;'>Page {page_num}</h4>"
+                html_content += f"<div style='border: 1px solid #eee; padding: 15px; margin: 10px 0;'>"
+                html_content += f"<pre style='white-space: pre-wrap; font-family: inherit;'>{text}</pre>"
+                html_content += "</div></div>"
+        
+        html_content += "</div>"
+        
+        # Add highlighting styles
+        html_content = html_content.replace('</head>', '''
+            <style>
+                .highlight-plagiarism {
+                    background-color: #ffebee;
+                    border-left: 4px solid #f44336;
+                    padding: 2px 4px;
+                    margin: 1px 0;
+                }
+                .highlight-ai {
+                    background-color: #e3f2fd;
+                    border-left: 4px solid #2196f3;
+                    padding: 2px 4px;
+                    margin: 1px 0;
+                }
+            </style>
+            </head>
         ''')
         
-        # Appliquer le soulignement simple au texte extrait
-        highlighted_text = apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
-        
-        # Préserver les sauts de ligne
-        paragraphs = highlighted_text.split('\n')
-        for para in paragraphs:
-            para = para.strip()
-            if para:
-                html_content.append(f'<p style="margin: 6pt 0; text-align: justify;">{para}</p>')
-            else:
-                html_content.append('<br>')
-        
-        html_content.append('</div>')
-        
-        result = ''.join(html_content)
-        logging.info(f"✅ PDF rendu avec layout original + soulignement simple")
-        return result
+        return html_content
         
     except Exception as e:
-        logging.error(f"Erreur rendu PDF: {e}")
-        return apply_simple_highlighting_to_text(extracted_text, plagiarism_score, ai_score)
+        logging.error(f"Error rendering PDF with layout: {e}")
+        # Fallback to simple text with highlighting
+        return _generate_simple_highlighted_text(extracted_text, plagiarism_score, ai_score)
 
-def extract_images_from_docx(doc) -> dict:
-    """Extrait les images du document DOCX"""
-    images = {}
+def _generate_simple_highlighted_text(text: str, plagiarism_score: float, ai_score: float) -> str:
+    """
+    Generate simple highlighted text with layout simulation
+    """
+    if not text:
+        return ""
+    
+    # Split into paragraphs to simulate document structure
+    paragraphs = text.split('\n\n')
+    highlighted_content = "<div style='font-family: Arial, sans-serif; line-height: 1.6; margin: 20px;'>"
+    
+    for i, paragraph in enumerate(paragraphs):
+        if paragraph.strip():
+            # Simulate paragraph with margin
+            highlighted_content += f"<p style='margin-bottom: 12px; text-align: justify;'>"
+            
+            # Add simple highlighting based on scores (simulated)
+            words = paragraph.split()
+            total_words = len(words)
+            
+            # Calculate number of words to highlight
+            plag_words = max(1, int(total_words * (plagiarism_score / 100)))
+            ai_words = max(1, int(total_words * (ai_score / 100)))
+            
+            # Highlight words
+            for j, word in enumerate(words):
+                if j < plag_words:
+                    highlighted_content += f"<span class='highlight-plagiarism'>{word}</span> "
+                elif j < plag_words + ai_words:
+                    highlighted_content += f"<span class='highlight-ai'>{word}</span> "
+                else:
+                    highlighted_content += f"{word} "
+            
+            highlighted_content += "</p>"
+    
+    highlighted_content += "</div>"
+    
+    return highlighted_content
+
+def create_docx_with_highlights(original_docx_path: str, output_path: str, 
+                               plagiarism_sentences: list, ai_sentences: list) -> bool:
+    """
+    Create a new DOCX file with original layout and highlighted problematic content
+    """
     try:
-        from docx.opc.constants import RELATIONSHIP_TYPE
-        import base64
+        # Load original document
+        doc = DocxDocument(original_docx_path)
         
-        # Parcourir les relations pour trouver les images
-        for rel in doc.part.rels.values():
-            if rel.reltype == RELATIONSHIP_TYPE.IMAGE:
-                image_data = rel.target_part.blob
-                # Encoder en base64 pour l'affichage HTML
-                image_base64 = base64.b64encode(image_data).decode('utf-8')
-                images[rel.rId] = image_base64
-                
-        logging.info(f"📸 {len(images)} images extraites du document DOCX")
-        return images
+        # Create highlighting styles
+        _add_highlight_styles(doc)
+        
+        # Apply highlights to paragraphs
+        _apply_highlights_to_docx(doc, plagiarism_sentences, ai_sentences)
+        
+        # Save the modified document
+        doc.save(output_path)
+        return True
+        
     except Exception as e:
-        logging.error(f"Erreur extraction images: {e}")
-        return {}
+        logging.error(f"Error creating DOCX with highlights: {e}")
+        return False
 
-def apply_simple_highlighting_to_text(text: str, plagiarism_score: float, ai_score: float) -> str:
-    """Applique un soulignement simple au texte brut"""
-    from simple_clean_highlighter import generate_simple_highlighting
-    return generate_simple_highlighting(text, plagiarism_score, ai_score)
+def _add_highlight_styles(doc):
+    """Add custom highlighting styles to the document"""
+    styles = doc.styles
+    
+    # Plagiarism highlight style
+    if 'HighlightPlagiarism' not in styles:
+        style = styles.add_style('HighlightPlagiarism', 1)
+        style.font.color.rgb = RGBColor(255, 255, 255)
+        style.font.bold = True
+        paragraph_format = style.paragraph_format
+        paragraph_format.left_indent = Inches(0.1)
+        paragraph_format.right_indent = Inches(0.1)
+        
+        # Add shading
+        shading_elm = parse_xml(r'<w:shd {} w:fill="FFEBEE"/>'.format(
+            qn('w:val').format('clear')))
+        style.element.rPr.append(shading_elm)
+    
+    # AI highlight style
+    if 'HighlightAI' not in styles:
+        style = styles.add_style('HighlightAI', 1)
+        style.font.color.rgb = RGBColor(255, 255, 255)
+        style.font.bold = True
+        paragraph_format = style.paragraph_format
+        paragraph_format.left_indent = Inches(0.1)
+        paragraph_format.right_indent = Inches(0.1)
+        
+        # Add shading
+        shading_elm = parse_xml(r'<w:shd {} w:fill="E3F2FD"/>'.format(
+            qn('w:val').format('clear')))
+        style.element.rPr.append(shading_elm)
+
+def _apply_highlights_to_docx(doc, plagiarism_sentences, ai_sentences):
+    """Apply highlights to DOCX paragraphs"""
+    # This is a simplified implementation
+    # In a real scenario, you'd need to match sentences with document content
+    for paragraph in doc.paragraphs:
+        text = paragraph.text
+        if any(sentence.sentence_text in text for sentence in plagiarism_sentences):
+            paragraph.style = doc.styles['HighlightPlagiarism']
+        elif any(sentence.sentence_text in text for sentence in ai_sentences):
+            paragraph.style = doc.styles['HighlightAI']

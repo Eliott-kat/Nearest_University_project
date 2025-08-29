@@ -200,9 +200,9 @@ def security_headers(app):
         # CSP basique
         response.headers['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net; "
-            "font-src 'self' cdn.jsdelivr.net; "
+            "script-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com maxcdn.bootstrapcdn.com; "
+            "style-src 'self' 'unsafe-inline' cdn.jsdelivr.net cdnjs.cloudflare.com maxcdn.bootstrapcdn.com fonts.googleapis.com; "
+            "font-src 'self' cdn.jsdelivr.net cdnjs.cloudflare.com maxcdn.bootstrapcdn.com fonts.gstatic.com; "
             "img-src 'self' data:; "
             "connect-src 'self'"
         )

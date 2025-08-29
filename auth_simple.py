@@ -65,7 +65,7 @@ def register():
             user.last_name = last_name.title()
             user.email = email
             user.password_hash = generate_password_hash(password)
-            user.role = UserRole.PROFESSOR if role == 'professor' else UserRole.STUDENT
+            user.role = UserRole.USER
             user.active = True
             user.created_at = datetime.now()
             user.updated_at = datetime.now()
@@ -83,8 +83,12 @@ def register():
             return redirect(url_for('dashboard'))
             
         except Exception as e:
+            import traceback
             db.session.rollback()
-            flash('Erreur lors de la création du compte. Veuillez réessayer.', 'danger')
+            print("===== ERREUR CRÉATION COMPTE =====")
+            traceback.print_exc()
+            print("===== FIN ERREUR CRÉATION COMPTE =====")
+            flash(f'Erreur lors de la création du compte : {e}', 'danger')
             return render_template('auth/register_simple.html')
     
     return render_template('auth/register_simple.html')

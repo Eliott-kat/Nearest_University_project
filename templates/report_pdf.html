@@ -327,11 +327,14 @@
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <div class="header">
-        <h1>Academic Integrity Report</h1>
-        <div class="subtitle">Comprehensive Plagiarism and AI Content Analysis</div>
-        <div class="subtitle">Generated on {{ generated_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+    <!-- Cover Page -->
+    <div class="header" style="page-break-after: always;">
+        <h1 style="font-size: 32pt; margin-top: 4cm;">Academic Integrity Report</h1>
+        <div class="subtitle" style="font-size: 18pt; margin-top: 2cm;">Comprehensive Plagiarism and AI Content Analysis</div>
+        <div class="subtitle" style="font-size: 14pt; margin-top: 2cm;">File: <strong>{{ document.original_filename }}</strong></div>
+        <div class="subtitle" style="font-size: 14pt; margin-top: 1cm;">Generated on {{ generated_at.strftime('%B %d, %Y at %I:%M %p') }}</div>
+        <div class="subtitle" style="font-size: 14pt; margin-top: 1cm;">Student/User: <strong>{{ document.user_id or 'N/A' }}</strong></div>
+        <div class="subtitle" style="font-size: 14pt; margin-top: 1cm;">Document ID: <strong>{{ document.id }}</strong></div>
     </div>
 
     <!-- Document Information -->

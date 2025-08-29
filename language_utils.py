@@ -17,27 +17,17 @@ except ImportError:
 class LanguageManager:
     """Gestionnaire de langue pour l'application"""
     
-    DEFAULT_LANGUAGE = 'fr'
+    DEFAULT_LANGUAGE = 'en'
     SUPPORTED_LANGUAGES = ['fr', 'en']
     
     @classmethod
     def get_current_language(cls) -> str:
-        """Obtenir la langue actuelle de l'utilisateur"""
-        # 1. Vérifier la session
+        """Toujours retourner l'anglais comme langue par défaut, sauf si la session impose autre chose"""
         if 'language' in session and session['language'] in cls.SUPPORTED_LANGUAGES:
             return session['language']
-        
-        # 2. Vérifier les headers Accept-Language du navigateur
-        if hasattr(request, 'accept_languages'):
-            for lang in request.accept_languages:
-                lang_code = lang[0][:2].lower()
-                if lang_code in cls.SUPPORTED_LANGUAGES:
-                    cls.set_language(lang_code)
-                    return lang_code
-        
-        # 3. Retourner la langue par défaut
-        cls.set_language(cls.DEFAULT_LANGUAGE)
-        return cls.DEFAULT_LANGUAGE
+        # Forcer l'anglais par défaut
+        cls.set_language('en')
+        return 'en'
     
     @classmethod
     def set_language(cls, language: str) -> bool:

@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Connexion - AcadCheck{% endblock %}
+{% block title %}{{ _('login_title') }} - AcadCheck{% endblock %}
 
 {% block content %}
 <div class="min-vh-100 d-flex align-items-center py-5" style="background: var(--gradient-primary);">
@@ -10,9 +10,9 @@
                 <div class="card shadow-xl border-0" style="backdrop-filter: blur(20px); background: rgba(255, 255, 255, 0.95);">
                     <div class="card-header border-0 text-center py-4" style="background: linear-gradient(135deg, var(--academic-primary), var(--academic-secondary));">
                         <h2 class="h3 text-white mb-0">
-                            <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                            <i class="fas fa-sign-in-alt me-2"></i>{{ _('login_title') }}
                         </h2>
-                        <p class="text-white-50 mb-0 mt-2">Accédez à votre espace AcadCheck</p>
+                        <p class="text-white-50 mb-0 mt-2">{{ _('login_subtitle') }}</p>
                     </div>
                     
                     <div class="card-body p-4">
@@ -22,7 +22,7 @@
                             <!-- Email -->
                             <div class="form-floating mb-3">
                                 {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else "")) }}
-                                {{ form.email.label(class="form-label") }}
+                                {{ _(form.email.label.text) }}
                                 {% if form.email.errors %}
                                     <div class="invalid-feedback">
                                         {{ form.email.errors[0] }}
@@ -33,7 +33,7 @@
                             <!-- Password -->
                             <div class="form-floating mb-3">
                                 {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
-                                {{ form.password.label(class="form-label") }}
+                                {{ _(form.password.label.text) }}
                                 {% if form.password.errors %}
                                     <div class="invalid-feedback">
                                         {{ form.password.errors[0] }}
@@ -45,30 +45,30 @@
                             <div class="form-check mb-4">
                                 {{ form.remember_me(class="form-check-input") }}
                                 <label class="form-check-label" for="{{ form.remember_me.id }}">
-                                    {{ form.remember_me.label.text }}
+                                    {{ _(form.remember_me.label.text) }}
                                 </label>
                             </div>
                             
                             <!-- Submit Button -->
                             <div class="d-grid">
-                                {{ form.submit(class="btn btn-primary btn-lg") }}
+                                {{ _(form.submit.label.text) }}
                             </div>
                         </form>
                         
                         <!-- Registration Link -->
                         <div class="text-center mt-4">
                             <p class="text-muted mb-0">
-                                Pas encore de compte ? 
-                                <a href="{{ url_for('auth.register') }}" class="text-decoration-none fw-semibold">
-                                    Créer un compte
+                                {{ _('login_no_account') }}
+                                <a href="{{ url_for('auth.register', language=current_language) }}" class="text-decoration-none fw-semibold">
+                                    {{ _('register') }}
                                 </a>
                             </p>
                         </div>
                         
                         <!-- Demo Mode Link -->
                         <div class="text-center mt-3">
-                            <a href="{{ url_for('demo_mode') }}" class="btn btn-outline-secondary btn-sm">
-                                <i class="fas fa-play me-2"></i>Essayer en mode démo
+                            <a href="{{ url_for('demo_mode', language=current_language) }}" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-play me-2"></i>{{ _('register_demo_mode') }}
                             </a>
                         </div>
                     </div>

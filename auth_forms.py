@@ -7,56 +7,51 @@ from wtforms.validators import DataRequired, Email, Length, EqualTo, ValidationE
 from models import User, UserRole
 
 class RegistrationForm(FlaskForm):
-    first_name = StringField('Prénom', validators=[
-        DataRequired(message='Le prénom est requis'), 
-        Length(min=2, max=50, message='Le prénom doit contenir entre 2 et 50 caractères')
+    first_name = StringField('First name', validators=[
+        DataRequired(message='First name is required'),
+        Length(min=2, max=50, message='First name must be between 2 and 50 characters')
     ])
-    
-    last_name = StringField('Nom', validators=[
-        DataRequired(message='Le nom est requis'), 
-        Length(min=2, max=50, message='Le nom doit contenir entre 2 et 50 caractères')
+
+    last_name = StringField('Last name', validators=[
+        DataRequired(message='Last name is required'),
+        Length(min=2, max=50, message='Last name must be between 2 and 50 characters')
     ])
-    
-    email = EmailField('Email', validators=[
-        DataRequired(message='L\'email est requis'), 
-        Email(message='Veuillez entrer une adresse email valide')
+
+    email = EmailField('Email address', validators=[
+        DataRequired(message='Email is required'),
+        Email(message='Please enter a valid email address')
     ])
-    
-    password = PasswordField('Mot de passe', validators=[
-        DataRequired(message='Le mot de passe est requis'),
-        Length(min=8, message='Le mot de passe doit contenir au moins 8 caractères')
+
+    password = PasswordField('Password', validators=[
+        DataRequired(message='Password is required'),
+        Length(min=8, message='Password must be at least 8 characters')
     ])
-    
-    password_confirm = PasswordField('Confirmer le mot de passe', validators=[
-        DataRequired(message='La confirmation du mot de passe est requise'),
-        EqualTo('password', message='Les mots de passe ne correspondent pas')
+
+    password_confirm = PasswordField('Confirm password', validators=[
+        DataRequired(message='Password confirmation is required'),
+        EqualTo('password', message='Passwords do not match')
     ])
-    
-    role = SelectField('Rôle', choices=[
-        (UserRole.STUDENT.value, 'Étudiant'),
-        (UserRole.PROFESSOR.value, 'Professeur')
-    ], default=UserRole.STUDENT.value, validators=[DataRequired()])
-    
-    terms_accepted = BooleanField('J\'accepte les conditions d\'utilisation', validators=[
-        DataRequired(message='Vous devez accepter les conditions d\'utilisation')
+
+    terms_accepted = BooleanField('I accept the terms of use and privacy policy', validators=[
+        DataRequired(message='You must accept the terms of use and privacy policy')
     ])
-    
-    submit = SubmitField('Créer le compte')
+
+    submit = SubmitField('Create account')
     
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data.lower()).first()
         if user:
-            raise ValidationError('Cette adresse email est déjà utilisée. Veuillez en choisir une autre.')
+            raise ValidationError('This email address is already in use. Please choose another one.')
 
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[
-        DataRequired(message='L\'email est requis')
+        DataRequired(message='Email is required')
     ])
-    
-    password = PasswordField('Mot de passe', validators=[
-        DataRequired(message='Le mot de passe est requis')
+
+    password = PasswordField('Password', validators=[
+        DataRequired(message='Password is required')
     ])
-    
-    remember_me = BooleanField('Se souvenir de moi')
-    
-    submit = SubmitField('Se connecter')
+
+    remember_me = BooleanField('Remember me')
+
+    submit = SubmitField('Login')

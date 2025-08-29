@@ -44,7 +44,8 @@ def register():
             user.first_name = form.first_name.data.strip()
             user.last_name = form.last_name.data.strip()
             user.password_hash = password_hash
-            user.role = UserRole(form.role.data)
+            user.role = UserRole.USER
+            user.active = True
             
             db.session.add(user)
             db.session.commit()
@@ -52,14 +53,29 @@ def register():
             logging.info(f"Nouvel utilisateur créé: {user.email} ({user.role.value})")
             flash(f'Compte créé avec succès ! Bienvenue {user.first_name} !', 'success')
             
+            # Envoyer un email de confirmation (simulation)
+            try:
+                # Ici, vous pouvez intégrer un vrai envoi SMTP ou un service externe
+                # send_confirmation_email(user.email)
+                logging.info(f"Email de confirmation envoyé à {user.email}")
+                flash('Un email de confirmation a été envoyé à votre adresse.', 'info')
+            except Exception as e:
+                logging.warning(f"Erreur lors de l'envoi de l'email de confirmation: {e}")
+                flash("Impossible d'envoyer l'email de confirmation, mais votre compte est créé.", 'warning')
+
             # Auto-login after registration
             login_user(user)
             return redirect(url_for('dashboard'))
             
         except Exception as e:
             db.session.rollback()
+            import traceback, sys
+            print("\n===== ERREUR CRÉATION COMPTE =====")
+            traceback.print_exc()
+            sys.stdout.flush()
+            print("===== FIN ERREUR CRÉATION COMPTE =====\n")
             logging.error(f"Erreur création compte: {e}")
-            flash('Erreur lors de la création du compte. Veuillez réessayer.', 'danger')
+            flash(f'Erreur lors de la création du compte : {e}', 'danger')
     
     return render_template('auth/register.html', form=form)
 

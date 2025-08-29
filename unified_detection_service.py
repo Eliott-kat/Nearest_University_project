@@ -16,63 +16,52 @@ from improved_detection_algorithm import ImprovedDetectionAlgorithm
 
 class UnifiedDetectionService:
     def __init__(self):
-        self.copyleaks = CopyleaksService()
-        self.plagiarismcheck = PlagiarismCheckService()
-        self.turnitin_local = TurnitinStyleDetector()
-        self.ai_detector = SimpleAIDetector()
-        self.improved_algorithm = ImprovedDetectionAlgorithm()
-        
-        # Configuration des priorités - ALGORITHME LOCAL EN PRIORITÉ
-        self.services = [
-            ('improved_algorithm', self.improved_algorithm),  # PRIORITÉ 1: Algorithme local calibré
-            ('copyleaks', self.copyleaks),                    # PRIORITÉ 2: Copyleaks (si disponible)
-            ('plagiarismcheck', self.plagiarismcheck)         # PRIORITÉ 3: PlagiarismCheck
-        ]
+        # Utilisation exclusive de ai_perplexity_detectgpt.py
+        from ai_perplexity_detectgpt import fusion_plagiarism_score, ai_detection_score_optimized
+        self.fusion_plagiarism_score = fusion_plagiarism_score
+        self.ai_detection_score_optimized = ai_detection_score_optimized
         
     def analyze_text(self, text: str, filename: str = "document.txt") -> Dict:
         """
-        Analyse un texte en utilisant le système à 3 niveaux
+        Analyse un texte en utilisant uniquement ai_perplexity_detectgpt.py
         """
-        logging.info(f"Démarrage analyse unifiée pour: {filename}")
-        
-        # Essayer chaque service dans l'ordre de priorité
-        for service_name, service in self.services:
-            try:
-                logging.info(f"Tentative avec {service_name}")
-                
-                result = None
-                if service_name == 'copyleaks':
-                    result = self._try_copyleaks(text, filename)
-                elif service_name == 'plagiarismcheck':
-                    result = self._try_plagiarismcheck(text, filename)
-                elif service_name == 'improved_algorithm':
-                    result = self._try_improved_algorithm(text, filename)
-                elif service_name == 'turnitin_local':
-                    result = self._try_turnitin_local(text, filename)
-                
-                if result and self._is_valid_result(result):
-                    logging.info(f"Succès avec {service_name}: {result.get('plagiarism', {}).get('percent', 0)}% plagiat détecté")
-                    result['provider_used'] = service_name
-                    return result
-                else:
-                    logging.warning(f"Échec ou résultat invalide avec {service_name}")
-                    
-            except Exception as e:
-                logging.error(f"Erreur avec {service_name}: {e}")
-                continue
-        
-        # Si tous les services échouent, retourner un résultat par défaut
-        logging.error("Tous les services de détection ont échoué")
-        return {
-            'plagiarism': {
-                'percent': 0,
-                'sources_found': 0,
-                'details': [],
-                'matched_length': 0
-            },
-            'provider_used': 'none',
-            'error': 'Tous les services de détection ont échoué'
-        }
+        logging.info(f"Démarrage analyse ai_perplexity_detectgpt pour: {filename}")
+        try:
+            plag_score, plag_exact, plag_sem = self.fusion_plagiarism_score(text)
+            ai_result = self.ai_detection_score_optimized(text)
+            return {
+                'plagiarism': {
+                    'percent': plag_score,
+                    'exact': plag_exact,
+                    'semantic': plag_sem,
+                    'sources_found': 0,
+                    'details': [],
+                    'matched_length': 0
+                },
+                'ai_content': {
+                    'percent': ai_result.get('score', 0),
+                    'perplexity': ai_result.get('perplexity', 0),
+                    'burstiness': ai_result.get('burstiness', 0),
+                    'norm_ppl': ai_result.get('details', {}).get('norm_ppl', 0),
+                    'norm_burstiness': ai_result.get('details', {}).get('norm_burstiness', 0)
+                },
+                'provider_used': 'ai_perplexity_detectgpt'
+            }
+        except Exception as e:
+            logging.error(f"Erreur ai_perplexity_detectgpt: {e}")
+            return {
+                'plagiarism': {
+                    'percent': 0,
+                    'sources_found': 0,
+                    'details': [],
+                    'matched_length': 0
+                },
+                'ai_content': {
+                    'percent': 0
+                },
+                'provider_used': 'ai_perplexity_detectgpt',
+                'error': str(e)
+            }
     
     def _try_copyleaks(self, text: str, filename: str) -> Optional[Dict]:
         """Essaie l'analyse avec Copyleaks"""

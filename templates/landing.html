@@ -75,14 +75,11 @@
                 </div>
                 
                 <div class="hero-actions">
-                    <a href="{{ url_for('auth.register') }}" class="btn btn-premium btn-lg me-3">
-                        <i class="fas fa-user-plus me-2"></i>Créer un compte
+                    <a href="{{ url_for('auth.register', language=current_language) }}" class="btn btn-premium btn-lg me-3">
+                        <i class="fas fa-user-plus me-2"></i>{{ _('register') }}
                     </a>
-                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg me-3">
-                        <i class="fas fa-sign-in-alt me-2"></i>Se connecter
-                    </a>
-                    <a href="{{ url_for('demo_mode') }}" class="btn btn-outline-secondary btn-lg">
-                        <i class="fas fa-play me-2"></i>Mode démo
+                    <a href="{{ url_for('auth.login', language=current_language) }}" class="btn btn-outline-primary btn-lg me-3">
+                        <i class="fas fa-sign-in-alt me-2"></i>{{ _('login') }}
                     </a>
                 </div>
             </div>
@@ -137,8 +134,8 @@
                     </div>
                     <h4 class="fw-bold mb-3">Advanced Plagiarism Detection</h4>
                     <p class="text-muted">
-                        Scan against 60+ trillion web pages, academic journals, and publications. 
-                        Get detailed similarity reports with source identification.
+                        Check your documents against a vast database of web pages, academic journals, and publications.<br>
+                        Receive detailed similarity reports with clear source identification and percentage matches.
                     </p>
                 </div>
             </div>
@@ -187,10 +184,10 @@
                     <div class="feature-icon bg-secondary text-white rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
                         <i class="fas fa-users fa-2x"></i>
                     </div>
-                    <h4 class="fw-bold mb-3">Role-Based Access</h4>
+                    <h4 class="fw-bold mb-3">Secure User Access</h4>
                     <p class="text-muted">
-                        Different access levels for students, professors, and administrators 
-                        with appropriate permissions and dashboard views.
+                        Each user has a secure personal account with access to their own documents and reports.<br>
+                        Admins can manage the platform and user accounts with dedicated tools.
                     </p>
                 </div>
             </div>
@@ -202,8 +199,8 @@
                     </div>
                     <h4 class="fw-bold mb-3">Secure & Private</h4>
                     <p class="text-muted">
-                        Military-grade encryption, SOC 2 certified infrastructure, 
-                        and GDPR compliance ensure your documents remain secure.
+                        Your documents are protected with strong encryption and stored on secure, privacy-focused infrastructure.<br>
+                        We are committed to GDPR compliance and never share your files with third parties.
                     </p>
                 </div>
             </div>

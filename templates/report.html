@@ -3,81 +3,97 @@
 {% block title %}{{ _('report_title') }} - {{ document.original_filename }} - AcadCheck{% endblock %}
 
 {% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pdf-viewer.css') }}">
 <style>
+    /* Turnitin-style professional highlighting */
     .highlight-plagiarism {
-        border-radius: 2px !important;
-        padding: 1px 2px !important;
+        background-color: rgba(255, 235, 238, 0.7) !important; /* Light red background */
+        border-bottom: 2px solid #f44336 !important; /* Red underline */
+        padding: 0 1px !important;
         margin: 0 !important;
         position: relative !important;
         text-decoration: none !important;
         display: inline !important;
-        transition: all 0.2s ease !important;
+        color: inherit !important;
+        font-weight: normal !important;
+        border-radius: 0 !important;
+        transition: background-color 0.15s ease !important;
     }
     
     .highlight-ai {
-        border-radius: 2px !important;
-        padding: 1px 2px !important;
+        background-color: rgba(227, 242, 253, 0.7) !important; /* Light blue background */
+        border-bottom: 2px solid #2196f3 !important; /* Blue underline */
+        padding: 0 1px !important;
         margin: 0 !important;
-        font-style: italic !important;
         position: relative !important;
         text-decoration: none !important;
         display: inline !important;
-        transition: all 0.2s ease !important;
+        color: inherit !important;
+        font-style: normal !important;
+        border-radius: 0 !important;
+        transition: background-color 0.15s ease !important;
     }
     
     .highlight-plagiarism:hover {
-        transform: translateY(-1px) !important;
+        background-color: rgba(255, 205, 210, 0.9) !important;
     }
     
     .highlight-ai:hover {
-        transform: translateY(-1px) !important;
+        background-color: rgba(187, 222, 251, 0.9) !important;
     }
     
-    .highlight-plagiarism::after {
+    /* Tooltip styling for Turnitin-like percentage display */
+    .highlight-plagiarism::before,
+    .highlight-ai::before {
         content: attr(data-percentage);
         position: absolute;
-        right: -20px;
-        top: -8px;
-        background: #f44336;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
         color: white;
+        padding: 4px 8px;
         border-radius: 3px;
-        padding: 1px 4px;
-        font-size: 8px;
-        font-weight: bold;
-        opacity: 0;
-        transition: opacity 0.2s ease;
+        font-size: 11px;
+        font-weight: 500;
         white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+        z-index: 1000;
+        pointer-events: none;
     }
     
-    .highlight-ai::after {
-        content: attr(data-percentage);
-        position: absolute;
-        right: -20px;
-        top: -8px;
-        background: #2196f3;
-        color: white;
-        border-radius: 3px;
-        padding: 1px 4px;
-        font-size: 8px;
-        font-weight: bold;
-        opacity: 0;
-        transition: opacity 0.2s ease;
-        white-space: nowrap;
-    }
-    
-    .highlight-plagiarism:hover::after,
-    .highlight-ai:hover::after {
+    .highlight-plagiarism:hover::before,
+    .highlight-ai:hover::before {
         opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(-5px);
     }
     
 
     
-    @keyframes criticalHighlight {
-        0% { opacity: 0.6; transform: scale(1); box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4); }
-        25% { opacity: 1; transform: scale(1.03); box-shadow: 0 6px 16px rgba(255, 152, 0, 0.6); }
-        50% { opacity: 0.9; transform: scale(1.01); box-shadow: 0 8px 20px rgba(255, 152, 0, 0.5); }
-        75% { opacity: 1; transform: scale(1.02); box-shadow: 0 6px 16px rgba(255, 152, 0, 0.6); }
-        100% { opacity: 0.85; transform: scale(1); box-shadow: 0 4px 12px rgba(255, 152, 0, 0.4); }
+    /* Clean, professional document styling */
+    .document-text {
+        line-height: 1.6 !important;
+        font-size: 12pt !important;
+        background: #ffffff !important;
+        border-radius: 0 !important;
+        padding: 72pt 72pt 72pt 72pt !important;
+        border: 1px solid #e0e0e0 !important;
+        font-family: 'Times New Roman', serif !important;
+        text-align: justify !important;
+        color: #000000 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        position: relative !important;
+        overflow: visible !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        max-height: none !important;
+        width: 8.5in !important;
+        min-height: 11in !important;
+        margin: 32px auto !important;
+        page-break-inside: avoid !important;
     }
     
     .score-high { color: #d32f2f; }
@@ -107,13 +123,13 @@
     }
     
     .document-text .paragraph {
-        margin-bottom: 12pt;
-        text-indent: 0.5in;
-        line-height: 2.0;
-        text-align: justify;
-        font-size: 12pt;
-        font-family: 'Times New Roman', serif;
-        color: #000000;
+        margin-bottom: 12pt !important;
+        text-indent: 0.5in !important;
+        line-height: 1.6 !important;
+        text-align: justify !important;
+        font-size: 12pt !important;
+        font-family: 'Times New Roman', serif !important;
+        color: #000000 !important;
     }
     
     .document-text .section-title h2,
@@ -350,34 +366,34 @@
     <!-- Professional Header -->
     <div class="row mb-5">
         <div class="col-12">
-            <div class="analysis-summary p-4">
-                <div class="d-flex justify-content-between align-items-start">
+            <div class="analysis-summary p-4 shadow rounded-4" style="background: linear-gradient(90deg, #f5f7fa 0%, #c3cfe2 100%);">
+                <div class="d-flex justify-content-between align-items-start flex-wrap">
                     <div>
-                        <h1 class="h2 fw-bold mb-3" style="color: #1a237e;">
-                            <i class="fas fa-shield-check me-3 text-primary"></i>RAPPORT D'INTÉGRITÉ ACADÉMIQUE
+                        <h1 class="h2 fw-bold mb-3" style="color: #1a237e; letter-spacing: 1px;">
+                            <i class="fas fa-shield-check me-3 text-primary"></i>ACADEMIC INTEGRITY REPORT
                         </h1>
                         <h2 class="h4 mb-2" style="color: #283593;">📄 {{ document.original_filename }}</h2>
                         <p class="text-muted mb-3">
-                            <i class="fas fa-calendar-alt me-2"></i>Analysé le {{ analysis_result.created_at.strftime('%d %B %Y à %H:%M') }}
+                            <i class="fas fa-calendar-alt me-2"></i>Analyzed on {{ analysis_result.created_at.strftime('%B %d, %Y at %H:%M') }}
                         </p>
-                        <div class="d-flex gap-3">
-                            <span class="badge bg-danger fs-6 px-3 py-2">
-                                🔍 {{ analysis_result.plagiarism_score|round(1) }}% Plagiat
+                        <div class="d-flex gap-3 flex-wrap">
+                            <span class="badge bg-danger fs-6 px-3 py-2 shadow-sm" style="font-size: 1.1rem;">
+                                <i class="fas fa-search me-2"></i>{{ analysis_result.plagiarism_score|round(1) }}% Plagiarism
                             </span>
-                            <span class="badge bg-primary fs-6 px-3 py-2">
-                                🤖 {{ analysis_result.ai_score|round(1) }}% IA
+                            <span class="badge bg-primary fs-6 px-3 py-2 shadow-sm" style="font-size: 1.1rem;">
+                                <i class="fas fa-robot me-2"></i>{{ analysis_result.ai_score|round(1) }}% AI Content
                             </span>
-                            <span class="badge bg-success fs-6 px-3 py-2">
-                                🏠 Algorithme Local
+                            <span class="badge bg-success fs-6 px-3 py-2 shadow-sm" style="font-size: 1.1rem;">
+                                <i class="fas fa-home me-2"></i>Local Algorithm
                             </span>
                         </div>
                     </div>
-                    <div class="text-end">
-                        <a href="{{ url_for('download_report', document_id=document.id) }}" class="btn btn-success btn-lg me-2">
-                            <i class="fas fa-download me-2"></i>Télécharger PDF
+                    <div class="text-end mt-3 mt-md-0">
+                        <a href="{{ url_for('download_report', document_id=document.id) }}" class="btn btn-success btn-lg me-2 shadow">
+                            <i class="fas fa-download me-2"></i>Download PDF
                         </a>
-                        <a href="{{ url_for('document_history') }}" class="btn btn-outline-secondary btn-lg">
-                            <i class="fas fa-arrow-left me-2"></i>Retour
+                        <a href="{{ url_for('document_history') }}" class="btn btn-outline-secondary btn-lg shadow">
+                            <i class="fas fa-arrow-left me-2"></i>Back
                         </a>
                     </div>
                 </div>
@@ -464,53 +480,50 @@
         </div>
     </div>
 
-    <!-- Document Analysis -->
+    <!-- Document Analysis with PDF Viewer Toggle -->
     <div class="row">
         <div class="col-12">
             <div class="card border-0 shadow-lg">
-                <!-- Professional Header -->
-                <div class="document-header">
-                    <h3 class="mb-3 fw-bold">
-                        <i class="fas fa-file-search me-3"></i>RAPPORT D'ANALYSE ACADÉMIQUE
-                    </h3>
-                    <div class="d-flex justify-content-center gap-4 mb-3">
-                        <span class="analysis-badge plagiarism">
-                            🔍 {{ plagiarism_sentences|length }} Phrases Plagiées
-                        </span>
-                        <span class="analysis-badge ai">
-                            🤖 {{ ai_sentences|length }} Phrases IA
-                        </span>
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-file-alt me-2 text-primary"></i>Document Analysis
+                    </h5>
+                    <div class="view-toggle-buttons mt-3">
+                        <button id="toggle-text-view" class="view-toggle-btn">
+                            <i class="fas fa-align-left"></i> Text View
+                        </button>
+                        <button id="toggle-pdf-view" class="view-toggle-btn">
+                            <i class="fas fa-file-pdf"></i> PDF View
+                        </button>
                     </div>
-                    <p class="mb-0 opacity-75">
-                        <i class="fas fa-shield-alt me-2"></i>Analyse par Algorithme Turnitin-Style Avancé
-                    </p>
                 </div>
                 
                 <div class="card-body p-0">
-                    {% if highlighted_text %}
-                        <div class="document-text-turnitin document-original" style="
-                            font-family: 'Times New Roman', Times, serif !important;
-                            line-height: 1.6;
-                            color: #333;
-                            font-size: 12pt !important;
-                            background: #fff;
-                            padding: 40px;
-                            max-height: none !important;
-                            overflow: visible !important;
-                            text-align: justify;
-                            border-left: 4px solid #1976d2;
-                            width: 100%;
-                            word-wrap: break-word;
-                        ">
-                            {{ highlighted_text|safe }}
+                    <div id="pdf-viewer" data-pdf-url="{{ url_for('view_annotated_pdf', document_id=document.id) }}">
+                        <!-- Text View -->
+                        <div id="text-view">
+                            {% if highlighted_text %}
+                                <div class="document-text pro-doc-view">
+                                    {{ highlighted_text|safe }}
+                                </div>
+                            {% else %}
+                                <div class="text-center py-5">
+                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                                    <h5 class="text-muted">Contenu non disponible pour analyse</h5>
+                                    <p class="text-muted">Le texte du document n'a pas pu être traité pour le soulignement.</p>
+                                </div>
+                            {% endif %}
                         </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                            <h5 class="text-muted">Contenu non disponible pour analyse</h5>
-                            <p class="text-muted">Le texte du document n'a pas pu être traité pour le soulignement.</p>
+                        
+                        <!-- PDF View -->
+                        <div id="pdf-view" style="display: none;">
+                            <div class="pdf-viewer-placeholder">
+                                <i class="fas fa-file-pdf fa-4x mb-3 text-primary"></i>
+                                <h5>PDF Viewer Loading...</h5>
+                                <p>Click the PDF View button to load the annotated PDF document.</p>
+                            </div>
                         </div>
-                    {% endif %}
+                    </div>
                 </div>
                 
                 <!-- Legend -->
@@ -518,13 +531,13 @@
                     <div class="row text-center">
                         <div class="col-md-6">
                             <div class="d-flex align-items-center justify-content-center">
-                                <span class="highlight-plagiarism d-inline-block me-3 px-3 py-1">Exemple plagiat</span>
+                                <span class="highlight-plagiarism d-inline-block me-3 px-2" style="background-color: rgba(255, 235, 238, 0.7) !important; border-bottom: 2px solid #f44336 !important; padding: 2px 4px !important;">Exemple plagiat</span>
                                 <small class="text-muted">Contenu similaire trouvé dans sources académiques</small>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="d-flex align-items-center justify-content-center">
-                                <span class="highlight-ai d-inline-block me-3 px-3 py-1">Exemple IA</span>
+                                <span class="highlight-ai d-inline-block me-3 px-2" style="background-color: rgba(227, 242, 253, 0.7) !important; border-bottom: 2px solid #2196f3 !important; padding: 2px 4px !important;">Exemple IA</span>
                                 <small class="text-muted">Patterns formels typiques de génération automatique</small>
                             </div>
                         </div>
@@ -536,65 +549,19 @@
 </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/pdf-viewer.js') }}"></script>
 <script>
-// SOULIGNEMENT SUPER VISIBLE - CORRECTION FINALE
+// Professional Turnitin-style highlighting
 document.addEventListener('DOMContentLoaded', function() {
-    // CSS FORCÉ pour phrases IA
-    const aiSentences = document.querySelectorAll('.highlight-ai');
-    aiSentences.forEach(function(element, index) {
-        // Style ultra-visible
-        element.style.cssText = `
-            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%) !important;
-            color: white !important;
-            font-weight: bold !important;
-            border: 3px solid #0d47a1 !important;
-            border-radius: 8px !important;
-            padding: 6px 12px !important;
-            margin: 4px 2px !important;
-            display: inline-block !important;
-            box-shadow: 0 4px 8px rgba(25, 118, 210, 0.4) !important;
-            font-size: 1.05em !important;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-        `;
-        console.log('IA phrase stylée:', index + 1);
+    console.log('✅ Professional Turnitin-style highlighting applied');
+    
+    // Clean up any existing inline styles that might conflict
+    const allHighlights = document.querySelectorAll('.highlight-plagiarism, .highlight-ai');
+    allHighlights.forEach(element => {
+        element.removeAttribute('style');
     });
     
-    // CSS FORCÉ pour phrases plagiat
-    const plagiarismSentences = document.querySelectorAll('.highlight-plagiarism');
-    plagiarismSentences.forEach(function(element, index) {
-        // Style ultra-visible
-        element.style.cssText = `
-            background: linear-gradient(135deg, #d32f2f 0%, #f57c00 100%) !important;
-            color: white !important;
-            font-weight: bold !important;
-            border: 3px solid #b71c1c !important;
-            border-radius: 8px !important;
-            padding: 6px 12px !important;
-            margin: 4px 2px !important;
-            display: inline-block !important;
-            box-shadow: 0 4px 8px rgba(211, 47, 47, 0.4) !important;
-            font-size: 1.05em !important;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.3) !important;
-        `;
-        console.log('Plagiat phrase stylée:', index + 1);
-    });
-    
-    console.log('🎯 SOULIGNEMENT SUPER VISIBLE APPLIQUÉ:', aiSentences.length, 'phrases IA et', plagiarismSentences.length, 'phrases plagiat');
-    
-    // Diagnostic complet pour debug
-    if (aiSentences.length === 0 && plagiarismSentences.length === 0) {
-        console.error('❌ AUCUNE PHRASE TROUVÉE POUR SOULIGNEMENT');
-        const documentContainer = document.querySelector('.document-text-turnitin');
-        if (documentContainer) {
-            console.log('HTML présent:', documentContainer.innerHTML.substring(0, 200));
-            console.log('Classes trouvées:', [...documentContainer.querySelectorAll('*')].map(el => el.className).filter(c => c));
-        } else {
-            console.error('❌ Container .document-text-turnitin non trouvé');
-            console.log('Containers disponibles:', [...document.querySelectorAll('[class*=\"document\"]')].map(el => el.className));
-        }
-    } else {
-        console.log('✅ Soulignement réussi - phrases trouvées et stylées');
-    }
+    console.log('🎯 Clean professional highlighting applied to', allHighlights.length, 'sentences');
 });
 </script>
 
