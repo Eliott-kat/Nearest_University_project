@@ -1,0 +1,5 @@
+dist/
+build/
+*.pyz
+*.exe
+*.pkg
