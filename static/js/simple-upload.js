@@ -58,16 +58,21 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function handleFile(file) {
         if (!validateFile(file)) return;
-        
+
+        // Hide drop zone
+        if (dropZone) {
+            dropZone.style.display = 'none';
+        }
+
         // Afficher info fichier
         if (fileInfo) {
             const fileName = document.getElementById('fileName');
             const fileSize = document.getElementById('fileSize');
             const fileIcon = document.getElementById('fileIcon');
-            
+
             if (fileName) fileName.textContent = file.name;
             if (fileSize) fileSize.textContent = formatSize(file.size);
-            
+
             if (fileIcon) {
                 fileIcon.className = 'fas fa-2x text-success me-3';
                 const ext = file.name.toLowerCase();
@@ -79,14 +84,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     fileIcon.classList.add('fa-file-alt');
                 }
             }
-            
+
             fileInfo.style.display = 'block';
         }
-        
+
         if (submitBtn) {
             submitBtn.disabled = false;
         }
-        
+
         console.log('Fichier sélectionné:', file.name);
     }
     
@@ -121,9 +126,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Fonction globale pour clear
     window.clearFile = function() {
-        if (fileInput) fileInput.value = '';
-        if (fileInfo) fileInfo.style.display = 'none';
-        if (submitBtn) submitBtn.disabled = true;
+    if (fileInput) fileInput.value = '';
+    if (fileInfo) fileInfo.style.display = 'none';
+    if (submitBtn) submitBtn.disabled = true;
+    if (dropZone) dropZone.style.display = '';
     };
     
     console.log('Upload handler initialized');

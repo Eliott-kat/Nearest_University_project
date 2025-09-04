@@ -42,6 +42,11 @@ db.init_app(app)
 from auth_simple import auth_bp
 app.register_blueprint(auth_bp)
 
+# Branding context (allows dynamic renaming without touching templates)
+@app.context_processor
+def inject_brand():
+    return {"BRAND_NAME": os.environ.get("BRAND_NAME", "NEU-AcadCheck")}
+
 # Create upload directory
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 # Create reports directory

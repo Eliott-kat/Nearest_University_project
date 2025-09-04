@@ -1,10 +1,3 @@
-"""
-Routes for AcadCheck with authentication system
-"""
-import os
-import logging
-from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
-
 from app import app, db
 from models import Document, DocumentStatus, AnalysisResult, HighlightedSentence
 from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
@@ -12,7 +5,72 @@ from auth_simple import is_logged_in, get_current_user, require_auth
 from language_utils import LanguageManager
 from werkzeug.exceptions import RequestEntityTooLarge
 from pdf_annotation import generate_annotated_pdf_for_document
+# Ajouter ces imports pour la génération de documents formatés
+from docx import Document as DocxDocument
+from docx.shared import RGBColor, Pt
+from docx.enum.text import WD_UNDERLINE
+import tempfile
+import os
+import logging
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
+"""
+Routes for AcadCheck with authentication system
+"""
+@app.route('/report-html/<int:document_id>')
+@require_auth
+def view_report_html(document_id):
+    """Affiche le document Word original converti en HTML avec surlignement des passages détectés."""
+    import mammoth
+    import re
+    user_id = session.get('user_id') or session.get('demo_user', {}).get('id')
+    document = Document.query.filter_by(id=document_id, user_id=user_id).first_or_404()
+    # Chemin du fichier Word original
+    file_path = getattr(document, 'file_path', None)
+    if not file_path:
+        import os
+        upload_dir = os.path.join(os.getcwd(), 'uploads')
+        file_path = os.path.join(upload_dir, document.original_filename)
+    # Conversion DOCX -> HTML
+    with open(file_path, "rb") as docx_file:
+        result = mammoth.convert_to_html(docx_file)
+        html = result.value  # HTML string
 
+    # Récupérer les phrases à surligner
+    highlighted_sentences = HighlightedSentence.query.filter_by(document_id=document.id).order_by(HighlightedSentence.start_position).all()
+    for hs in highlighted_sentences:
+        plag_score = hs.plagiarism_score if hs.plagiarism_score is not None else 0
+        ai_score = hs.ai_score if hasattr(hs, 'ai_score') and hs.ai_score is not None else 0
+        if plag_score > 30:
+            color = "#ffb3b3"  # rouge clair
+        elif ai_score > 40:
+            color = "#b3c6ff"  # bleu clair
+        else:
+            color = "#ffff99"  # jaune
+        # Remplacer la phrase par une version surlignée (tolérance espaces)
+        pattern = re.escape(hs.sentence_text.strip())
+        html = re.sub(pattern, f'<span class="highlighted" style="background:{color};">{hs.sentence_text.strip()}</span>', html, flags=re.IGNORECASE)
+
+    # Ajouter un style CSS simple pour le surlignement
+    style = """
+    <style>
+    .highlighted { padding:2px 2px; border-radius:3px; }
+    </style>
+    """
+    return style + html
+
+from app import app, db
+"""
+Routes for AcadCheck with authentication system
+"""
+import os
+import logging
+from flask import render_template, request, redirect, url_for, flash, session, jsonify, send_file, abort
+from models import Document, DocumentStatus, AnalysisResult, HighlightedSentence
+from file_utils import save_uploaded_file, extract_text_from_file, get_file_size
+from auth_simple import is_logged_in, get_current_user, require_auth
+from language_utils import LanguageManager
+from werkzeug.exceptions import RequestEntityTooLarge
+from pdf_annotation import generate_annotated_pdf_for_document
 # Ajouter ces imports pour la génération de documents formatés
 from docx import Document as DocxDocument
 from docx.shared import RGBColor, Pt
@@ -34,58 +92,43 @@ def create_formatted_document_with_highlights(document, analysis_result):
     de plagiat et d'IA pour ressembler à l'original mais avec les annotations
     """
     try:
-        # Créer un nouveau document Word
-        doc = DocxDocument()
-        
-        # Configurer les styles de base
-        style = doc.styles['Normal']
-        style.font.name = 'Times New Roman'
-        style.font.size = Pt(12)
-        
-        # Ajouter le titre du document
-        title = doc.add_heading(document.original_filename, 0)
-        title.alignment = 1  # Centrer le titre
-        
-        # Ajouter des informations sur l'analyse
-        doc.add_paragraph(f"Score de plagiat: {analysis_result.plagiarism_score}%")
-        doc.add_paragraph(f"Score d'IA: {analysis_result.ai_score}%")
-        doc.add_paragraph("")  # Ligne vide
-        
-        # Récupérer les phrases highlightées depuis la base de données
+        from docx import Document as DocxDocument
+        import difflib
+        import os
+        # Chemin du fichier original
+        file_path = getattr(document, 'file_path', None)
+        if not file_path:
+            upload_dir = os.path.join(os.getcwd(), 'uploads')
+            file_path = os.path.join(upload_dir, document.original_filename)
+        doc = DocxDocument(file_path)
+
+        # Récupérer les phrases à surligner
         highlighted_sentences = HighlightedSentence.query.filter_by(
             document_id=document.id
         ).order_by('sentence_index').all()
-        
-        # Si aucune phrase highlightée n'est trouvée, utiliser le texte brut
-        if not highlighted_sentences:
-            paragraphs = (document.extracted_text or "").split('\n')
-            for paragraph in paragraphs:
-                if paragraph.strip():
-                    p = doc.add_paragraph(paragraph)
-        else:
-            # Ajouter le texte avec les soulignements appropriés
-            for hs in highlighted_sentences:
-                p = doc.add_paragraph()
-                
-                # Déterminer le style en fonction des scores
-                if hs.plagiarism_score > 30:  # Score de plagiat élevé
-                    run = p.add_run(hs.sentence_text + " ")
-                    run.font.color.rgb = RGBColor(200, 0, 0)  # Rouge
-                    run.underline = WD_UNDERLINE.SINGLE
-                elif hs.ai_score > 40:  # Score d'IA élevé
-                    run = p.add_run(hs.sentence_text + " ")
-                    run.font.color.rgb = RGBColor(0, 0, 200)  # Bleu
-                    run.underline = WD_UNDERLINE.SINGLE
-                else:
-                    # Texte normal sans formatage spécial
-                    p.add_run(hs.sentence_text + " ")
-        
-        # Sauvegarder le document temporaire
+        highlight_map = {}
+        for hs in highlighted_sentences:
+            plag_score = hs.plagiarism_score if hs.plagiarism_score is not None else 0
+            ai_score = hs.ai_score if hasattr(hs, 'ai_score') and hs.ai_score is not None else 0
+            if plag_score > 30:
+                highlight_map[hs.sentence_text.strip()] = RGBColor(200, 0, 0)
+            elif ai_score > 40:
+                highlight_map[hs.sentence_text.strip()] = RGBColor(0, 0, 200)
+
+        # Appliquer le soulignement/couleur sur les runs concernés
+        for para in doc.paragraphs:
+            for run in para.runs:
+                run_text = run.text.strip()
+                for sent, color in highlight_map.items():
+                    if run_text and difflib.SequenceMatcher(None, run_text, sent).ratio() > 0.95:
+                        run.font.underline = True
+                        run.font.color.rgb = color
+                        break
+
+        # Sauvegarder le document annoté (copie exacte de l'original, seul le soulignement est ajouté)
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix='.docx')
         doc.save(temp_file.name)
-        
         return temp_file.name
-        
     except Exception as e:
         logging.error(f"Erreur création document formaté: {e}")
         return None

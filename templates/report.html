@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ _('report_title') }} - {{ document.original_filename }} - AcadCheck{% endblock %}
+{% block title %}{{ _('report_title') }} - {{ document.original_filename }} - {{ BRAND_NAME }}{% endblock %}
 
 {% block head %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/pdf-viewer.css') }}">
@@ -401,6 +401,22 @@
         </div>
     </div>
 
+    <!-- Affichage interactif du document Word converti en HTML (Turnitin-like) -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom py-3">
+                    <h5 class="mb-0 fw-bold">
+                        <i class="fas fa-file-word me-2 text-primary"></i>Document Preview (Word)
+                    </h5>
+                </div>
+                <div class="card-body p-0" style="background:#f8f9fa;">
+                    <iframe src="{{ url_for('view_report_html', document_id=document.id) }}" style="width:100%; min-height:900px; border:none; background:white;" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Score Summary -->
     <div class="row g-4 mb-5">
         <!-- Plagiarism Score -->
@@ -480,72 +496,6 @@
         </div>
     </div>
 
-    <!-- Document Analysis with PDF Viewer Toggle -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card border-0 shadow-lg">
-                <div class="card-header bg-white border-bottom py-3">
-                    <h5 class="mb-0 fw-bold">
-                        <i class="fas fa-file-alt me-2 text-primary"></i>Document Analysis
-                    </h5>
-                    <div class="view-toggle-buttons mt-3">
-                        <button id="toggle-text-view" class="view-toggle-btn">
-                            <i class="fas fa-align-left"></i> Text View
-                        </button>
-                        <button id="toggle-pdf-view" class="view-toggle-btn">
-                            <i class="fas fa-file-pdf"></i> PDF View
-                        </button>
-                    </div>
-                </div>
-                
-                <div class="card-body p-0">
-                    <div id="pdf-viewer" data-pdf-url="{{ url_for('view_annotated_pdf', document_id=document.id) }}">
-                        <!-- Text View -->
-                        <div id="text-view">
-                            {% if highlighted_text %}
-                                <div class="document-text pro-doc-view">
-                                    {{ highlighted_text|safe }}
-                                </div>
-                            {% else %}
-                                <div class="text-center py-5">
-                                    <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
-                                    <h5 class="text-muted">Contenu non disponible pour analyse</h5>
-                                    <p class="text-muted">Le texte du document n'a pas pu être traité pour le soulignement.</p>
-                                </div>
-                            {% endif %}
-                        </div>
-                        
-                        <!-- PDF View -->
-                        <div id="pdf-view" style="display: none;">
-                            <div class="pdf-viewer-placeholder">
-                                <i class="fas fa-file-pdf fa-4x mb-3 text-primary"></i>
-                                <h5>PDF Viewer Loading...</h5>
-                                <p>Click the PDF View button to load the annotated PDF document.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Legend -->
-                <div class="card-footer bg-light border-0 py-3">
-                    <div class="row text-center">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center justify-content-center">
-                                <span class="highlight-plagiarism d-inline-block me-3 px-2" style="background-color: rgba(255, 235, 238, 0.7) !important; border-bottom: 2px solid #f44336 !important; padding: 2px 4px !important;">Exemple plagiat</span>
-                                <small class="text-muted">Contenu similaire trouvé dans sources académiques</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center justify-content-center">
-                                <span class="highlight-ai d-inline-block me-3 px-2" style="background-color: rgba(227, 242, 253, 0.7) !important; border-bottom: 2px solid #2196f3 !important; padding: 2px 4px !important;">Exemple IA</span>
-                                <small class="text-muted">Patterns formels typiques de génération automatique</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 </div>
 

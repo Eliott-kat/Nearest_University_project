@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% set active_page = "dashboard" %}
 
-{% block title %}{{ _('dashboard') }} - AcadCheck{% endblock %}
+{% block title %}{{ _('dashboard') }} - {{ BRAND_NAME }}{% endblock %}
 
 {% block head %}
 <!-- Preserve the original glassmorphism design -->
@@ -137,19 +137,9 @@
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <h1 class="h2 mb-1">
-                        {{ _('welcome_title') }},
-                        {% if user and user.first_name %}
-                            {{ user.first_name }}
-                        {% else %}
-                            {{ _('username') }}
-                        {% endif %}!
+                        Welcome to NEU AcadCheck
                     </h1>
                     <p class="text-muted">
-                        {% if user and user.role and user.role.value %}
-                            {{ user.role.value.title() }}
-                        {% else %}
-                            {{ _('user') }}
-                        {% endif %}
                         {{ _('dashboard') }}
                     </p>
                 </div>

@@ -23,5 +23,5 @@ if __name__ == '__main__':
     flask_thread = threading.Thread(target=start_flask, daemon=True)
     flask_thread.start()
     wait_for_flask("http://127.0.0.1:5000")
-    webview.create_window("AcademCheck", "http://127.0.0.1:5000")
+    webview.create_window("NEU-AcadCheck", "http://127.0.0.1:5000")
     webview.start(gui='edgechromium')

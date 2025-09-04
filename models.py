@@ -114,7 +114,10 @@ class HighlightedSentence(db.Model):
     # Type of issue
     is_plagiarism = db.Column(db.Boolean, default=False)
     is_ai_generated = db.Column(db.Boolean, default=False)
-    
+
+    # Plagiarism score (percentage, like in AnalysisResult)
+    plagiarism_score = db.Column(db.Float)  # Percentage
+
     # Confidence scores
     plagiarism_confidence = db.Column(db.Float)
     ai_confidence = db.Column(db.Float)

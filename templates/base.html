@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AcadCheck - Academic Integrity Platform{% endblock %}</title>
+    <title>{% block title %}{{ BRAND_NAME }} - Academic Integrity Platform{% endblock %}</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +31,7 @@
     <nav class="navbar navbar-expand-lg navbar-light">
         <div class="container">
             <a class="navbar-brand fw-bold" href="{{ url_for('index') }}">
-                <i class="fas fa-shield-alt me-2"></i>AcadCheck
+                <i class="fas fa-shield-alt me-2"></i>{{ BRAND_NAME }}
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -143,13 +143,11 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h6 class="fw-bold">AcadCheck</h6>
+                    <h6 class="fw-bold">{{ BRAND_NAME }}</h6>
                     <p class="text-muted small">Advanced academic integrity platform powered by AI-driven plagiarism and AI content detection.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
-                    <p class="text-muted small">
-                        &copy; {{ moment().year if moment else '2024' }} AcadCheck. Independent academic integrity platform.
-                    </p>
+                    <!-- Footer right section intentionally left blank -->
                 </div>
             </div>
         </div>

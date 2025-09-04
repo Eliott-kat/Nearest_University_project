@@ -18,7 +18,7 @@ class Translations:
             'profile': 'Profil',
             
             # Page d'accueil
-            'welcome_title': 'Bienvenue sur AcadCheck',
+            'welcome_title': 'Bienvenue sur {brand}',
             'welcome_subtitle': 'Plateforme d\'intégrité académique',
             'welcome_description': 'Analysez vos documents pour détecter le plagiat et le contenu généré par IA avec notre technologie avancée.',
             'get_started': 'Commencer',
@@ -181,7 +181,7 @@ class Translations:
             'profile': 'Profile',
             
             # Homepage
-            'welcome_title': 'Welcome to AcadCheck',
+            'welcome_title': 'Welcome to {brand}',
             'welcome_subtitle': 'Academic Integrity Platform',
             'welcome_description': 'Analyze your documents for plagiarism and AI-generated content with our advanced technology.',
             'get_started': 'Get Started',

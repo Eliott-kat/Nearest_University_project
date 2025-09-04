@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AcadCheck Analysis Report - {{ document.original_filename }}</title>
+    <title>{{ BRAND_NAME }} Analysis Report - {{ document.original_filename }}</title>
     <style>
         @page {
             margin: 2cm;
             @top-center {
-                content: "AcadCheck - Academic Integrity Report";
+                content: "{{ BRAND_NAME }} - Academic Integrity Report";
                 font-size: 12pt;
                 font-weight: bold;
                 color: #1e3a8a;
@@ -496,7 +496,7 @@
 
     <!-- Footer -->
     <div class="footer-info">
-        <p><strong>AcadCheck Academic Integrity Platform</strong></p>
+    <p><strong>{{ BRAND_NAME }} Academic Integrity Platform</strong></p>
         <p>This report was generated using advanced AI-powered plagiarism and content detection technology.</p>
         <p>For questions about this analysis, please contact your academic institution.</p>
     </div>
